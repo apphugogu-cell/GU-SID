@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rotar imágenes + Filtro + Paginación 50</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        h1 { text-align: center; }
+        #main-controls { text-align: center; margin: 30px 0; }
+        #save-all-btn { 
+            padding: 15px 30px; font-size: 18px; background: #d9534f; color: white; 
+            border: none; border-radius: 8px; cursor: pointer; display: none; 
+        }
+        #save-all-btn.enabled { display: inline-block; }
+        #save-all-btn:hover { background: #c9302c; }
+        #folder-button { text-align: center; margin-bottom: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 5px; }
+        
+        /* Filtros */
+        #filter-controls { text-align: center; margin: 20px 0; }
+        .filter-btn {
+            padding: 12px 24px; font-size: 16px; border: 2px solid #007bff; background: white; color: #007bff; border-radius: 6px;
+        }
+        .filter-btn.active { background: #007bff; color: white; }
+
+        /* Paginación */
+        #pagination-controls { text-align: center; margin: 30px 0; font-size: 18px; }
+        #pagination-controls button {
+            padding: 10px 20px; font-size: 16px; margin: 0 10px;
+            background: #007bff; color: white; border: none; border-radius: 6px;
+        }
+        #pagination-controls button:disabled {
+            background: #aaa; cursor: not-allowed;
+        }
+        #items-per-page {
+            padding: 8px; font-size: 16px; margin: 0 20px;
+        }
+
+        #gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .image-item { border: 1px solid #ddd; border-radius: 10px; padding: 15px; background: white; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .image-item.hidden { display: none; }
+        .image-container canvas { max-width: 100%; max-height: 300px; border: 1px solid #ccc; border-radius: 5px; background: #f0f0f0; }
+        .controls { margin-top: 10px; }
+        .controls button { padding: 8px 12px; margin: 0 5px; font-size: 14px; }
+        .path { font-size: 0.85em; color: #555; word-break: break-all; margin-top: 8px; }
+        .modified { border: 3px solid #d9534f; }
+        #status { margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Rotar imágenes en carpeta y sobrescribir</h1>
+    
+    <div id="folder-button">
+        <button id="pick-folder">Seleccionar carpeta con imágenes</button>
+        <p><small>Recomendado: Chrome o Edge recientes</small></p>
+    </div>
+
+    <div id="filter-controls" style="display:none;">
+        <button class="filter-btn active" data-filter="all">Todas las imágenes</button>
+        <button class="filter-btn" data-filter="horizontal">Horizontales (Paisaje)</button>
+        <button class="filter-btn" data-filter="vertical">Verticales (Retrato)</button>
+    </div>
+
+    <div id="pagination-controls" style="display:none;">
+        <button id="prev-page">← Anterior</button>
+        <span id="page-info"></span>
+        <button id="next-page">Siguiente →</button>
+        <label>
+            Mostrar:
+            <select id="items-per-page">
+                <option value="25">25</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+                <option value="999999">Todas</option>
+            </select>
+            por página
+        </label>
+    </div>
+
+    <div id="main-controls">
+        <button id="save-all-btn">GUARDAR TODAS LAS IMÁGENES MODIFICADAS</button>
+        <p id="status"></p>
+    </div>
+    
+    <div id="gallery"></div>
+
+    <script>
+        const pickFolderBtn = document.getElementById('pick-folder');
+        const saveAllBtn = document.getElementById('save-all-btn');
+        const status = document.getElementById('status');
+        const gallery = document.getElementById('gallery');
+        const filterControls = document.getElementById('filter-controls');
+        const paginationControls = document.getElementById('pagination-controls');
+        const prevBtn = document.getElementById('prev-page');
+        const nextBtn = document.getElementById('next-page');
+        const pageInfo = document.getElementById('page-info');
+        const itemsPerPageSelect = document.getElementById('items-per-page');
+
+        const modifiedImages = new Set();
+        let allImageItems = []; // {element, naturalWidth, naturalHeight}
+        let currentFilter = 'all';
+        let currentPage = 1;
+        let itemsPerPage = 50;
+
+        // Eventos de filtro
+        filterControls.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-btn')) {
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.filter;
+                currentPage = 1;
+                updateView();
+            }
+        });
+
+        // Eventos de paginación
+        prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; updateView(); } };
+        nextBtn.onclick = () => { if (currentPage < getTotalPages()) { currentPage++; updateView(); } };
+        itemsPerPageSelect.onchange = () => {
+            itemsPerPage = parseInt(itemsPerPageSelect.value);
+            currentPage = 1;
+            updateView();
+        };
+
+        function getFilteredItems() {
+            return allImageItems.filter(item => {
+                if (currentFilter === 'all') return true;
+                if (currentFilter === 'horizontal') return item.naturalWidth > item.naturalHeight;
+                if (currentFilter === 'vertical') return item.naturalHeight > item.naturalWidth;
+                return true;
+            });
+        }
+
+        function getTotalPages() {
+            const filteredCount = getFilteredItems().length;
+            return Math.ceil(filteredCount / itemsPerPage);
+        }
+
+        function updateView() {
+            const filtered = getFilteredItems();
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+
+            allImageItems.forEach(item => {
+                item.element.classList.add('hidden');
+            });
+
+            filtered.slice(start, end).forEach(item => {
+                item.element.classList.remove('hidden');
+            });
+
+            // Actualizar info de página
+            pageInfo.textContent = `Página ${currentPage} de ${getTotalPages()} (${filtered.length} imágenes visibles)`;
+
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= getTotalPages();
+        }
+
+        saveAllBtn.addEventListener('click', async () => {
+            if (modifiedImages.size === 0) {
+                alert('No hay imágenes modificadas para guardar.');
+                return;
+            }
+
+            saveAllBtn.disabled = true;
+            status.textContent = `Guardando ${modifiedImages.size} imágenes...`;
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const item of modifiedImages) {
+                try {
+                    const blob = await new Promise(resolve => item.canvas.toBlob(resolve, item.file.type || 'image/jpeg', 0.95));
+                    const writable = await item.fileHandle.createWritable();
+                    await writable.write(blob);
+                    await writable.truncate(blob.size);
+                    await writable.close();
+                    successCount++;
+                    item.element.classList.remove('modified');
+                } catch (err) {
+                    console.error(err);
+                    errorCount++;
+                }
+            }
+
+            modifiedImages.clear();
+            saveAllBtn.classList.remove('enabled');
+
+            status.textContent = `¡Listo! ${successCount} guardadas correctamente.${errorCount > 0 ? ` ${errorCount} con error.` : ''}`;
+            setTimeout(() => { status.textContent = ''; }, 6000);
+            saveAllBtn.disabled = false;
+        });
+
+        pickFolderBtn.addEventListener('click', async () => {
+            try {
+                const dirHandle = await window.showDirectoryPicker();
+                gallery.innerHTML = '<p style="text-align:center; grid-column: 1 / -1;">Cargando imágenes de la carpeta y subcarpetas...</p>';
+                modifiedImages.clear();
+                allImageItems = [];
+                saveAllBtn.classList.remove('enabled');
+                status.textContent = '';
+                filterControls.style.display = 'block';
+                paginationControls.style.display = 'block';
+
+                const imageEntries = [];
+                await collectImagesRecursively(dirHandle, '', imageEntries);
+
+                if (imageEntries.length === 0) {
+                    gallery.innerHTML = '<p style="text-align:center;">No se encontraron imágenes.</p>';
+                    filterControls.style.display = 'none';
+                    paginationControls.style.display = 'none';
+                    return;
+                }
+
+                gallery.innerHTML = '';
+                for (const {fileHandle, relativePath, file} of imageEntries) {
+                    await createImageItem(fileHandle, relativePath, file);
+                }
+
+                currentPage = 1;
+                updateView();
+
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    alert('Error: ' + err.message);
+                }
+            }
+        });
+
+        async function collectImagesRecursively(dirHandle, relativePath, results) {
+            for await (const entry of dirHandle.values()) {
+                const newPath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
+                if (entry.kind === 'file' && entry.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i)) {
+                    const file = await entry.getFile();
+                    results.push({fileHandle: entry, relativePath: newPath, file});
+                } else if (entry.kind === 'directory') {
+                    await collectImagesRecursively(entry, newPath, results);
+                }
+            }
+        }
+
+        async function createImageItem(fileHandle, relativePath, originalFile) {
+            const url = URL.createObjectURL(originalFile);
+
+            const item = document.createElement('div');
+            item.className = 'image-item hidden'; // oculto hasta que se aplique paginación
+
+            const container = document.createElement('div');
+            container.className = 'image-container';
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            const img = new Image();
+            img.src = url;
+
+            let angle = 0;
+
+            img.onload = () => {
+                redraw();
+
+                // Guardar datos para filtro y paginación
+                const itemData = {
+                    element: item,
+                    naturalWidth: img.naturalWidth,
+                    naturalHeight: img.naturalHeight
+                };
+                allImageItems.push(itemData);
+            };
+
+            function redraw() {
+                const ow = img.naturalWidth;
+                const oh = img.naturalHeight;
+
+                let cw = ow;
+                let ch = oh;
+                if (Math.abs(angle % 360) === 90 || Math.abs(angle % 360) === 270) {
+                    cw = oh;
+                    ch = ow;
+                }
+
+                canvas.width = cw;
+                canvas.height = ch;
+
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, cw, ch);
+
+                ctx.save();
+                ctx.translate(cw / 2, ch / 2);
+                ctx.rotate((angle % 360) * Math.PI / 180);
+                ctx.drawImage(img, -ow / 2, -oh / 2, ow, oh);
+                ctx.restore();
+            }
+
+            container.appendChild(canvas);
+
+            const controls = document.createElement('div');
+            controls.className = 'controls';
+
+            const btnLeft = document.createElement('button');
+            btnLeft.textContent = '↺ -90°';
+            btnLeft.onclick = () => { angle -= 90; redraw(); markModified(); };
+
+            const btnRight = document.createElement('button');
+            btnRight.textContent = '↻ +90°';
+            btnRight.onclick = () => { angle += 90; redraw(); markModified(); };
+
+            const btnReset = document.createElement('button');
+            btnReset.textContent = 'Restablecer';
+            btnReset.onclick = () => { angle = 0; redraw(); unmarkModified(); };
+
+            controls.appendChild(btnLeft);
+            controls.appendChild(btnRight);
+            controls.appendChild(btnReset);
+
+            const path = document.createElement('div');
+            path.className = 'path';
+            path.textContent = relativePath;
+
+            item.appendChild(container);
+            item.appendChild(controls);
+            item.appendChild(path);
+            gallery.appendChild(item);
+
+            function markModified() {
+                if (angle % 360 !== 0) {
+                    item.classList.add('modified');
+                    modifiedImages.add({fileHandle, canvas, file: originalFile, element: item});
+                    saveAllBtn.classList.add('enabled');
+                }
+            }
+
+            function unmarkModified() {
+                if (angle % 360 === 0) {
+                    item.classList.remove('modified');
+                    modifiedImages.delete({fileHandle, canvas, file: originalFile, element: item});
+                    if (modifiedImages.size === 0) {
+                        saveAllBtn.classList.remove('enabled');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
