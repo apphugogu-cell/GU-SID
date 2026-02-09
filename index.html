@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es" class="bg-gray-50">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GU - Medidores y Herramientas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-blue-700 text-white py-8 shadow-lg">
+    <div class="container mx-auto px-6 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold">Grupo Uralmo - Medidores & Calculadoras</h1>
+      <p class="mt-3 text-lg md:text-xl opacity-90">Herramientas prácticas para consumo eléctrico, agua, energía solar y más</p>
+    </div>
+  </header>
+
+  <!-- Contenido principal -->
+  <main class="container mx-auto px-6 py-12 flex-grow">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+      <!-- 1. Consumo Eléctrico -->
+      <a href="energia-consumo/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+        <div class="h-2 bg-blue-600"></div>
+        <div class="p-6">
+          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-blue-700">Consumo Eléctrico</h2>
+          <p class="mt-2 text-gray-600 text-sm">kWh y costo mensual de aparatos</p>
+          <span class="mt-4 inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">Energía</span>
+        </div>
+      </a>
+
+      <!-- 2. Consumo de Agua -->
+      <a href="agua-consumo/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+        <div class="h-2 bg-cyan-600"></div>
+        <div class="p-6">
+          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-cyan-700">Consumo de Agua</h2>
+          <p class="mt-2 text-gray-600 text-sm">m³ usados + costo + alertas</p>
+          <span class="mt-4 inline-block bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-xs font-medium">Agua</span>
+        </div>
+      </a>
+
+      <!-- 3. Caída de Tensión -->
+      <a href="caida-tension/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+        <div class="h-2 bg-indigo-600"></div>
+        <div class="p-6">
+          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-indigo-700">Caída de Tensión</h2>
+          <p class="mt-2 text-gray-600 text-sm">En cables eléctricos (cobre/aluminio)</p>
+          <span class="mt-4 inline-block bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-medium">Eléctrico</span>
+        </div>
+      </a>
+
+      <!-- 4. Potencia Instalada -->
+      <a href="potencia-instalada/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+        <div class="h-2 bg-purple-600"></div>
+        <div class="p-6">
+          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-purple-700">Potencia Instalada</h2>
+          <p class="mt-2 text-gray-600 text-sm">Suma total de aparatos en vivienda</p>
+          <span class="mt-4 inline-block bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium">Instalación</span>
+        </div>
+      </a>
+
+      <!-- 5. Factor de Potencia -->
+      <a href="factor-potencia/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+        <div class="h-2 bg-amber-600"></div>
+        <div class="p-6">
+          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-amber-700">Factor de Potencia</h2>
+          <p class="mt-2 text-gray-600 text-sm">Cálculo básico FP (kW / kVA)</p>
+          <span class="mt-4 inline-block bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-medium">Eléctrico</span>
+        </div>
+      </a>
+
+      <!-- 6. Costo Aire Acondicionado -->
+      <a href="costo-aire/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+        <div class="h-2 bg-teal-600"></div>
+        <div class="p-6">
+          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-teal-700">Costo Aire Acondicionado</h2>
+          <p class="mt-2 text-gray-600 text-sm">Consumo mensual de A/A o ventiladores</p>
+          <span class="mt-4 inline-block bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-xs font-medium">Climatización</span>
+        </div>
+      </a>
+
+      <!-- 7. Iluminación Eficiente -->
+      <a href="iluminacion-eficiente/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+        <div class="h-2 bg-yellow-600"></div>
+        <div class="p-6">
+          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-yellow-700">Iluminación Eficiente</h2>
+          <p class="mt-2 text-gray-600 text-sm">Comparativa foco tradicional vs LED</p>
+          <span class="mt-4 inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium">Ahorro</span>
+        </div>
+      </a>
+
+      <!-- 8. Panel Solar Básico -->
+      <a href="panel-solar/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+        <div class="h-2 bg-emerald-600"></div>
+        <div class="p-6">
+          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-emerald-700">Panel Solar Básico</h2>
+          <p class="mt-2 text-gray-600 text-sm">¿Cuántos paneles necesito?</p>
+          <span class="mt-4 inline-block bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-medium">Solar</span>
+        </div>
+      </a>
+
+      <!-- 9. Bomba de Agua Consumo -->
+      <a href="bomba-agua/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+        <div class="h-2 bg-sky-600"></div>
+        <div class="p-6">
+          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-sky-700">Bomba de Agua</h2>
+          <p class="mt-2 text-gray-600 text-sm">Consumo eléctrico de bombas</p>
+          <span class="mt-4 inline-block bg-sky-100 text-sky-800 px-3 py-1 rounded-full text-xs font-medium">Agua</span>
+        </div>
+      </a>
+
+      <!-- 10. Generador Eléctrico -->
+      <a href="generador/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+        <div class="h-2 bg-red-600"></div>
+        <div class="p-6">
+          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-red-700">Generador Eléctrico</h2>
+          <p class="mt-2 text-gray-600 text-sm">Dimensionamiento grupo electrógeno</p>
+          <span class="mt-4 inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-medium">Respaldo</span>
+        </div>
+      </a>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-gray-300 py-6 text-center mt-auto">
+    <p class="text-sm">© 2026 Grupo Uralmo • Laredo, La Libertad, Perú</p>
+    <p class="text-xs mt-2 opacity-80">Herramientas desarrolladas para un mejor control de recursos</p>
+  </footer>
+
+</body>
+</html>
