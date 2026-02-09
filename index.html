@@ -1,132 +1,131 @@
 <!DOCTYPE html>
-<html lang="es" class="bg-gray-50">
+<html lang="es" class="bg-gray-50 dark:bg-gray-900">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>GU - Medidores y Herramientas</title>
+  <title>GU - Med2</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
+<body class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col">
 
-  <!-- Header -->
-  <header class="bg-blue-700 text-white py-8 shadow-lg">
-    <div class="container mx-auto px-6 text-center">
-      <h1 class="text-4xl md:text-5xl font-bold">Grupo Uralmo - Medidores 2</h1>
-      <p class="mt-3 text-lg md:text-xl opacity-90">Herramientas prácticas y más</p>
+  <!-- Header compacto -->
+  <header class="bg-blue-700 text-white py-6 shadow-md">
+    <div class="container mx-auto px-4 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold">Grupo Uralmo - Med2</h1>
+      <p class="mt-1 text-base opacity-90">Herramientas rápidas</p>
     </div>
   </header>
 
-  <!-- Contenido principal -->
-  <main class="container mx-auto px-6 py-12 flex-grow">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+  <!-- Main más compacto -->
+  <main class="container mx-auto px-4 py-8 flex-grow">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
 
-      <!-- app1: Consumo Eléctrico -->
-      <a href="app1/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+      <!-- app1 -->
+      <a href="app1/index.html" class="group bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border border-gray-200 dark:border-gray-700">
         <div class="h-2 bg-blue-600"></div>
-        <div class="p-6">
-          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-blue-700">Renombrar archivos - Med2 (img)</h2>
-          <p class="mt-2 text-gray-600 text-sm">Sirve para renombrar, eliminar y rotar img</p>
-          <span class="mt-4 inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">orden y nombrar</span>
+        <div class="p-5">
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400">Renombrar archivos - Med2 (img)</h2>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Renombrar, eliminar y rotar imágenes</p>
+          <span class="mt-3 inline-block bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-xs">orden y nombrar</span>
         </div>
       </a>
 
-      <!-- app2: Consumo de Agua -->
-      <a href="app2/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+      <!-- app2 -->
+      <a href="app2/index.html" class="group bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border border-gray-200 dark:border-gray-700">
         <div class="h-2 bg-cyan-600"></div>
-        <div class="p-6">
-          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-cyan-700">Eliminar archivos masivamente</h2>
-          <p class="mt-2 text-gray-600 text-sm">carga la carpeta principal, selecciona y elimina (>10mil)</p>
-          <span class="mt-4 inline-block bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-xs font-medium">Suprimir</span>
+        <div class="p-5">
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 group-hover:text-cyan-600 dark:group-hover:text-cyan-400">Eliminar archivos masivamente</h2>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Elimina >10 mil archivos de carpeta</p>
+          <span class="mt-3 inline-block bg-cyan-100 dark:bg-cyan-900/30 text-cyan-800 dark:text-cyan-200 px-3 py-1 rounded-full text-xs">Suprimir</span>
         </div>
       </a>
 
-      <!-- app3: Caída de Tensión -->
-      <a href="app3/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+      <!-- app3 -->
+      <a href="app3/index.html" class="group bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border border-gray-200 dark:border-gray-700">
         <div class="h-2 bg-indigo-600"></div>
-        <div class="p-6">
-          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-indigo-700">Recorte de Imagen</h2>
-          <p class="mt-2 text-gray-600 text-sm">Si tu imagen esta en un formato A4, te brinda solo la imagen</p>
-          <span class="mt-4 inline-block bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-medium">Imagen</span>
+        <div class="p-5">
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">Recorte de Imagen</h2>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Extrae foto de formato A4</p>
+          <span class="mt-3 inline-block bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-200 px-3 py-1 rounded-full text-xs">Imagen</span>
         </div>
       </a>
 
-      <!-- app4: Potencia Instalada -->
-      <a href="app4/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+      <!-- app4 -->
+      <a href="app4/index.html" class="group bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border border-gray-200 dark:border-gray-700">
         <div class="h-2 bg-purple-600"></div>
-        <div class="p-6">
-          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-purple-700">Rotar Imagenes masiva</h2>
-          <p class="mt-2 text-gray-600 text-sm">Se rota imagenes independiente, o masivamente en horizontales o verticales</p>
-          <span class="mt-4 inline-block bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium">Giro</span>
+        <div class="p-5">
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 group-hover:text-purple-600 dark:group-hover:text-purple-400">Rotar Imágenes masiva</h2>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Rotación individual o en lote</p>
+          <span class="mt-3 inline-block bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 px-3 py-1 rounded-full text-xs">Giro</span>
         </div>
       </a>
 
-      <!-- app5: Factor de Potencia -->
-      <a href="app5/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+      <!-- app5 -->
+      <a href="app5/index.html" class="group bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border border-gray-200 dark:border-gray-700">
         <div class="h-2 bg-amber-600"></div>
-        <div class="p-6">
-          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-amber-700">Mapa de Seguimiento</h2>
-          <p class="mt-2 text-gray-600 text-sm">Se ingresa el Nº Suminitro y se muestra en el Mapa</p>
-          <span class="mt-4 inline-block bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-medium">Mapa</span>
+        <div class="p-5">
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 group-hover:text-amber-600 dark:group-hover:text-amber-400">Mapa de Seguimiento</h2>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Nº Suministro → mapa</p>
+          <span class="mt-3 inline-block bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 px-3 py-1 rounded-full text-xs">Mapa</span>
         </div>
       </a>
 
-      <!-- app6: Costo Aire Acondicionado -->
-      <a href="app6/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+      <!-- app6 -->
+      <a href="app6/index.html" class="group bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border border-gray-200 dark:border-gray-700">
         <div class="h-2 bg-teal-600"></div>
-        <div class="p-6">
-          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-teal-700">Panel Fotografico V1.0</h2>
-          <p class="mt-2 text-gray-600 text-sm">Panle fotografico 2x2 - 2x4 con descripcion</p>
-          <span class="mt-4 inline-block bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-xs font-medium">reporte fotografico</span>
+        <div class="p-5">
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 group-hover:text-teal-600 dark:group-hover:text-teal-400">Panel Fotográfico V1.0</h2>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Galería 2×2 / 2×4 + descripción</p>
+          <span class="mt-3 inline-block bg-teal-100 dark:bg-teal-900/30 text-teal-800 dark:text-teal-200 px-3 py-1 rounded-full text-xs">Galería</span>
         </div>
       </a>
 
-      <!-- app7: Iluminación Eficiente -->
-      <a href="app7/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+      <!-- app7 -->
+      <a href="app7/index.html" class="group bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border border-gray-200 dark:border-gray-700">
         <div class="h-2 bg-yellow-600"></div>
-        <div class="p-6">
-          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-yellow-700">Iluminación Eficiente</h2>
-          <p class="mt-2 text-gray-600 text-sm">Comparativa foco tradicional vs LED</p>
-          <span class="mt-4 inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium">Ahorro</span>
+        <div class="p-5">
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 group-hover:text-yellow-600 dark:group-hover:text-yellow-400">Iluminación Eficiente</h2>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Comparativa tradicional vs LED</p>
+          <span class="mt-3 inline-block bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 px-3 py-1 rounded-full text-xs">Ahorro</span>
         </div>
       </a>
 
-      <!-- app8: Panel Solar Básico -->
-      <a href="app8/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+      <!-- app8 -->
+      <a href="app8/index.html" class="group bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border border-gray-200 dark:border-gray-700">
         <div class="h-2 bg-emerald-600"></div>
-        <div class="p-6">
-          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-emerald-700">Panel Solar Básico</h2>
-          <p class="mt-2 text-gray-600 text-sm">¿Cuántos paneles necesito?</p>
-          <span class="mt-4 inline-block bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-medium">Solar</span>
+        <div class="p-5">
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">Panel Solar Básico</h2>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">¿Cuántos paneles necesito?</p>
+          <span class="mt-3 inline-block bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 px-3 py-1 rounded-full text-xs">Solar</span>
         </div>
       </a>
 
-      <!-- app9: Bomba de Agua Consumo -->
-      <a href="app9/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+      <!-- app9 -->
+      <a href="app9/index.html" class="group bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border border-gray-200 dark:border-gray-700">
         <div class="h-2 bg-sky-600"></div>
-        <div class="p-6">
-          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-sky-700">Bomba de Agua</h2>
-          <p class="mt-2 text-gray-600 text-sm">Consumo eléctrico de bombas</p>
-          <span class="mt-4 inline-block bg-sky-100 text-sky-800 px-3 py-1 rounded-full text-xs font-medium">Suprimir</span>
+        <div class="p-5">
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 group-hover:text-sky-600 dark:group-hover:text-sky-400">Bomba de Agua</h2>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Consumo eléctrico de bombas</p>
+          <span class="mt-3 inline-block bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 px-3 py-1 rounded-full text-xs">Agua</span>
         </div>
       </a>
 
-      <!-- app10: Generador Eléctrico -->
-      <a href="app10/index.html" class="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+      <!-- app10 -->
+      <a href="app10/index.html" class="group bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border border-gray-200 dark:border-gray-700">
         <div class="h-2 bg-red-600"></div>
-        <div class=10:45 08/02/2026"p-6">
-          <h2 class="text-xl font-semibold text-gray-800 group-hover:text-red-700">Generador Eléctrico</h2>
-          <p class="mt-2 text-gray-600 text-sm">Dimensionamiento grupo electrógeno</p>
-          <span class="mt-4 inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-medium">Respaldo</span>
+        <div class="p-5">
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 group-hover:text-red-600 dark:group-hover:text-red-400">Generador Eléctrico</h2>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Dimensionamiento grupo electrógeno</p>
+          <span class="mt-3 inline-block bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 px-3 py-1 rounded-full text-xs">Respaldo</span>
         </div>
       </a>
 
     </div>
   </main>
 
-  <!-- Footer -->
-  <footer class="bg-gray-800 text-gray-300 py-6 text-center mt-auto">
-    <p class="text-sm">© 2026 Grupo Uralmo • Laredo, La Libertad, Perú</p>
-    <p class="text-xs mt-2 opacity-80">Herramientas desarrolladas para un mejor control de recursos</p>
+  <!-- Footer compacto -->
+  <footer class="bg-gray-900 text-gray-400 py-4 text-center text-sm">
+    © 2026 Grupo Uralmo • Laredo, La Libertad, Perú
   </footer>
 
 </body>
