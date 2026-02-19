@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eliminador Masivo de Fotos - 20 Columnas</title>
+    <title>Eliminador Masivo de Fotos - 20 Columnas (con progreso detallado)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -37,6 +37,11 @@
             display: none;
         }
         #delete-selected.visible { display: inline-block; }
+        #cancel-analysis {
+            background: #ffc107;
+            color: #212529;
+            display: none;
+        }
 
         #pagination {
             margin: 30px 0;
@@ -143,6 +148,75 @@
             font-size: 1.1em;
             color: #333;
         }
+
+        .white-detect-controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        .white-detect-controls input[type="number"] {
+            width: 80px;
+            padding: 6px;
+            font-size: 16px;
+        }
+
+        /* ── Progreso ── */
+        #progress-section {
+            display: none;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+        .phase {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            text-align: left;
+        }
+        progress {
+            width: 100%;
+            height: 28px;
+            border-radius: 6px;
+        }
+        progress::-webkit-progress-bar {
+            background: #e9ecef;
+            border-radius: 6px;
+        }
+        progress::-webkit-progress-value {
+            background: #28a745;
+            border-radius: 6px;
+        }
+        progress::-moz-progress-bar {
+            background: #28a745;
+            border-radius: 6px;
+        }
+        .phase strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        .phase div {
+            margin-top: 8px;
+            font-weight: bold;
+            color: #343a40;
+        }
+        #phase-complete {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 20px 0;
+        }
+        #warning-large {
+            color: #dc3545;
+            font-weight: bold;
+            margin: 15px;
+            font-size: 1.1em;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -152,6 +226,45 @@
     <div id="controls">
         <button id="pick-folder">Seleccionar Carpeta con Fotos</button>
         <button id="delete-selected">ELIMINAR SELECCIONADAS (0)</button>
+
+        <div class="white-detect-controls">
+            <strong>Auto-seleccionar:</strong><br><br>
+            <label>Umbral- Doc(%): 
+                <input type="number" id="white-threshold" min="0" max="100" value="85">
+            </label>
+            <button id="auto-select-white">Seleccionar ≥ umbral</button>
+            <button id="cancel-analysis">Cancelar análisis</button>
+            <button id="clear-selection">Deseleccionar todo</button>
+        </div>
+    </div>
+
+    <div id="progress-section">
+        <div id="phase-load" class="phase" style="display:none;">
+            <strong>Fase 1: Escaneando carpeta y subcarpetas</strong>
+            <progress id="prog-load" value="0" max="100"></progress>
+            <div id="text-load">0 / 0 entradas</div>
+        </div>
+
+        <div id="phase-analyze" class="phase" style="display:none;">
+            <strong>Fase 2: Analizando imágenes (detección de blancura)</strong>
+            <progress id="prog-analyze" value="0" max="100"></progress>
+            <div id="text-analyze">0 / 0 imágenes (0%) — 0 seleccionadas</div>
+        </div>
+
+        <div id="phase-delete" class="phase" style="display:none;">
+            <strong>Fase 3: Eliminando imágenes seleccionadas</strong>
+            <progress id="prog-delete" value="0" max="100"></progress>
+            <div id="text-delete">0 / 0 imágenes</div>
+        </div>
+
+        <div id="phase-complete" style="display:none;">
+            ¡Proceso completado!
+        </div>
+    </div>
+
+    <div id="warning-large">
+        ⚠️ Detectadas muchas imágenes (>8.000). El análisis puede tardar varios minutos y consumir mucha memoria. 
+        Recomendación: divide la carpeta en subcarpetas más pequeñas.
     </div>
 
     <div id="pagination" style="display:none;">
@@ -178,6 +291,7 @@
     <script>
         const pickBtn = document.getElementById('pick-folder');
         const deleteBtn = document.getElementById('delete-selected');
+        const cancelBtn = document.getElementById('cancel-analysis');
         const status = document.getElementById('status');
         const gallery = document.getElementById('gallery');
         const pagination = document.getElementById('pagination');
@@ -185,33 +299,58 @@
         const nextBtn = document.getElementById('next-page');
         const pageInfo = document.getElementById('page-info');
         const itemsPerPageSelect = document.getElementById('items-per-page');
+        const warning = document.getElementById('warning-large');
+
+        const whiteThresholdInput = document.getElementById('white-threshold');
+        const autoSelectBtn = document.getElementById('auto-select-white');
+        const clearBtn = document.getElementById('clear-selection');
 
         let dirHandle = null;
-        let allImages = [];
+        let allImageHandles = [];
+        let currentImages = [];
         let selected = new Set();
         let currentPage = 1;
         let itemsPerPage = 50;
+        let isAnalyzing = false;
+        let abortAnalysis = false;
 
-        prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderPage(); } };
-        nextBtn.onclick = () => { if (currentPage < totalPages()) { currentPage++; renderPage(); } };
+        prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; loadAndRenderPage(); } };
+        nextBtn.onclick = () => { if (currentPage < totalPages()) { currentPage++; loadAndRenderPage(); } };
         itemsPerPageSelect.onchange = () => {
             itemsPerPage = parseInt(itemsPerPageSelect.value);
             currentPage = 1;
-            renderPage();
+            loadAndRenderPage();
         };
 
         function totalPages() {
-            return Math.ceil(allImages.length / itemsPerPage);
+            return Math.ceil(allImageHandles.length / itemsPerPage);
+        }
+
+        async function loadAndRenderPage() {
+            await loadPageImages();
+            renderPage();
+        }
+
+        async function loadPageImages() {
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const slice = allImageHandles.slice(start, end);
+
+            currentImages = [];
+            for (const item of slice) {
+                try {
+                    const file = await item.handle.getFile();
+                    currentImages.push({ fileHandle: item.handle, file, name: item.name });
+                } catch (e) {
+                    console.warn('No se pudo cargar:', item.name);
+                }
+            }
         }
 
         function renderPage() {
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageImages = allImages.slice(start, end);
-
             gallery.innerHTML = '';
 
-            pageImages.forEach(item => {
+            currentImages.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'image-item';
                 if (selected.has(item.fileHandle)) div.classList.add('selected');
@@ -225,6 +364,7 @@
                 const url = URL.createObjectURL(item.file);
                 const img = document.createElement('img');
                 img.src = url;
+                img.onload = () => URL.revokeObjectURL(url);
 
                 const p = document.createElement('p');
                 p.textContent = item.name;
@@ -251,7 +391,7 @@
             addArea.ondrop = e => { e.preventDefault(); addArea.classList.remove('dragover'); handleDrop(e.dataTransfer.files); };
             gallery.appendChild(addArea);
 
-            pageInfo.textContent = `Página ${currentPage} de ${totalPages()} (${allImages.length} imágenes totales)`;
+            pageInfo.textContent = `Página ${currentPage} de ${totalPages()} (${allImageHandles.length} imágenes totales)`;
             prevBtn.disabled = currentPage === 1;
             nextBtn.disabled = currentPage === totalPages();
             updateDeleteButton();
@@ -275,13 +415,22 @@
 
         async function performDeletion() {
             if (selected.size === 0) return;
-            if (!confirm(`¿Eliminar permanentemente ${selected.size} imágenes? Esta acción no se puede deshacer.`)) return;
+            if (!confirm(`¿Eliminar permanentemente ${selected.size} imágenes?`)) return;
+
+            document.getElementById('progress-section').style.display = 'block';
+            document.getElementById('phase-delete').style.display = 'block';
+            document.getElementById('prog-delete').value = 0;
+            document.getElementById('text-delete').textContent = `0 / ${selected.size}`;
 
             deleteBtn.disabled = true;
-            status.textContent = `Eliminando ${selected.size} imágenes...`;
+            status.textContent = 'Eliminando...';
 
             let deleted = 0;
-            for (const handle of selected) {
+            const total = selected.size;
+            const arraySelected = [...selected];
+
+            for (let i = 0; i < total; i++) {
+                const handle = arraySelected[i];
                 try {
                     const parentDir = await getParentDirectoryHandle(handle);
                     if (parentDir) {
@@ -291,13 +440,26 @@
                 } catch (err) {
                     console.error(err);
                 }
+
+                const percent = Math.round(((i + 1) / total) * 100);
+                document.getElementById('prog-delete').value = percent;
+                document.getElementById('text-delete').textContent = `${deleted} / ${total} (${percent}%) eliminadas`;
+                await new Promise(r => setTimeout(r, 0));
             }
 
             selected.clear();
-            await loadAllImages();
+            allImageHandles = allImageHandles.filter(h => !arraySelected.includes(h.handle));
+            currentPage = 1;
+            await loadAndRenderPage();
+
+            document.getElementById('phase-delete').style.display = 'none';
+            document.getElementById('phase-complete').style.display = 'block';
             status.textContent = `¡Eliminadas ${deleted} imágenes correctamente!`;
-            setTimeout(() => status.textContent = '', 5000);
             deleteBtn.disabled = false;
+            setTimeout(() => {
+                document.getElementById('phase-complete').style.display = 'none';
+                document.getElementById('progress-section').style.display = 'none';
+            }, 5000);
         }
 
         deleteBtn.onclick = performDeletion;
@@ -305,9 +467,7 @@
         async function getParentDirectoryHandle(fileHandle) {
             async function search(dir, targetName) {
                 for await (const entry of dir.values()) {
-                    if (entry.kind === 'file' && entry.name === targetName) {
-                        return dir;
-                    }
+                    if (entry.kind === 'file' && entry.name === targetName) return dir;
                     if (entry.kind === 'directory') {
                         const found = await search(entry, targetName);
                         if (found) return found;
@@ -318,28 +478,23 @@
             return await search(dirHandle, fileHandle.name);
         }
 
-        async function loadAllImages() {
-            allImages = [];
-            await collectImages(dirHandle, '');
-            allImages.sort((a, b) => a.path.localeCompare(b.path));
-            currentPage = 1;
-            renderPage();
-            pagination.style.display = allImages.length > 0 ? 'block' : 'none';
-        }
+        async function collectImageHandles(handle, path = '') {
+            let scanned = 0;
+            const updateProgress = () => {
+                scanned++;
+                const percent = Math.min(99, Math.round(scanned / (scanned + 50) * 100)); // estimado
+                document.getElementById('prog-load').value = percent;
+                document.getElementById('text-load').textContent = `Escaneadas ~${scanned.toLocaleString()} entradas`;
+            };
 
-        async function collectImages(handle, path) {
             for await (const entry of handle.values()) {
+                if (abortAnalysis) return;
+                updateProgress();
                 const fullPath = path ? `${path}/${entry.name}` : entry.name;
                 if (entry.kind === 'file' && entry.name.match(/\.(jpg|jpeg|png|gif|webp|bmp|avif)$/i)) {
-                    const file = await entry.getFile();
-                    allImages.push({
-                        fileHandle: entry,
-                        file,
-                        name: entry.name,
-                        path: fullPath
-                    });
+                    allImageHandles.push({ handle: entry, name: entry.name, path: fullPath });
                 } else if (entry.kind === 'directory') {
-                    await collectImages(entry, fullPath);
+                    await collectImageHandles(entry, fullPath);
                 }
             }
         }
@@ -347,15 +502,124 @@
         pickBtn.onclick = async () => {
             try {
                 dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-                status.textContent = 'Cargando todas las imágenes de la carpeta y subcarpetas...';
-                selected.clear();
-                await loadAllImages();
-                status.textContent = `¡Listo! Se encontraron ${allImages.length} imágenes.`;
+                document.getElementById('progress-section').style.display = 'block';
+                document.getElementById('phase-load').style.display = 'block';
+                document.getElementById('prog-load').value = 0;
+                document.getElementById('text-load').textContent = 'Iniciando escaneo...';
+
+                allImageHandles = [];
+                await collectImageHandles(dirHandle);
+
+                document.getElementById('prog-load').value = 100;
+                document.getElementById('text-load').textContent = `¡Escaneo completo! ${allImageHandles.length.toLocaleString()} imágenes encontradas`;
+                setTimeout(() => {
+                    document.getElementById('phase-load').style.display = 'none';
+                }, 2000);
+
+                if (allImageHandles.length > 8000) warning.style.display = 'block';
+
+                currentPage = 1;
+                await loadAndRenderPage();
+                pagination.style.display = 'block';
+                status.textContent = `Listo. ${allImageHandles.length} imágenes cargadas.`;
             } catch (err) {
                 if (err.name !== 'AbortError') {
                     alert('Error: ' + err.message);
                 }
+                document.getElementById('progress-section').style.display = 'none';
             }
+        };
+
+        function analyzeWhitePercentage(file) {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 64;
+                    canvas.height = 64 * (img.height / img.width) || 64;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    let whiteCount = 0;
+                    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                    const total = canvas.width * canvas.height;
+
+                    for (let i = 0; i < data.length; i += 4) {
+                        if (data[i] >= 240 && data[i+1] >= 240 && data[i+2] >= 240) whiteCount++;
+                    }
+
+                    resolve((whiteCount / total) * 100);
+                };
+                img.onerror = () => resolve(0);
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        autoSelectBtn.onclick = async () => {
+            if (allImageHandles.length === 0) return alert("Primero selecciona una carpeta");
+            if (isAnalyzing) return;
+
+            const threshold = parseFloat(whiteThresholdInput.value) || 85;
+            isAnalyzing = true;
+            abortAnalysis = false;
+            autoSelectBtn.disabled = true;
+            cancelBtn.style.display = 'inline-block';
+
+            document.getElementById('progress-section').style.display = 'block';
+            document.getElementById('phase-analyze').style.display = 'block';
+            document.getElementById('prog-analyze').value = 0;
+            document.getElementById('text-analyze').textContent = `0 / ${allImageHandles.length} (0%) — 0 seleccionadas`;
+
+            selected.clear();
+            let processed = 0;
+            let selectedCount = 0;
+            const BATCH_SIZE = 60;
+
+            for (let i = 0; i < allImageHandles.length; i += BATCH_SIZE) {
+                if (abortAnalysis) break;
+
+                const batch = allImageHandles.slice(i, i + BATCH_SIZE);
+                await Promise.all(batch.map(async item => {
+                    try {
+                        const file = await item.handle.getFile();
+                        const pct = await analyzeWhitePercentage(file);
+                        if (pct >= threshold) {
+                            selected.add(item.handle);
+                            selectedCount++;
+                        }
+                    } catch {}
+                    processed++;
+                }));
+
+                const percent = Math.round((processed / allImageHandles.length) * 100);
+                document.getElementById('prog-analyze').value = percent;
+                document.getElementById('text-analyze').textContent = `${processed} / ${allImageHandles.length} (${percent}%) — ${selectedCount} seleccionadas`;
+                await new Promise(r => setTimeout(r, 0));
+            }
+
+            await loadAndRenderPage();
+
+            document.getElementById('phase-analyze').style.display = 'none';
+            cancelBtn.style.display = 'none';
+            autoSelectBtn.disabled = false;
+            isAnalyzing = false;
+
+            status.textContent = abortAnalysis 
+                ? "Análisis cancelado" 
+                : `Listo: ${selectedCount} imágenes seleccionadas (≥ ${threshold}%)`;
+        };
+
+        cancelBtn.onclick = () => {
+            abortAnalysis = true;
+            status.textContent = "Cancelando análisis... espera a terminar el lote actual";
+        };
+
+        clearBtn.onclick = () => {
+            selected.clear();
+            renderPage();
+            status.textContent = "Selección limpiada";
+            setTimeout(() => status.textContent = '', 3000);
+            updateDeleteButton();
         };
 
         function triggerFileInput() {
@@ -393,8 +657,11 @@
                 }
             }
             if (added > 0) {
-                await loadAllImages();
-                status.textContent = `Se añadieron ${added} nuevas imágenes.`;
+                status.textContent = `Se añadieron ${added} nuevas imágenes. Recargando...`;
+                allImageHandles = [];
+                await collectImageHandles(dirHandle);
+                currentPage = 1;
+                await loadAndRenderPage();
                 setTimeout(() => status.textContent = '', 4000);
             }
         }
@@ -405,17 +672,13 @@
             }
         });
 
-        // === SELECCIÓN MÚLTIPLE CON ARRASTRE DE CUADRO (MEJORADA) ===
+        // === SELECCIÓN MÚLTIPLE CON ARRASTRE ===
         let isDragging = false;
         let startX, startY;
         let selectionBox = null;
-        let dragStartTarget = null;
 
-        document.addEventListener('mousedown', (e) => {
-            if (!gallery.contains(e.target)) return;
-            if (e.button !== 0) return;
-
-            dragStartTarget = e.target;
+        document.addEventListener('mousedown', e => {
+            if (!gallery.contains(e.target) || e.button !== 0) return;
             isDragging = true;
             startX = e.clientX;
             startY = e.clientY;
@@ -423,28 +686,21 @@
             selectionBox = document.createElement('div');
             selectionBox.style.position = 'absolute';
             selectionBox.style.border = '2px solid #007bff';
-            selectionBox.style.background = 'rgba(0, 123, 255, 0.2)';
+            selectionBox.style.background = 'rgba(0,123,255,0.2)';
             selectionBox.style.pointerEvents = 'none';
             selectionBox.style.zIndex = '1000';
             selectionBox.style.left = startX + 'px';
             selectionBox.style.top = startY + 'px';
-            selectionBox.style.width = '0px';
-            selectionBox.style.height = '0px';
+            selectionBox.style.width = '0';
+            selectionBox.style.height = '0';
             document.body.appendChild(selectionBox);
-
             e.preventDefault();
         });
 
-        document.addEventListener('mousemove', (e) => {
+        document.addEventListener('mousemove', e => {
             if (!isDragging || !selectionBox) return;
-
             const currentX = e.clientX;
             const currentY = e.clientY;
-
-            const dx = Math.abs(currentX - startX);
-            const dy = Math.abs(currentY - startY);
-            if (dx < 10 && dy < 10) return;
-
             const left = Math.min(currentX, startX);
             const top = Math.min(currentY, startY);
             const width = Math.abs(currentX - startX);
@@ -456,41 +712,31 @@
             selectionBox.style.height = height + 'px';
 
             const rect = selectionBox.getBoundingClientRect();
-
             document.querySelectorAll('.image-item').forEach(item => {
                 const itemRect = item.getBoundingClientRect();
                 const checkbox = item.querySelector('.checkbox');
-
-                const itemCenterX = itemRect.left + itemRect.width / 2;
-                const itemCenterY = itemRect.top + itemRect.height / 2;
-
-                const isInside = itemCenterX >= rect.left && itemCenterX <= rect.right &&
-                                 itemCenterY >= rect.top && itemCenterY <= rect.bottom;
-
-                if (isInside && !checkbox.checked) {
+                const centerX = itemRect.left + itemRect.width / 2;
+                const centerY = itemRect.top + itemRect.height / 2;
+                const inside = centerX >= rect.left && centerX <= rect.right &&
+                               centerY >= rect.top && centerY <= rect.bottom;
+                if (inside && !checkbox.checked) {
                     checkbox.checked = true;
                     checkbox.dispatchEvent(new Event('change'));
                 }
             });
         });
 
-        document.addEventListener('mouseup', (e) => {
-            if (isDragging && selectionBox) {
+        document.addEventListener('mouseup', () => {
+            if (selectionBox) {
                 selectionBox.remove();
                 selectionBox = null;
             }
             isDragging = false;
-
-            dragStartTarget = null;
         });
-        // === FIN DE SELECCIÓN CON CUADRO MEJORADA ===
 
-        // === ELIMINAR CON TECLA SUPR (Delete) ===
-        document.addEventListener('keydown', (e) => {
+        document.addEventListener('keydown', e => {
             if (e.key === 'Delete' || e.key === 'Supr') {
-                if (selected.size > 0) {
-                    performDeletion();
-                }
+                if (selected.size > 0) performDeletion();
             }
         });
     </script>
