@@ -57,17 +57,16 @@
             margin: 0 20px;
         }
 
-        /* GALERÍA CON HASTA 20 COLUMNAS */
         #gallery {
             display: grid;
-            grid-template-columns: repeat(20, 1fr); /* 20 columnas en pantallas muy grandes */
+            grid-template-columns: repeat(20, 1fr);
             gap: 10px;
             margin: 20px auto;
             max-width: 100%;
             padding: 0 5px;
+            position: relative;
         }
 
-        /* Adaptación progresiva a pantallas más pequeñas */
         @media (max-width: 2200px) { #gallery { grid-template-columns: repeat(18, 1fr); } }
         @media (max-width: 2000px) { #gallery { grid-template-columns: repeat(16, 1fr); } }
         @media (max-width: 1800px) { #gallery { grid-template-columns: repeat(15, 1fr); } }
@@ -94,7 +93,7 @@
         }
         .image-item img {
             max-width: 100%;
-            max-height: 140px; /* Más pequeño para caber 20 columnas */
+            max-height: 140px;
             border-radius: 4px;
             object-fit: cover;
             flex-grow: 1;
@@ -274,7 +273,7 @@
             deleteBtn.classList.toggle('visible', selected.size > 0);
         }
 
-        deleteBtn.onclick = async () => {
+        async function performDeletion() {
             if (selected.size === 0) return;
             if (!confirm(`¿Eliminar permanentemente ${selected.size} imágenes? Esta acción no se puede deshacer.`)) return;
 
@@ -299,7 +298,9 @@
             status.textContent = `¡Eliminadas ${deleted} imágenes correctamente!`;
             setTimeout(() => status.textContent = '', 5000);
             deleteBtn.disabled = false;
-        };
+        }
+
+        deleteBtn.onclick = performDeletion;
 
         async function getParentDirectoryHandle(fileHandle) {
             async function search(dir, targetName) {
@@ -401,6 +402,95 @@
         document.addEventListener('paste', e => {
             if (e.clipboardData.files.length > 0) {
                 handleDrop(e.clipboardData.files);
+            }
+        });
+
+        // === SELECCIÓN MÚLTIPLE CON ARRASTRE DE CUADRO (MEJORADA) ===
+        let isDragging = false;
+        let startX, startY;
+        let selectionBox = null;
+        let dragStartTarget = null;
+
+        document.addEventListener('mousedown', (e) => {
+            if (!gallery.contains(e.target)) return;
+            if (e.button !== 0) return;
+
+            dragStartTarget = e.target;
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+
+            selectionBox = document.createElement('div');
+            selectionBox.style.position = 'absolute';
+            selectionBox.style.border = '2px solid #007bff';
+            selectionBox.style.background = 'rgba(0, 123, 255, 0.2)';
+            selectionBox.style.pointerEvents = 'none';
+            selectionBox.style.zIndex = '1000';
+            selectionBox.style.left = startX + 'px';
+            selectionBox.style.top = startY + 'px';
+            selectionBox.style.width = '0px';
+            selectionBox.style.height = '0px';
+            document.body.appendChild(selectionBox);
+
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging || !selectionBox) return;
+
+            const currentX = e.clientX;
+            const currentY = e.clientY;
+
+            const dx = Math.abs(currentX - startX);
+            const dy = Math.abs(currentY - startY);
+            if (dx < 10 && dy < 10) return;
+
+            const left = Math.min(currentX, startX);
+            const top = Math.min(currentY, startY);
+            const width = Math.abs(currentX - startX);
+            const height = Math.abs(currentY - startY);
+
+            selectionBox.style.left = left + window.scrollX + 'px';
+            selectionBox.style.top = top + window.scrollY + 'px';
+            selectionBox.style.width = width + 'px';
+            selectionBox.style.height = height + 'px';
+
+            const rect = selectionBox.getBoundingClientRect();
+
+            document.querySelectorAll('.image-item').forEach(item => {
+                const itemRect = item.getBoundingClientRect();
+                const checkbox = item.querySelector('.checkbox');
+
+                const itemCenterX = itemRect.left + itemRect.width / 2;
+                const itemCenterY = itemRect.top + itemRect.height / 2;
+
+                const isInside = itemCenterX >= rect.left && itemCenterX <= rect.right &&
+                                 itemCenterY >= rect.top && itemCenterY <= rect.bottom;
+
+                if (isInside && !checkbox.checked) {
+                    checkbox.checked = true;
+                    checkbox.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            if (isDragging && selectionBox) {
+                selectionBox.remove();
+                selectionBox = null;
+            }
+            isDragging = false;
+
+            dragStartTarget = null;
+        });
+        // === FIN DE SELECCIÓN CON CUADRO MEJORADA ===
+
+        // === ELIMINAR CON TECLA SUPR (Delete) ===
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Delete' || e.key === 'Supr') {
+                if (selected.size > 0) {
+                    performDeletion();
+                }
             }
         });
     </script>
