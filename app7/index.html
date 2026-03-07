@@ -1,835 +1,545 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Carpetas - Guardado Automático en Tiempo Real</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            background-color: #f5f5f5;
-            padding-top: 90px; /* Espacio para el header fijo */
-        }
-        h1, h2 {
-            color: #333;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            font-size: 1.1em;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .btn-start {
-            background-color: #007bff;
-            color: white;
-            font-size: 1.3em;
-            padding: 15px 30px;
-        }
-        .btn-start:hover {
-            background-color: #0056b3;
-        }
-        .btn-nav {
-            background-color: #6c757d;
-            color: white;
-            font-size: 1.3em;
-            padding: 15px 30px;
-        }
-        .btn-nav:disabled {
-            background-color: #aaa;
-            cursor: not-allowed;
-        }
-        .btn-back {
-            background-color: #17a2b8;
-            color: white;
-        }
-        .btn-danger {
-            background-color: #dc3545;
-            color: white;
-        }
-        .btn-rotate {
-            background-color: #28a745;
-            color: white;
-            padding: 8px 12px;
-            font-size: 0.9em;
-            margin: 5px;
-        }
-        .btn-undo {
-            background-color: #ffc107;
-            color: black;
-            padding: 10px 20px;
-            margin: 10px;
-        }
-        .btn-copy-path {
-            background-color: #6c757d;
-            color: white;
-            font-size: 1.1em;
-            padding: 12px 18px;
-            margin: 15px 0;
-            display: inline-block;
-        }
-        .btn-copy-path:hover {
-            background-color: #5a6268;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Procesador PDF - Ingeniería</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs" type="module"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-dark: #1e3a8a;
+      --gray: #4b5563;
+      --lightgray: #e5e7eb;
+      --border: #d1d5db;
+      --text: #111827;
+      --bg: #f9fafb;
+    }
 
-        /* Header fijo */
-        #fixed-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: #007bff;
-            padding: 15px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        #fixed-header h1 {
-            color: white;
-            margin: 0;
-            font-size: 1.5em;
-        }
-        #fixed-header .login-btn {
-            background-color: white;
-            color: #007bff;
-            font-weight: bold;
-        }
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13.5px;
+      line-height: 1.35;
+      padding: 10px;
+    }
 
-        .gallery {
-            display: flex;
-            flex-direction: row;
-            overflow-x: auto;
-            gap: 25px;
-            margin-top: 30px;
-            padding: 20px 0;
-        }
-        .gallery::-webkit-scrollbar {
-            height: 10px;
-        }
-        .gallery::-webkit-scrollbar-thumb {
-            background-color: #888;
-            border-radius: 5px;
-        }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      overflow: hidden;
+    }
 
-        .image-item {
-            flex: 0 0 280px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 15px;
-            background-color: #fff;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            position: relative;
-        }
-        .image-item img {
-            max-width: 100%;
-            max-height: 250px;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-        .image-item p {
-            margin: 15px 0 10px;
-            font-weight: bold;
-            word-break: break-all;
-        }
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 10px 14px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
 
-        .add-image-item {
-            flex: 0 0 280px;
-            border: 3px dashed #007bff;
-            border-radius: 10px;
-            padding: 15px;
-            background-color: #e8f4ff;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            font-size: 1.2em;
-            color: #007bff;
-            transition: all 0.3s;
-        }
-        .add-image-item:hover {
-            background-color: #d0ebff;
-            border-color: #0056b3;
-        }
-        .add-image-item.dragover {
-            background-color: #b3e0ff;
-            border-style: solid;
-        }
-        .add-image-item div:first-child {
-            font-size: 4em;
-            margin-bottom: 15px;
-        }
+    .content { padding: 12px; }
 
-        #navigation {
-            text-align: center;
-            margin: 40px 0;
-            font-size: 1.3em;
-        }
+    h3 {
+      font-size: 1rem;
+      margin: 0 0 6px 0;
+      color: var(--text);
+      border-bottom: 1px solid var(--lightgray);
+      padding-bottom: 3px;
+    }
 
-        .alert {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px;
-            font-size: 1.1em;
-        }
+    .two-columns {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
 
-        #contextMenu {
-            position: absolute;
-            background: white;
-            border: 1px solid #ccc;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            padding: 8px 0;
-            border-radius: 6px;
-            display: none;
-        }
-        #contextMenu div {
-            padding: 2px 5px;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        #contextMenu div:hover {
-            background-color: #d0ebff;
-        }
-        #folderSelector {
-            font-size: 1.2em;
-            padding: 10px;
-            margin: 0 20px;
-            min-width: 300px;
-        }
+    .card {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: white;
+      min-width: 0;
+    }
 
-        #modal {
-            display: none;
-            position: fixed;
-            z-index: 1001;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-        #modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 600px;
-        }
-        #closeModal {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        #closeModal:hover,
-        #closeModal:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
+    .card h4 {
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: var(--gray);
+    }
 
-        .copy-notification {
-            margin-left: 10px;
-            color: #28a745;
-            font-weight: bold;
-            opacity: 0;
-            transition: opacity 0.5s;
-        }
-    </style>
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 0;
+      font-size: 0.92rem;
+    }
+
+    input[type="radio"], input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      accent-color: var(--primary);
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      margin-top: 5px;
+      padding-left: 20px;
+    }
+
+    input[type="range"] { flex: 1; height: 5px; accent-color: var(--primary); }
+
+    input[type="file"] {
+      font-size: 0.92rem;
+      padding: 6px;
+      border: 1px dashed var(--border);
+      border-radius: 4px;
+      width: 100%;
+      margin: 6px 0;
+      background: #f3f4f6;
+    }
+
+    button {
+      font-size: 0.92rem;
+      padding: 7px 18px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      margin: 4px;
+    }
+
+    button.primary { background: var(--primary); color: white; }
+    button.primary:hover { background: var(--primary-dark); }
+    button.success { background: #047857; color: white; }
+    button.success:hover { background: #065f46; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #progress {
+      text-align: center;
+      font-size: 0.9rem;
+      margin: 10px 0;
+      color: var(--gray);
+    }
+
+    .progress-container {
+      display: none;
+      margin: 10px 0;
+    }
+
+    .progress-header {
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    progress {
+      width: 100%;
+      height: 7px;
+      background: #e5e7eb;
+      border-radius: 3.5px;
+      margin: 3px 0;
+    }
+
+    progress::-webkit-progress-value {
+      background: var(--primary);
+      border-radius: 3.5px;
+    }
+
+    .log {
+      font-family: 'Consolas', monospace;
+      font-size: 0.82rem;
+      line-height: 1.3;
+      background: #f3f4f6;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px;
+      max-height: 160px;
+      overflow-y: auto;
+      margin: 10px 0;
+    }
+
+    .download-btns {
+      text-align: center;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .download-btns button {
+      margin: 4px;
+      min-width: 160px;
+    }
+
+    @media (max-width: 768px) {
+      .two-columns {
+        flex-direction: column;
+        gap: 10px;
+      }
+      button { width: 100%; margin: 6px 0; }
+    }
+  </style>
 </head>
 <body>
 
-    <!-- Header fijo siempre visible -->
-    <div id="fixed-header">
-        <h1>Gestor de Carpetas - GRUPO URALMO</h1>
-        <a href="http://98.88.120.28/login" target="_blank">
-            <button class="btn-start login-btn">Ir a Login</button>
-        </a>
-    </div>
+<div class="container">
+  <header>Procesador PDF - Ingeniería Civil</header>
 
-    <div class="alert">
-        <strong>GRUPO URALMO</strong><br>
-        Selecciona una carpeta raíz para comenzar.
-    </div>
+  <div class="content">
 
-    <button class="btn-start" onclick="startApp()">Seleccionar Carpeta y Empezar</button>
-
-    <div id="app" style="display:none; margin: 20px;">
-        <div id="filters"></div>
-        <div id="editor"></div>
-        <button class="btn-start" onclick="showHistory()">Ver Historial</button>
-        <button class="btn-undo" id="undoBtn" onclick="undoLastAction()" style="display:none;">Deshacer última acción (Ctrl+Z)</button>
-    </div>
-
-    <div id="contextMenu"></div>
-
-    <div id="modal">
-        <div id="modal-content">
-            <span id="closeModal" onclick="closeModal()">&times;</span>
-            <h2>Resumen de Carpetas Modificadas</h2>
-            <div id="historyList"></div>
-            <button class="btn-start" onclick="downloadExcel()">Descargar en Excel</button>
-            <button class="btn-danger" onclick="clearHistory()">Borrar Todo el Historial</button>
+    <div class="two-columns">
+      <div class="card">
+        <h3>Formato imágenes</h3>
+        <div class="option"><input type="radio" name="imgFormat" value="png" checked> PNG (calidad)</div>
+        <div class="option"><input type="radio" name="imgFormat" value="jpeg"> JPEG (liviano)</div>
+        <div id="jpegQualityRow" class="slider-container" style="display:none;">
+          Calidad: <input type="range" id="jpegQuality" min="10" max="95" value="75" step="5">
+          <span id="qualityValue">75%</span>
         </div>
+      </div>
+
+      <div class="card">
+        <h3>Exportar</h3>
+        <div class="option"><input type="checkbox" id="chkOriginal" checked> PDF original</div>
+        <div class="option"><input type="checkbox" id="chkMenor" checked> Carpeta Fotos (Img.)</div>
+        <div class="option"><input type="checkbox" id="chkMayorPng"> Carpeta Documentos (Img.)</div>
+        <div class="option"><input type="checkbox" id="chkMayorPdf" checked> PDF Documentos</div>
+        <div class="option"><input type="checkbox" id="chkUnido" checked> PDF con imágenes centradas</div>
+      </div>
     </div>
 
-    <script>
-        let rootHandle = null;
-        let folderHandles = {};
-        let allFolders = [];
-        let filteredFolders = [];
-        let currentIndex = -1;
-        let currentFileHandle = null;
-        let currentImages = [];
-        let modifiedFolders = new Set();
+    <div style="margin:10px 0; text-align:center;">
+      <input type="file" id="pdfFiles" accept="application/pdf" multiple />
+      <button id="btnProcesar" class="primary" disabled>Procesar</button>
+    </div>
 
-        const undoStack = [];
+    <div id="progress">Seleccione archivo(s) PDF</div>
 
-        const presets = [
-            'Medidor Existente del Usuario',
-            'Medidor Instalado',
-            'Medidor Instalado - Tapa Abierta',
-            'Fachada de la Vivienda del usuario',
-            'Paño-Vereda Existente',
-            'Paño-Vereda Intervenido',
-            'Paño-Vereda Intervenido (2)'
-        ];
+    <div id="globalProgressContainer" class="progress-container">
+      <div class="progress-header">PDF <span id="currentPdfNumber">1</span>/<span id="totalPdfs">?</span> — <span id="currentPdfName"></span></div>
+      <progress id="globalProgress" value="0" max="100"></progress>
+      <div style="font-size:0.78rem; color:var(--gray); text-align:right;"><span id="globalPercent">0</span>%</div>
+    </div>
 
-        async function startApp() {
-            try {
-                rootHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    <div id="pageProgressContainer" class="progress-container">
+      <div class="progress-header"><span id="pageProgressLabel">Páginas...</span></div>
+      <progress id="pageProgress" value="0" max="100"></progress>
+      <div id="pageCount" style="font-size:0.8rem; color:var(--gray); text-align:right;">0 / 0</div>
+    </div>
 
-                folderHandles = {};
-                allFolders = [];
+    <div class="log" id="log"></div>
 
-                await scanFolder(rootHandle, '');
+    <div class="download-btns" id="downloadSection" style="display:none;">
+      <button id="btnDescargar" class="primary">ZIP Seleccionado</button>
+      <button id="btnDescargarTodo" class="success">ZIP Completo</button>
+    </div>
 
-                allFolders.sort();
-                filteredFolders = allFolders.slice();
+  </div>
+</div>
 
-                document.getElementById('app').style.display = 'block';
-                renderFilters();
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    alert('Error: ' + err.message + '\nUsa Chrome o Edge actualizado.');
-                }
-            }
+<script type="module">
+import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
+
+const { jsPDF } = window.jspdf;
+
+const input = document.getElementById('pdfFiles');
+const btnProcesar = document.getElementById('btnProcesar');
+const btnDescargar = document.getElementById('btnDescargar');
+const btnDescargarTodo = document.getElementById('btnDescargarTodo');
+const progress = document.getElementById('progress');
+const logEl = document.getElementById('log');
+const globalProgressContainer = document.getElementById('globalProgressContainer');
+const globalProgress = document.getElementById('globalProgress');
+const globalPercent = document.getElementById('globalPercent');
+const currentPdfNumber = document.getElementById('currentPdfNumber');
+const totalPdfs = document.getElementById('totalPdfs');
+const currentPdfName = document.getElementById('currentPdfName');
+const pageProgressContainer = document.getElementById('pageProgressContainer');
+const pageProgress = document.getElementById('pageProgress');
+const pageProgressLabel = document.getElementById('pageProgressLabel');
+const pageCount = document.getElementById('pageCount');
+const downloadSection = document.getElementById('downloadSection');
+
+const radiosFormat = document.querySelectorAll('input[name="imgFormat"]');
+const jpegRow = document.getElementById('jpegQualityRow');
+const jpegQualityInput = document.getElementById('jpegQuality');
+const qualityValue = document.getElementById('qualityValue');
+
+// Nombres amigables para el ZIP
+const friendlyNames = {
+  fotos: 'Fotos',
+  documentos: 'Documentos',
+  pdfDocumentos: 'PDF de Documentos.pdf',
+  pdfUnido: 'PDF con imágenes centradas.pdf'
+};
+
+radiosFormat.forEach(radio => {
+  radio.addEventListener('change', () => {
+    jpegRow.style.display = radio.value === 'jpeg' ? 'flex' : 'none';
+  });
+});
+
+jpegQualityInput.addEventListener('input', () => {
+  qualityValue.textContent = jpegQualityInput.value + '%';
+});
+
+let zipGlobal = null;
+let hasWhite = false;
+
+function logMsg(msg, err = false) {
+  const div = document.createElement('div');
+  div.textContent = msg;
+  div.style.color = err ? '#dc2626' : '#1e293b';
+  if (err) div.style.fontWeight = 'bold';
+  logEl.appendChild(div);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+input.addEventListener('change', () => {
+  btnProcesar.disabled = input.files.length === 0;
+  progress.textContent = input.files.length 
+    ? `${input.files.length} PDF(s)` 
+    : 'Seleccione archivo(s) PDF';
+});
+
+btnProcesar.addEventListener('click', async () => {
+  btnProcesar.disabled = true;
+  progress.textContent = 'Procesando...';
+  logEl.innerHTML = '';
+  zipGlobal = new JSZip();
+  hasWhite = false;
+
+  const files = Array.from(input.files);
+  const totalFiles = files.length;
+  totalPdfs.textContent = totalFiles;
+  globalProgressContainer.style.display = 'block';
+  globalProgress.max = totalFiles;
+  globalProgress.value = 0;
+  globalPercent.textContent = '0';
+
+  const selectedFormat = document.querySelector('input[name="imgFormat"]:checked')?.value || 'png';
+  const jpegQuality = selectedFormat === 'jpeg' ? parseInt(jpegQualityInput.value) / 100 : 0.92;
+  const includeOriginal = document.getElementById('chkOriginal').checked;
+  const includeFotos = document.getElementById('chkMenor').checked;
+  const includeDocumentosImg = document.getElementById('chkMayorPng').checked;
+  const includePdfDocumentos = document.getElementById('chkMayorPdf').checked;
+  const includePdfUnido = document.getElementById('chkUnido').checked;
+
+  for (let fileIndex = 0; fileIndex < totalFiles; fileIndex++) {
+    const file = files[fileIndex];
+    const currentNum = fileIndex + 1;
+
+    currentPdfNumber.textContent = currentNum;
+    currentPdfName.textContent = file.name;
+    globalProgress.value = currentNum;
+    globalPercent.textContent = Math.round((currentNum / totalFiles) * 100);
+
+    try {
+      logMsg(`Procesando (${currentNum}/${totalFiles}): ${file.name}`);
+
+      const ab = await file.arrayBuffer();
+      const abCopy = ab.slice(0);
+      const pdf = await pdfjsLib.getDocument({data: abCopy}).promise;
+      const numPages = pdf.numPages;
+      logMsg(`→ ${numPages} pág`);
+
+      pageProgressContainer.style.display = 'block';
+      pageProgress.value = 0;
+      pageProgress.max = numPages;
+      pageProgressLabel.textContent = `Páginas de ${file.name}`;
+      pageCount.textContent = `0 / ${numPages}`;
+
+      const folder = zipGlobal.folder(file.name.replace(/\.pdf$/i,''));
+      if (includeOriginal) folder.file(file.name, ab);
+
+      const fotosFolder = includeFotos ? folder.folder(friendlyNames.fotos) : null;
+      const docsFolder = includeDocumentosImg ? folder.folder(friendlyNames.documentos) : null;
+      const whites = [];
+      const todas = [];
+
+      const mime = selectedFormat === 'jpeg' ? 'image/jpeg' : 'image/png';
+      const ext = selectedFormat === 'jpeg' ? 'jpg' : 'png';
+
+      for (let p = 1; p <= numPages; p++) {
+        const page = await pdf.getPage(p);
+        const scale = 1.5;
+        const vp = page.getViewport({scale});
+        const c = document.createElement('canvas');
+        c.width = vp.width; c.height = vp.height;
+        await page.render({canvasContext: c.getContext('2d'), viewport: vp}).promise;
+
+        const cropped = cropWhiteBorders(c);
+        const {isMayor} = analizarBlancos(cropped);
+
+        const b64 = cropped.toDataURL(mime, jpegQuality).split(',')[1];
+
+        todas.push({b64, format: selectedFormat});
+
+        if (isMayor) {
+          if (docsFolder) docsFolder.file(`p-${p.toString().padStart(3,'0')}.${ext}`, b64, {base64:true});
+          whites.push(b64);
+        } else {
+          if (fotosFolder) fotosFolder.file(`p-${p.toString().padStart(3,'0')}.${ext}`, b64, {base64:true});
         }
 
-        async function scanFolder(handle, path) {
-            folderHandles[path] = handle;
-            allFolders.push(path);
+        pageProgress.value = p;
+        pageCount.textContent = `${p} / ${numPages}`;
+        await new Promise(r => setTimeout(r, 0));
+      }
 
-            for await (const entry of handle.values()) {
-                if (entry.kind === 'directory') {
-                    const newPath = path ? `${path}/${entry.name}` : entry.name;
-                    await scanFolder(entry, newPath);
-                }
-            }
+      if (whites.length > 0 && includePdfDocumentos) {
+        hasWhite = true;
+        try {
+          const doc = new jsPDF({unit:'mm', format:'a4'});
+          for (let i = 0; i < whites.length; i++) {
+            if (i > 0) doc.addPage();
+            doc.addImage(whites[i], 'PNG', 0, 0, 210, 297);
+          }
+          folder.file(friendlyNames.pdfDocumentos, doc.output('arraybuffer'));
+          logMsg(`→ ${friendlyNames.pdfDocumentos} (${whites.length} pág)`);
+        } catch (e) { logMsg(`Error PDF Documentos: ${e.message}`, true); }
+      }
+
+      if (todas.length > 0 && includePdfUnido) {
+        try {
+          const docU = new jsPDF({unit:'mm', format:'a4'});
+          const pw = 210, ph = 297;
+
+          for (let i = 0; i < todas.length; i++) {
+            if (i > 0) docU.addPage();
+            const {b64, format} = todas[i];
+            const img = new Image();
+            img.src = `data:image/${format};base64,${b64}`;
+            await new Promise(r => img.onload = r);
+
+            const iw = img.naturalWidth, ih = img.naturalHeight;
+            const dpi = 96;
+            const wMm = (iw / dpi) * 25.4;
+            const hMm = (ih / dpi) * 25.4;
+
+            const scale = Math.min(pw / wMm, ph / hMm, 1);
+            const fw = wMm * scale;
+            const fh = hMm * scale;
+            const x = (pw - fw) / 2;
+            const y = (ph - fh) / 2;
+
+            docU.addImage(b64, format.toUpperCase(), x, y, fw, fh);
+          }
+          folder.file(friendlyNames.pdfUnido, docU.output('arraybuffer'));
+          logMsg(`→ ${friendlyNames.pdfUnido} (${todas.length} pág)`);
+        } catch (e) { logMsg(`Error PDF con imágenes centradas: ${e.message}`, true); }
+      }
+
+      logMsg(`✓ ${file.name} terminado`);
+
+    } catch (e) {
+      logMsg(`✗ Error ${file.name}: ${e.message}`, true);
+    }
+  }
+
+  globalProgressContainer.style.display = 'none';
+  pageProgressContainer.style.display = 'none';
+  progress.textContent = `Completado (${totalFiles} archivo${totalFiles === 1 ? '' : 's'})`;
+  downloadSection.style.display = 'block';
+  btnDescargar.disabled = false;
+  btnProcesar.disabled = false;
+});
+
+btnDescargar.addEventListener('click', () => generarZip(false));
+btnDescargarTodo.addEventListener('click', () => generarZip(true));
+
+async function generarZip(todo = false) {
+  if (!zipGlobal) return logMsg('No hay datos para descargar', true);
+
+  progress.textContent = 'Creando ZIP...';
+  btnDescargar.disabled = btnDescargarTodo.disabled = true;
+
+  const temp = new JSZip();
+
+  try {
+    for (const path in zipGlobal.files) {
+      const f = zipGlobal.files[path];
+      if (f.dir) continue;
+
+      let incluir = todo;
+
+      if (!todo) {
+        if (path.endsWith('.pdf') && !path.includes('Documentos') && !path.includes('imágenes centradas')) {
+          incluir = document.getElementById('chkOriginal').checked;
         }
-
-        async function countImages(path) {
-            const handle = folderHandles[path];
-            let count = 0;
-            for await (const entry of handle.values()) {
-                if (entry.kind === 'file' && entry.name.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i)) {
-                    count++;
-                }
-            }
-            return count;
-        }
-
-        async function renderFilters() {
-            const counts = { moreThan8: 0 };
-            for (let n = 0; n <= 8; n++) counts[n] = 0;
-
-            for (const path of allFolders) {
-                const c = await countImages(path);
-                if (c > 8) counts.moreThan8++;
-                else counts[c]++;
-            }
-
-            let html = `<h2>Elige cuántas imágenes quieres por carpeta</h2>`;
-
-            for (let n = 0; n <= 8; n++) {
-                const num = counts[n];
-                html += `<button class="btn-start" style="margin:10px;padding:15px 25px;font-size:1.2em;" 
-                                onclick="filterByCount(${n})" ${num === 0 ? 'disabled' : ''}>
-                                ${n} img. (${num} carp.)
-                         </button>`;
-            }
-
-            html += `<button class="btn-start" style="margin:10px;padding:15px 25px;font-size:1.2em;" 
-                            onclick="filterByCount(-1)" ${counts.moreThan8 === 0 ? 'disabled' : ''}>
-                            >8 img. (${counts.moreThan8} carp.)
-                     </button>`;
-
-            html += `<button class="btn-start" style="margin:10px;padding:15px 25px;font-size:1.2em;" onclick="showAllFolders()">
-                        Todas (${allFolders.length} carp.)
-                     </button>`;
-
-            document.getElementById('filters').innerHTML = html;
-            document.getElementById('editor').innerHTML = '';
-        }
-
-        async function filterByCount(num) {
-            filteredFolders = [];
-            for (const path of allFolders) {
-                const c = await countImages(path);
-                if (num === -1) {
-                    if (c > 8) filteredFolders.push(path);
-                } else if (c === num) {
-                    filteredFolders.push(path);
-                }
-            }
-            currentIndex = 0;
-            if (filteredFolders.length > 0) await openFolder(filteredFolders[0]);
-        }
-
-        async function showAllFolders() {
-            filteredFolders = allFolders.slice();
-            currentIndex = 0;
-            if (filteredFolders.length > 0) await openFolder(filteredFolders[0]);
-        }
-
-        async function openFolder(path) {
-            currentIndex = filteredFolders.indexOf(path);
-            const dirHandle = folderHandles[path];
-
-            const images = [];
-            for await (const entry of dirHandle.values()) {
-                if (entry.kind === 'file' && entry.name.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i)) {
-                    const file = await entry.getFile();
-                    images.push({ file, name: entry.name, handle: entry, dirHandle });
-                }
-            }
-
-            images.sort((a, b) => a.name.localeCompare(b.name));
-
-            currentImages = images;
-            renderEditor();
-            renderNavigation();
-        }
-
-        function renderEditor() {
-            const currentPath = filteredFolders[currentIndex] || 'raíz';
-            let displayPath = currentPath || '(raíz)';
-
-            let html = `<h2>Editando: <strong>${displayPath}</strong></h2>`;
-            
-            // Botón para copiar la ruta
-            html += `<button class="btn-copy-path" onclick="copyToClipboard('${currentPath.replace(/'/g, "\\'")}')">
-                        Copiar ruta de carpeta: <strong>${displayPath}</strong>
-                     </button>
-                     <span class="copy-notification" id="copyNotification">¡Copiado!</span><br>`;
-
-            html += `<button class="btn-back" onclick="renderFilters()">← Volver a filtros</button>`;
-            html += `<div class="gallery" id="gallery"></div>`;
-            html += `<div id="navigation"></div>`;
-            document.getElementById('editor').innerHTML = html;
-            renderGallery(currentImages, folderHandles[filteredFolders[currentIndex]]);
-        }
-
-        function renderNavigation() {
-            const nav = document.getElementById('navigation');
-            nav.innerHTML = '';
-
-            const select = document.createElement('select');
-            select.id = 'folderSelector';
-            filteredFolders.forEach((path, i) => {
-                const opt = document.createElement('option');
-                opt.value = i;
-                opt.textContent = `${i + 1}. ${path || 'raíz'}`;
-                if (i === currentIndex) opt.selected = true;
-                select.appendChild(opt);
-            });
-            select.onchange = () => {
-                currentIndex = parseInt(select.value);
-                openFolder(filteredFolders[currentIndex]);
-            };
-
-            const prevBtn = document.createElement('button');
-            prevBtn.className = 'btn-nav';
-            prevBtn.textContent = '◀ Anterior';
-            prevBtn.onclick = prevFolder;
-            prevBtn.disabled = currentIndex <= 0;
-
-            const nextBtn = document.createElement('button');
-            nextBtn.className = 'btn-nav';
-            nextBtn.textContent = 'Siguiente ▶';
-            nextBtn.onclick = nextFolder;
-            nextBtn.disabled = currentIndex >= filteredFolders.length - 1;
-
-            const info = document.createElement('span');
-            info.innerHTML = `&nbsp;&nbsp; Carpeta ${currentIndex + 1} de ${filteredFolders.length} &nbsp;&nbsp;`;
-
-            nav.appendChild(prevBtn);
-            nav.appendChild(info);
-            nav.appendChild(nextBtn);
-            nav.appendChild(select);
-        }
-
-        function prevFolder() {
-            if (currentIndex > 0) {
-                currentIndex--;
-                openFolder(filteredFolders[currentIndex]);
-            }
-        }
-
-        function nextFolder() {
-            if (currentIndex < filteredFolders.length - 1) {
-                currentIndex++;
-                openFolder(filteredFolders[currentIndex]);
-            }
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (document.getElementById('app').style.display === 'block' && document.getElementById('editor').innerHTML !== '') {
-                if (e.key === 'ArrowLeft') prevFolder();
-                if (e.key === 'ArrowRight') nextFolder();
-                if (e.ctrlKey && e.key === 'z') undoLastAction();
-            }
-        });
-
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                const notification = document.getElementById('copyNotification');
-                notification.style.opacity = 1;
-                setTimeout(() => {
-                    notification.style.opacity = 0;
-                }, 2000);
-            }).catch(err => {
-                alert('Error al copiar: ' + err);
-            });
-        }
-
-        async function refreshGalleryAfterChange() {
-            renderGallery(currentImages, folderHandles[filteredFolders[currentIndex]]);
-        }
-
-        function renderGallery(images, dirHandle) {
-            const gallery = document.getElementById('gallery');
-            gallery.innerHTML = '';
-
-            images.forEach(img => {
-                const div = document.createElement('div');
-                div.className = 'image-item';
-
-                const url = URL.createObjectURL(img.file);
-                const imgEl = document.createElement('img');
-                imgEl.src = url;
-
-                const p = document.createElement('p');
-                p.textContent = img.name;
-
-                const del = document.createElement('button');
-                del.textContent = 'Eliminar';
-                del.className = 'btn-danger';
-                del.onclick = () => deleteImage(img.handle, dirHandle);
-
-                const rotate = document.createElement('button');
-                rotate.textContent = 'Rotar ↻';
-                rotate.className = 'btn-rotate';
-                rotate.onclick = () => rotateImage(img.handle, dirHandle);
-
-                div.oncontextmenu = (e) => {
-                    e.preventDefault();
-                    currentFileHandle = img.handle;
-                    showContextMenu(e.pageX, e.pageY);
-                };
-
-                div.appendChild(imgEl);
-                div.appendChild(p);
-                div.appendChild(del);
-                div.appendChild(rotate);
-                gallery.appendChild(div);
-            });
-
-            const add = document.createElement('div');
-            add.className = 'add-image-item';
-            add.innerHTML = `<div>+</div><div>Arrastra aquí<br>o pega (Ctrl+V)<br>o haz clic</div>`;
-            add.onclick = () => triggerFileInput(dirHandle);
-            add.ondragover = e => { e.preventDefault(); add.classList.add('dragover'); };
-            add.ondragleave = () => add.classList.remove('dragover');
-            add.ondrop = e => { e.preventDefault(); add.classList.remove('dragover'); handleDrop(e.dataTransfer.files, dirHandle); };
-            gallery.appendChild(add);
-
-            document.onpaste = e => {
-                if (e.clipboardData.files.length > 0) {
-                    handleDrop(e.clipboardData.files, dirHandle);
-                }
-            };
-        }
-
-        function showContextMenu(x, y) {
-            const menu = document.getElementById('contextMenu');
-            menu.innerHTML = '';
-
-            let displayPresets = presets;
-            if (currentImages.length <= 4) {
-                displayPresets = presets.slice(0, 4);
-            }
-
-            displayPresets.forEach(preset => {
-                const div = document.createElement('div');
-                div.textContent = preset;
-                div.onclick = () => renameCurrent(preset);
-                menu.appendChild(div);
-            });
-
-            const divider = document.createElement('div');
-            divider.style = 'border-top:1px solid #ddd; margin:8px 0';
-            menu.appendChild(divider);
-
-            const manual = document.createElement('div');
-            manual.textContent = 'Renombrar manualmente...';
-            manual.onclick = renameManual;
-            menu.appendChild(manual);
-
-            menu.style.display = 'block';
-            menu.style.left = x + 'px';
-            menu.style.top = y + 'px';
-        }
-
-        document.addEventListener('click', () => {
-            document.getElementById('contextMenu').style.display = 'none';
-        });
-
-        async function getUniqueFileName(dirHandle, baseName, extension) {
-            let name = `${baseName}.${extension}`;
-            let counter = 1;
-            while (true) {
-                try {
-                    await dirHandle.getFileHandle(name);
-                    name = `${baseName} (${counter}).${extension}`;
-                    counter++;
-                } catch (e) {
-                    return name;
-                }
-            }
-        }
-
-        async function renameCurrent(newBaseName) {
-            if (!currentFileHandle) return;
-
-            const dirHandle = folderHandles[filteredFolders[currentIndex]];
-            const oldName = currentFileHandle.name;
-            const extension = oldName.split('.').pop().toLowerCase();
-
-            const oldFile = await currentFileHandle.getFile();
-            undoStack.push({
-                type: 'rename',
-                dirHandle,
-                oldName,
-                newName: null,
-                fileData: await oldFile.arrayBuffer()
-            });
-
-            const finalName = await getUniqueFileName(dirHandle, newBaseName, extension);
-            undoStack[undoStack.length - 1].newName = finalName;
-
-            const newHandle = await dirHandle.getFileHandle(finalName, { create: true });
-            const writable = await newHandle.createWritable();
-            await writable.write(await oldFile.arrayBuffer());
-            await writable.close();
-
-            await dirHandle.removeEntry(oldName);
-
-            const img = currentImages.find(i => i.handle.name === oldName);
-            if (img) {
-                img.name = finalName;
-                img.handle = newHandle;
-                img.file = await newHandle.getFile();
-            }
-
-            document.getElementById('contextMenu').style.display = 'none';
-            updateUndoButton();
-            modifiedFolders.add(filteredFolders[currentIndex]);
-            await refreshGalleryAfterChange();
-        }
-
-        async function renameManual() {
-            if (!currentFileHandle) return;
-            const oldName = currentFileHandle.name;
-            const currentBase = oldName.replace(/\.[^/.]+$/, "");
-            const newBase = prompt("Nuevo nombre (sin extensión):", currentBase);
-            if (newBase === null || newBase.trim() === "") {
-                document.getElementById('contextMenu').style.display = 'none';
-                return;
-            }
-            await renameCurrent(newBase.trim());
-        }
-
-        function triggerFileInput(dirHandle) {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.multiple = true;
-            input.accept = 'image/*';
-            input.onchange = e => handleDrop(e.target.files, dirHandle);
-            input.click();
-        }
-
-        async function handleDrop(files, dirHandle) {
-            const added = [];
-            for (const file of files) {
-                if (file.type.startsWith('image/')) {
-                    let name = file.name || `imagen_${Date.now()}.png`;
-                    const ext = name.split('.').pop();
-                    const base = name.substring(0, name.length - ext.length - 1);
-                    const finalName = await getUniqueFileName(dirHandle, base, ext);
-
-                    const handle = await dirHandle.getFileHandle(finalName, { create: true });
-                    const writable = await handle.createWritable();
-                    await writable.write(file);
-                    await writable.close();
-
-                    const newFile = await handle.getFile();
-                    currentImages.push({ file: newFile, name: finalName, handle, dirHandle });
-                    added.push({ name: finalName, data: file });
-                }
-            }
-            if (added.length > 0) {
-                undoStack.push({
-                    type: 'add',
-                    dirHandle,
-                    files: added
-                });
-                updateUndoButton();
-                modifiedFolders.add(filteredFolders[currentIndex]);
-            }
-            await refreshGalleryAfterChange();
-        }
-
-        async function deleteImage(fileHandle, dirHandle) {
-            if (confirm('¿Eliminar esta imagen permanentemente?')) {
-                const file = await fileHandle.getFile();
-                undoStack.push({
-                    type: 'delete',
-                    dirHandle,
-                    name: fileHandle.name,
-                    data: await file.arrayBuffer()
-                });
-
-                currentImages = currentImages.filter(img => img.handle.name !== fileHandle.name);
-
-                await dirHandle.removeEntry(fileHandle.name);
-                updateUndoButton();
-                modifiedFolders.add(filteredFolders[currentIndex]);
-                await refreshGalleryAfterChange();
-            }
-        }
-
-        async function rotateImage(fileHandle, dirHandle) {
-            try {
-                const file = await fileHandle.getFile();
-                const oldData = await file.arrayBuffer();
-
-                const img = new Image();
-                const url = URL.createObjectURL(file);
-                img.onload = async () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = img.height;
-                    canvas.height = img.width;
-                    ctx.translate(canvas.width / 2, canvas.height / 2);
-                    ctx.rotate(Math.PI / 2);
-                    ctx.drawImage(img, -img.width / 2, -img.height / 2);
-
-                    const blob = await new Promise(resolve => canvas.toBlob(resolve, file.type, 0.95));
-
-                    undoStack.push({
-                        type: 'rotate',
-                        dirHandle,
-                        name: fileHandle.name,
-                        oldData
-                    });
-                    updateUndoButton();
-
-                    const writable = await fileHandle.createWritable();
-                    await writable.write(blob);
-                    await writable.truncate(blob.size);
-                    await writable.close();
-
-                    const imgObj = currentImages.find(i => i.handle.name === fileHandle.name);
-                    if (imgObj) {
-                        imgObj.file = blob;
-                    }
-
-                    URL.revokeObjectURL(url);
-                    modifiedFolders.add(filteredFolders[currentIndex]);
-                    await refreshGalleryAfterChange();
-                };
-                img.src = url;
-            } catch (err) {
-                alert('Error al rotar la imagen: ' + err.message);
-            }
-        }
-
-        function updateUndoButton() {
-            document.getElementById('undoBtn').style.display = undoStack.length > 0 ? 'inline-block' : 'none';
-        }
-
-        async function undoLastAction() {
-            if (undoStack.length === 0) return;
-
-            const action = undoStack.pop();
-            await openFolder(filteredFolders[currentIndex]);
-            updateUndoButton();
-            modifiedFolders.add(filteredFolders[currentIndex]);
-        }
-
-        function showHistory() {
-            const list = document.getElementById('historyList');
-            list.innerHTML = '';
-            if (modifiedFolders.size === 0) {
-                list.textContent = 'No hay carpetas modificadas.';
-            } else {
-                modifiedFolders.forEach(folder => {
-                    const p = document.createElement('p');
-                    p.textContent = folder;
-                    list.appendChild(p);
-                });
-            }
-            document.getElementById('modal').style.display = 'block';
-        }
-
-        function closeModal() {
-            document.getElementById('modal').style.display = 'none';
-        }
-
-        function downloadExcel() {
-            let csvContent = 'Carpeta\n';
-            modifiedFolders.forEach(folder => {
-                csvContent += `${folder}\n`;
-            });
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'historial_modificaciones.xls';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function clearHistory() {
-            if (confirm('¿Borrar todo el historial?')) {
-                modifiedFolders.clear();
-                closeModal();
-            }
-        }
-    </script>
+        else if (path.includes(friendlyNames.fotos)) incluir = document.getElementById('chkMenor').checked;
+        else if (path.includes(friendlyNames.documentos) && !path.endsWith('.pdf')) incluir = document.getElementById('chkMayorPng').checked;
+        else if (path.endsWith(friendlyNames.pdfDocumentos)) incluir = document.getElementById('chkMayorPdf').checked;
+        else if (path.endsWith(friendlyNames.pdfUnido)) incluir = document.getElementById('chkUnido').checked;
+      }
+
+      if (incluir) {
+        const content = await f.async('arraybuffer');
+        temp.file(path, content);
+      }
+    }
+
+    const blob = await temp.generateAsync({type: 'blob'});
+    const name = input.files.length === 1 
+      ? `${input.files[0].name.replace(/\.pdf$/i,'')} - procesado.zip`
+      : 'pdfs-procesados.zip';
+    saveAs(blob, name);
+    progress.textContent = 'Descargado';
+    logMsg('ZIP generado');
+  } catch (e) {
+    progress.textContent = 'Error ZIP';
+    logMsg(`Error descarga: ${e.message}`, true);
+  }
+
+  btnDescargar.disabled = btnDescargarTodo.disabled = false;
+}
+
+function cropWhiteBorders(c) {
+  const ctx = c.getContext('2d'), w = c.width, h = c.height;
+  const d = ctx.getImageData(0,0,w,h).data;
+  const isWhite = (r,g,b) => (r+g+b)/3 > 240;
+
+  let top=0, bottom=h-1, left=0, right=w-1;
+  while (top < bottom && rowIsWhite(top)) top++;
+  while (bottom > top && rowIsWhite(bottom)) bottom--;
+  while (left < right && colIsWhite(left)) left++;
+  while (right > left && colIsWhite(right)) right--;
+
+  const cw = right-left+1, ch = bottom-top+1;
+  if (cw < w*0.08 || ch < h*0.08) return c;
+
+  const nc = document.createElement('canvas');
+  nc.width = cw; nc.height = ch;
+  nc.getContext('2d').drawImage(c, left, top, cw, ch, 0, 0, cw, ch);
+  return nc;
+
+  function rowIsWhite(y) { for (let x=0; x<w; x++) { const i=(y*w+x)*4; if (!isWhite(d[i],d[i+1],d[i+2])) return false; } return true; }
+  function colIsWhite(x) { for (let y=top; y<=bottom; y++) { const i=(y*w+x)*4; if (!isWhite(d[i],d[i+1],d[i+2])) return false; } return true; }
+}
+
+function analizarBlancos(c) {
+  const d = c.getContext('2d').getImageData(0,0,c.width,c.height).data;
+  let whitePixels = 0, total = c.width * c.height;
+  for (let i=0; i<d.length; i+=4) {
+    if ((d[i]+d[i+1]+d[i+2])/3 > 240) whitePixels++;
+  }
+  return { isMayor: (whitePixels / total) * 100 > 55 };
+}
+</script>
 </body>
 </html>
