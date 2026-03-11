@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Procesador PDF - GURALMO</title>
+  <title>Procesador PDF - Ingeniería</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs" type="module"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -17,187 +17,41 @@
       --border: #d1d5db;
       --text: #111827;
       --bg: #f9fafb;
+      --success: #047857;
     }
-
     * { box-sizing: border-box; margin:0; padding:0; }
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 13.5px;
-      line-height: 1.35;
-      padding: 10px;
-    }
-
-    .container {
-      max-width: 860px;
-      margin: 0 auto;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      overflow: hidden;
-    }
-
-    header {
-      background: var(--primary);
-      color: white;
-      padding: 10px 14px;
-      text-align: center;
-      font-weight: 600;
-      font-size: 1.1rem;
-    }
-
-    .content { padding: 12px; }
-
-    h3 {
-      font-size: 1rem;
-      margin: 0 0 6px 0;
-      color: var(--text);
-      border-bottom: 1px solid var(--lightgray);
-      padding-bottom: 3px;
-    }
-
-    .two-columns {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
-
-    .card {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      background: white;
-      min-width: 0;
-    }
-
-    .card h4 {
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-      color: var(--gray);
-    }
-
-    .option {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 3px 0;
-      font-size: 0.92rem;
-    }
-
-    input[type="radio"], input[type="checkbox"] {
-      width: 14px;
-      height: 14px;
-      accent-color: var(--primary);
-    }
-
-    .slider-container {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
-      margin-top: 5px;
-      padding-left: 20px;
-    }
-
-    input[type="range"] { flex: 1; height: 5px; accent-color: var(--primary); }
-
-    input[type="file"] {
-      font-size: 0.92rem;
-      padding: 6px;
-      border: 1px dashed var(--border);
-      border-radius: 4px;
-      width: 100%;
-      margin: 6px 0;
-      background: #f3f4f6;
-    }
-
-    button {
-      font-size: 0.92rem;
-      padding: 7px 18px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 500;
-      margin: 4px;
-    }
-
-    button.primary { background: var(--primary); color: white; }
-    button.primary:hover { background: var(--primary-dark); }
-    button.success { background: #047857; color: white; }
-    button.success:hover { background: #065f46; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    #progress {
-      text-align: center;
-      font-size: 0.9rem;
-      margin: 10px 0;
-      color: var(--gray);
-    }
-
-    .progress-container {
-      display: none;
-      margin: 10px 0;
-    }
-
-    .progress-header {
-      font-size: 0.88rem;
-      font-weight: 600;
-      margin-bottom: 3px;
-    }
-
-    progress {
-      width: 100%;
-      height: 7px;
-      background: #e5e7eb;
-      border-radius: 3.5px;
-      margin: 3px 0;
-    }
-
-    progress::-webkit-progress-value {
-      background: var(--primary);
-      border-radius: 3.5px;
-    }
-
-    .log {
-      font-family: 'Consolas', monospace;
-      font-size: 0.82rem;
-      line-height: 1.3;
-      background: #f3f4f6;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 8px;
-      max-height: 160px;
-      overflow-y: auto;
-      margin: 10px 0;
-    }
-
-    .download-btns {
-      text-align: center;
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid var(--border);
-    }
-
-    .download-btns button {
-      margin: 4px;
-      min-width: 160px;
-    }
-
-    @media (max-width: 768px) {
-      .two-columns {
-        flex-direction: column;
-        gap: 10px;
-      }
-      button { width: 100%; margin: 6px 0; }
-    }
+    body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:#111827; font-size:13.5px; line-height:1.35; padding:10px; }
+    .container { max-width:860px; margin:0 auto; background:white; border:1px solid var(--border); border-radius:5px; overflow:hidden; }
+    header { background:var(--primary); color:white; padding:10px 14px; text-align:center; font-weight:600; font-size:1.1rem; }
+    .content { padding:12px; }
+    h3 { font-size:1rem; margin:0 0 6px 0; color:var(--text); border-bottom:1px solid var(--lightgray); padding-bottom:3px; }
+    .two-columns { display:flex; gap:12px; margin-bottom:10px; }
+    .card { flex:1; padding:10px; border:1px solid var(--border); border-radius:4px; background:white; min-width:0; }
+    .option { display:flex; align-items:center; gap:6px; padding:3px 0; font-size:0.92rem; }
+    input[type="radio"], input[type="checkbox"] { width:14px; height:14px; accent-color:var(--primary); }
+    .slider-container { display:flex; align-items:center; gap:8px; font-size:0.85rem; margin-top:5px; padding-left:20px; }
+    input[type="range"] { flex:1; height:5px; accent-color:var(--primary); }
+    input[type="file"] { font-size:0.92rem; padding:6px; border:1px dashed var(--border); border-radius:4px; width:100%; margin:6px 0; background:#f3f4f6; }
+    button { font-size:0.92rem; padding:8px 20px; border:none; border-radius:4px; cursor:pointer; font-weight:500; margin:6px; }
+    button.primary { background:var(--primary); color:white; }
+    button.primary:hover { background:var(--primary-dark); }
+    button.success { background:var(--success); color:white; }
+    button:disabled { opacity:0.5; cursor:not-allowed; }
+    #progress { text-align:center; font-size:1.05rem; font-weight:600; margin:16px 0; min-height:1.5em; }
+    #progress.completed { color:var(--success); }
+    .progress-container { margin:12px 0; display:none; }
+    progress { width:100%; height:10px; background:#e5e7eb; border-radius:5px; }
+    progress::-webkit-progress-value { background:var(--primary); border-radius:5px; }
+    .log { font-family:'Consolas',monospace; font-size:0.82rem; line-height:1.3; background:#f3f4f6; border:1px solid var(--border); border-radius:4px; padding:10px; max-height:220px; overflow-y:auto; margin:12px 0; }
+    .download-btns { text-align:center; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+    .download-btns button { min-width:220px; }
+    @media (max-width:768px) { .two-columns { flex-direction:column; gap:12px; } button { width:100%; margin:8px 0; } }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <header>Procesador PDF - Ingeniería Civil</header>
+  <header>Procesador PDF - GURALMO</header>
 
   <div class="content">
 
@@ -207,22 +61,22 @@
         <div class="option"><input type="radio" name="imgFormat" value="png" checked> PNG (calidad)</div>
         <div class="option"><input type="radio" name="imgFormat" value="jpeg"> JPEG (liviano)</div>
         <div id="jpegQualityRow" class="slider-container" style="display:none;">
-          Calidad: <input type="range" id="jpegQuality" min="10" max="95" value="75" step="5">
-          <span id="qualityValue">75%</span>
+          Calidad: <input type="range" id="jpegQuality" min="10" max="95" value="92" step="5">
+          <span id="qualityValue">92%</span>
         </div>
       </div>
 
       <div class="card">
         <h3>Exportar</h3>
-        <div class="option"><input type="checkbox" id="chkOriginal" checked> PDF original</div>
+        <div class="option"><input type="checkbox" id="chkOriginal"> PDF original</div>
         <div class="option"><input type="checkbox" id="chkMenor" checked> Carpeta Fotos (Img.)</div>
         <div class="option"><input type="checkbox" id="chkMayorPng"> Carpeta Documentos (Img.)</div>
         <div class="option"><input type="checkbox" id="chkMayorPdf" checked> PDF Documentos</div>
-        <div class="option"><input type="checkbox" id="chkUnido" checked> PDF con imágenes centradas</div>
+        <div class="option"><input type="checkbox" id="chkUnido"> PDF con imágenes centradas</div>
       </div>
     </div>
 
-    <div style="margin:10px 0; text-align:center;">
+    <div style="margin:16px 0; text-align:center;">
       <input type="file" id="pdfFiles" accept="application/pdf" multiple />
       <button id="btnProcesar" class="primary" disabled>Procesar</button>
     </div>
@@ -230,22 +84,13 @@
     <div id="progress">Seleccione archivo(s) PDF</div>
 
     <div id="globalProgressContainer" class="progress-container">
-      <div class="progress-header">PDF <span id="currentPdfNumber">1</span>/<span id="totalPdfs">?</span> — <span id="currentPdfName"></span></div>
       <progress id="globalProgress" value="0" max="100"></progress>
-      <div style="font-size:0.78rem; color:var(--gray); text-align:right;"><span id="globalPercent">0</span>%</div>
-    </div>
-
-    <div id="pageProgressContainer" class="progress-container">
-      <div class="progress-header"><span id="pageProgressLabel">Páginas...</span></div>
-      <progress id="pageProgress" value="0" max="100"></progress>
-      <div id="pageCount" style="font-size:0.8rem; color:var(--gray); text-align:right;">0 / 0</div>
     </div>
 
     <div class="log" id="log"></div>
 
     <div class="download-btns" id="downloadSection" style="display:none;">
-      <button id="btnDescargar" class="primary">ZIP Seleccionado</button>
-      <button id="btnDescargarTodo" class="success">ZIP Completo</button>
+      <button id="btnDescargar" class="success">Descargar ZIP procesado</button>
     </div>
 
   </div>
@@ -260,33 +105,16 @@ const { jsPDF } = window.jspdf;
 const input = document.getElementById('pdfFiles');
 const btnProcesar = document.getElementById('btnProcesar');
 const btnDescargar = document.getElementById('btnDescargar');
-const btnDescargarTodo = document.getElementById('btnDescargarTodo');
-const progress = document.getElementById('progress');
+const progressEl = document.getElementById('progress');
 const logEl = document.getElementById('log');
 const globalProgressContainer = document.getElementById('globalProgressContainer');
 const globalProgress = document.getElementById('globalProgress');
-const globalPercent = document.getElementById('globalPercent');
-const currentPdfNumber = document.getElementById('currentPdfNumber');
-const totalPdfs = document.getElementById('totalPdfs');
-const currentPdfName = document.getElementById('currentPdfName');
-const pageProgressContainer = document.getElementById('pageProgressContainer');
-const pageProgress = document.getElementById('pageProgress');
-const pageProgressLabel = document.getElementById('pageProgressLabel');
-const pageCount = document.getElementById('pageCount');
 const downloadSection = document.getElementById('downloadSection');
 
 const radiosFormat = document.querySelectorAll('input[name="imgFormat"]');
 const jpegRow = document.getElementById('jpegQualityRow');
 const jpegQualityInput = document.getElementById('jpegQuality');
 const qualityValue = document.getElementById('qualityValue');
-
-// Nombres amigables para el ZIP
-const friendlyNames = {
-  fotos: 'Fotos',
-  documentos: 'Documentos',
-  pdfDocumentos: 'PDF de Documentos.pdf',
-  pdfUnido: 'PDF con imágenes centradas.pdf'
-};
 
 radiosFormat.forEach(radio => {
   radio.addEventListener('change', () => {
@@ -299,7 +127,6 @@ jpegQualityInput.addEventListener('input', () => {
 });
 
 let zipGlobal = null;
-let hasWhite = false;
 
 function logMsg(msg, err = false) {
   const div = document.createElement('div');
@@ -312,63 +139,78 @@ function logMsg(msg, err = false) {
 
 input.addEventListener('change', () => {
   btnProcesar.disabled = input.files.length === 0;
-  progress.textContent = input.files.length 
-    ? `${input.files.length} PDF(s)` 
+  progressEl.textContent = input.files.length 
+    ? `${input.files.length} PDF(s) seleccionado${input.files.length === 1 ? '' : 's'}`
     : 'Seleccione archivo(s) PDF';
 });
 
 btnProcesar.addEventListener('click', async () => {
   btnProcesar.disabled = true;
-  progress.textContent = 'Procesando...';
+  progressEl.textContent = 'Calculando volumen y ajustando calidad...';
   logEl.innerHTML = '';
   zipGlobal = new JSZip();
-  hasWhite = false;
 
   const files = Array.from(input.files);
   const totalFiles = files.length;
-  totalPdfs.textContent = totalFiles;
-  globalProgressContainer.style.display = 'block';
-  globalProgress.max = totalFiles;
-  globalProgress.value = 0;
-  globalPercent.textContent = '0';
+
+  // Estimación conservadora: 12 páginas por archivo
+  const estimatedPages = totalFiles * 12;
+
+  // Escala dinámica: NUNCA bajar de 2.0
+  let renderScale = 3.0;
+  if (estimatedPages > 5000) {
+    renderScale = 2.0;  // mínimo absoluto
+  } else if (estimatedPages > 3000) {
+    renderScale = 2.1;
+  } else if (estimatedPages > 2000) {
+    renderScale = 2.2;
+  } else if (estimatedPages > 1200) {
+    renderScale = 2.3;
+  } else if (estimatedPages > 600) {
+    renderScale = 2.5;
+  } else if (estimatedPages > 200) {
+    renderScale = 2.8;
+  } else {
+    renderScale = 3.0;
+  }
+
+  logMsg(`Volumen: ${totalFiles} archivos (~${estimatedPages} páginas)`);
+  logMsg(`→ Calidad ajustada: scale = ${renderScale.toFixed(1)}`);
 
   const selectedFormat = document.querySelector('input[name="imgFormat"]:checked')?.value || 'png';
-  const jpegQuality = selectedFormat === 'jpeg' ? parseInt(jpegQualityInput.value) / 100 : 0.92;
+  const jpegQualityVal = parseInt(jpegQualityInput.value) / 100;
+  const jpegQuality = selectedFormat === 'jpeg' ? jpegQualityVal : 1.0;
   const includeOriginal = document.getElementById('chkOriginal').checked;
   const includeFotos = document.getElementById('chkMenor').checked;
   const includeDocumentosImg = document.getElementById('chkMayorPng').checked;
   const includePdfDocumentos = document.getElementById('chkMayorPdf').checked;
   const includePdfUnido = document.getElementById('chkUnido').checked;
 
-  for (let fileIndex = 0; fileIndex < totalFiles; fileIndex++) {
-    const file = files[fileIndex];
-    const currentNum = fileIndex + 1;
+  const onlyOneSpecialPDF = 
+    (includePdfDocumentos || includePdfUnido) &&
+    !(includePdfDocumentos && includePdfUnido) &&
+    !includeOriginal && !includeFotos && !includeDocumentosImg;
 
-    currentPdfNumber.textContent = currentNum;
-    currentPdfName.textContent = file.name;
-    globalProgress.value = currentNum;
-    globalPercent.textContent = Math.round((currentNum / totalFiles) * 100);
+  globalProgressContainer.style.display = 'block';
+  globalProgress.value = 0;
+
+  for (let i = 0; i < totalFiles; i++) {
+    const file = files[i];
+    const baseName = file.name.replace(/\.pdf$/i, '');
+
+    progressEl.textContent = `Procesando archivo ${i+1}/${totalFiles} (${file.name})`;
 
     try {
-      logMsg(`Procesando (${currentNum}/${totalFiles}): ${file.name}`);
+      logMsg(`Procesando (${i+1}/${totalFiles}): ${file.name}`);
 
       const ab = await file.arrayBuffer();
-      const abCopy = ab.slice(0);
-      const pdf = await pdfjsLib.getDocument({data: abCopy}).promise;
+      const pdf = await pdfjsLib.getDocument({data: ab}).promise;
       const numPages = pdf.numPages;
-      logMsg(`→ ${numPages} pág`);
 
-      pageProgressContainer.style.display = 'block';
-      pageProgress.value = 0;
-      pageProgress.max = numPages;
-      pageProgressLabel.textContent = `Páginas de ${file.name}`;
-      pageCount.textContent = `0 / ${numPages}`;
+      const target = onlyOneSpecialPDF ? zipGlobal : zipGlobal.folder(baseName);
 
-      const folder = zipGlobal.folder(file.name.replace(/\.pdf$/i,''));
-      if (includeOriginal) folder.file(file.name, ab);
-
-      const fotosFolder = includeFotos ? folder.folder(friendlyNames.fotos) : null;
-      const docsFolder = includeDocumentosImg ? folder.folder(friendlyNames.documentos) : null;
+      const fotosFolder = includeFotos && !onlyOneSpecialPDF ? target.folder('Fotos') : null;
+      const docsFolder = includeDocumentosImg && !onlyOneSpecialPDF ? target.folder('Documentos') : null;
       const whites = [];
       const todas = [];
 
@@ -377,13 +219,13 @@ btnProcesar.addEventListener('click', async () => {
 
       for (let p = 1; p <= numPages; p++) {
         const page = await pdf.getPage(p);
-        const scale = 1.5;
-        const vp = page.getViewport({scale});
-        const c = document.createElement('canvas');
-        c.width = vp.width; c.height = vp.height;
-        await page.render({canvasContext: c.getContext('2d'), viewport: vp}).promise;
+        const vp = page.getViewport({scale: renderScale});
+        const canvas = document.createElement('canvas');
+        canvas.width = vp.width;
+        canvas.height = vp.height;
+        await page.render({canvasContext: canvas.getContext('2d'), viewport: vp}).promise;
 
-        const cropped = cropWhiteBorders(c);
+        const cropped = cropWhiteBorders(canvas);
         const {isMayor} = analizarBlancos(cropped);
 
         const b64 = cropped.toDataURL(mime, jpegQuality).split(',')[1];
@@ -391,28 +233,53 @@ btnProcesar.addEventListener('click', async () => {
         todas.push({b64, format: selectedFormat});
 
         if (isMayor) {
-          if (docsFolder) docsFolder.file(`p-${p.toString().padStart(3,'0')}.${ext}`, b64, {base64:true});
+          if (docsFolder) docsFolder.file(`p-${p.toString().padStart(3,'0')}.${ext}`, b64, {base64: true});
           whites.push(b64);
         } else {
-          if (fotosFolder) fotosFolder.file(`p-${p.toString().padStart(3,'0')}.${ext}`, b64, {base64:true});
+          if (fotosFolder) fotosFolder.file(`p-${p.toString().padStart(3,'0')}.${ext}`, b64, {base64: true});
         }
-
-        pageProgress.value = p;
-        pageCount.textContent = `${p} / ${numPages}`;
-        await new Promise(r => setTimeout(r, 0));
       }
 
+      const dpi = 200;
+
       if (whites.length > 0 && includePdfDocumentos) {
-        hasWhite = true;
         try {
-          const doc = new jsPDF({unit:'mm', format:'a4'});
-          for (let i = 0; i < whites.length; i++) {
-            if (i > 0) doc.addPage();
-            doc.addImage(whites[i], 'PNG', 0, 0, 210, 297);
+          let img = new Image();
+          img.src = `data:image/png;base64,${whites[0]}`;
+          await new Promise(r => img.onload = r);
+
+          let wMm = (img.naturalWidth / dpi) * 25.4;
+          let hMm = (img.naturalHeight / dpi) * 25.4;
+
+          const doc = new jsPDF({
+            unit: 'mm',
+            format: [wMm, hMm],
+            orientation: wMm > hMm ? 'landscape' : 'portrait'
+          });
+
+          doc.addImage(whites[0], 'PNG', 0, 0, wMm, hMm, null, 'FAST');
+
+          for (let j = 1; j < whites.length; j++) {
+            img = new Image();
+            img.src = `data:image/png;base64,${whites[j]}`;
+            await new Promise(r => img.onload = r);
+
+            wMm = (img.naturalWidth / dpi) * 25.4;
+            hMm = (img.naturalHeight / dpi) * 25.4;
+
+            doc.addPage([wMm, hMm], wMm > hMm ? 'landscape' : 'portrait');
+            doc.addImage(whites[j], 'PNG', 0, 0, wMm, hMm, null, 'FAST');
           }
-          folder.file(friendlyNames.pdfDocumentos, doc.output('arraybuffer'));
-          logMsg(`→ ${friendlyNames.pdfDocumentos} (${whites.length} pág)`);
-        } catch (e) { logMsg(`Error PDF Documentos: ${e.message}`, true); }
+
+          const pdfName = onlyOneSpecialPDF 
+            ? `${baseName} - Documentos.pdf`
+            : 'PDF de Documentos.pdf';
+
+          target.file(pdfName, doc.output('arraybuffer').slice(0));
+          logMsg(`→ ${pdfName} (${whites.length} pág)`);
+        } catch (e) {
+          logMsg(`Error PDF Documentos: ${e.message}`, true);
+        }
       }
 
       if (todas.length > 0 && includePdfUnido) {
@@ -420,15 +287,14 @@ btnProcesar.addEventListener('click', async () => {
           const docU = new jsPDF({unit:'mm', format:'a4'});
           const pw = 210, ph = 297;
 
-          for (let i = 0; i < todas.length; i++) {
-            if (i > 0) docU.addPage();
-            const {b64, format} = todas[i];
+          for (let j = 0; j < todas.length; j++) {
+            if (j > 0) docU.addPage();
+            const {b64} = todas[j];
             const img = new Image();
-            img.src = `data:image/${format};base64,${b64}`;
+            img.src = `data:image/png;base64,${b64}`;
             await new Promise(r => img.onload = r);
 
             const iw = img.naturalWidth, ih = img.naturalHeight;
-            const dpi = 96;
             const wMm = (iw / dpi) * 25.4;
             const hMm = (ih / dpi) * 25.4;
 
@@ -438,81 +304,88 @@ btnProcesar.addEventListener('click', async () => {
             const x = (pw - fw) / 2;
             const y = (ph - fh) / 2;
 
-            docU.addImage(b64, format.toUpperCase(), x, y, fw, fh);
+            docU.addImage(b64, 'PNG', x, y, fw, fh, null, 'FAST');
           }
-          folder.file(friendlyNames.pdfUnido, docU.output('arraybuffer'));
-          logMsg(`→ ${friendlyNames.pdfUnido} (${todas.length} pág)`);
-        } catch (e) { logMsg(`Error PDF con imágenes centradas: ${e.message}`, true); }
+
+          const pdfName = onlyOneSpecialPDF 
+            ? `${baseName} - Imágenes centradas.pdf`
+            : 'PDF con imágenes centradas.pdf';
+
+          target.file(pdfName, docU.output('arraybuffer').slice(0));
+          logMsg(`→ ${pdfName} (${todas.length} pág)`);
+        } catch (e) {
+          logMsg(`Error PDF con imágenes centradas: ${e.message}`, true);
+        }
       }
 
-      logMsg(`✓ ${file.name} terminado`);
-
     } catch (e) {
-      logMsg(`✗ Error ${file.name}: ${e.message}`, true);
+      logMsg(`Error ${file.name}: ${e.message}`, true);
     }
+
+    const percent = Math.round(((i + 1) / totalFiles) * 100);
+    globalProgress.value = percent;
   }
 
   globalProgressContainer.style.display = 'none';
-  pageProgressContainer.style.display = 'none';
-  progress.textContent = `Completado (${totalFiles} archivo${totalFiles === 1 ? '' : 's'})`;
+  progressEl.textContent = 'Completado';
+  progressEl.classList.add('completed');
   downloadSection.style.display = 'block';
-  btnDescargar.disabled = false;
   btnProcesar.disabled = false;
 });
 
-btnDescargar.addEventListener('click', () => generarZip(false));
-btnDescargarTodo.addEventListener('click', () => generarZip(true));
+btnDescargar.addEventListener('click', async () => {
+  if (!zipGlobal) {
+    logMsg('No hay datos para descargar', true);
+    return;
+  }
 
-async function generarZip(todo = false) {
-  if (!zipGlobal) return logMsg('No hay datos para descargar', true);
+  progressEl.textContent = 'Creando ZIP...';
+  btnDescargar.disabled = true;
 
-  progress.textContent = 'Creando ZIP...';
-  btnDescargar.disabled = btnDescargarTodo.disabled = true;
-
-  const temp = new JSZip();
+  const tempZip = new JSZip();
 
   try {
     for (const path in zipGlobal.files) {
       const f = zipGlobal.files[path];
       if (f.dir) continue;
 
-      let incluir = todo;
+      let content;
 
-      if (!todo) {
-        if (path.endsWith('.pdf') && !path.includes('Documentos') && !path.includes('imágenes centradas')) {
-          incluir = document.getElementById('chkOriginal').checked;
-        }
-        else if (path.includes(friendlyNames.fotos)) incluir = document.getElementById('chkMenor').checked;
-        else if (path.includes(friendlyNames.documentos) && !path.endsWith('.pdf')) incluir = document.getElementById('chkMayorPng').checked;
-        else if (path.endsWith(friendlyNames.pdfDocumentos)) incluir = document.getElementById('chkMayorPdf').checked;
-        else if (path.endsWith(friendlyNames.pdfUnido)) incluir = document.getElementById('chkUnido').checked;
+      if (f._data && f._data.uncompressed) {
+        content = f._data.uncompressed.slice(0);
+      } else {
+        content = await f.async('arraybuffer');
+        content = content.slice(0);
       }
 
-      if (incluir) {
-        const content = await f.async('arraybuffer');
-        temp.file(path, content);
-      }
+      tempZip.file(path, content);
     }
 
-    const blob = await temp.generateAsync({type: 'blob'});
+    const blob = await tempZip.generateAsync({
+      type: 'blob',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 }
+    });
+
     const name = input.files.length === 1 
       ? `${input.files[0].name.replace(/\.pdf$/i,'')} - procesado.zip`
       : 'pdfs-procesados.zip';
+
     saveAs(blob, name);
-    progress.textContent = 'Descargado';
-    logMsg('ZIP generado');
+    progressEl.textContent = 'Descargado ✓';
+    logMsg('Archivo ZIP generado correctamente');
   } catch (e) {
-    progress.textContent = 'Error ZIP';
-    logMsg(`Error descarga: ${e.message}`, true);
+    progressEl.textContent = 'Error al crear ZIP';
+    logMsg(`Error en ZIP: ${e.message}`, true);
   }
 
-  btnDescargar.disabled = btnDescargarTodo.disabled = false;
-}
+  btnDescargar.disabled = false;
+});
 
 function cropWhiteBorders(c) {
   const ctx = c.getContext('2d'), w = c.width, h = c.height;
   const d = ctx.getImageData(0,0,w,h).data;
-  const isWhite = (r,g,b) => (r+g+b)/3 > 240;
+  const isWhite = (r,g,b) => (r+g+b)/3 > 245;
 
   let top=0, bottom=h-1, left=0, right=w-1;
   while (top < bottom && rowIsWhite(top)) top++;
@@ -536,11 +409,10 @@ function analizarBlancos(c) {
   const d = c.getContext('2d').getImageData(0,0,c.width,c.height).data;
   let whitePixels = 0, total = c.width * c.height;
   for (let i=0; i<d.length; i+=4) {
-    if ((d[i]+d[i+1]+d[i+2])/3 > 240) whitePixels++;
+    if ((d[i]+d[i+1]+d[i+2])/3 > 245) whitePixels++;
   }
-  return { isMayor: (whitePixels / total) * 100 > 55 };
+  return { isMayor: (whitePixels / total) * 100 > 60 };
 }
 </script>
 </body>
 </html>
-
