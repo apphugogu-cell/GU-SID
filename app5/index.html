@@ -455,16 +455,6 @@
             stroke: #3b82f6;
             stroke-width: 1;
         }
-/* Estilo para los polígonos de linderos cargados desde GitHub */
-        .lindero-poly {
-            color: #c62828;
-            weight: 2.5;
-            opacity: 0.85;
-            fillColor: #ef5350;
-            fillOpacity: 0.10;
-            dashArray: '5 5';
-            pointer-events: auto;
-        }
     </style>
 </head>
 <body data-print-date="">
@@ -674,8 +664,7 @@
 
     <!-- Geoman -->
     <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
-   
+
     <script>
         const { jsPDF } = window.jspdf;
 
@@ -693,6 +682,9 @@
             snapping: true,
             allowSelfIntersection: false
         });
+        map.pm.removeControls();
+
+
 
 map.pm.addControls({
     position: 'topleft',
@@ -707,71 +699,54 @@ map.pm.addControls({
     cutPolygon: false
 });
 
-       // ── Capas especiales y variables globales ───────────────────────
-        var linderosLayer     = L.layerGroup().addTo(map);
-        var linderosVisible   = true;
-        const URL_LINDEROS_GITHUB = "https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/refs/heads/main/app5/linderos.txt";
-        
-        // Variables de datos y estado
-        var matrizUbicaciones = new Map();
-        let currentHighlightedMarker = null;
-        let currentSelectedMarker = null;
-        var clusterHulls = L.layerGroup().addTo(map);
 
-        var loadedFiles       = [];
-        var selectedMarkers   = [];
-        var modoClic          = false;
-        var modoPoligono = false;
 
-        var visibilidad       = { 
+
+        var loadedFiles = [];
+        var selectedMarkers = [];
+        var modoClic = false;
+        var visibilidad = {
             A1: true,
             A2: true,
             A3: true,
             IMPOSIBILIDAD: true,
             PROYECTO: true,
-            VERENCAMPO: true 
+            VERENCAMPO: true
         };
         var visibilidadArchivos = {};
-        var visibilidadGrupos = {};
-        
         var sidebar = L.control.sidebar({
-              container: 'sidebar',
-              position: 'left',
-              closeButton: true,
-              autopan: false
+            container: 'sidebar',
+            position: 'left',
+            closeButton: true,
+            autopan: false
         }).addTo(map);
-
+        var matrizUbicaciones = new Map();
+        let currentHighlightedMarker = null;
+        let currentSelectedMarker = null;
+        var clusterHulls = L.layerGroup().addTo(map);
         const clusterColors = [
             '#e53935', '#d81b60', '#8e24aa', '#5e35b1', '#3949ab', '#1e88e5',
             '#039be5', '#00acc1', '#00897b', '#43a047', '#7cb342', '#c0ca33',
             '#fdd835', '#ffb300', '#fb8c00', '#f4511e', '#6d4c41', '#757575',
             '#546e7a', '#ec407a', '#ab47bc', '#7e57c2', '#5c6bc0', '#42a5f5'
         ];
-
-function getClusterColor(id) {
-    return clusterColors[id % clusterColors.length];
-}
-
         var editableGroups = {};
         var groupIdCounter = 1;
         var currentEditingGroup = null;
         var contadorAgrupaciones = 0;
         var maxIntentos = 5;
-
         var jsonReferenciaLayer = L.layerGroup();
         var jsonReferenciaVisible = false;
         var jsonPuntosCargados = [];
         var suministrosSinUbicacion = [];
-
         var gpsMarker = null;
         var gpsCircle = null;
         var gpsInterval = null;
-
+        var modoPoligono = false;
+        var visibilidadGrupos = {};
 
         // Historial de versiones de agrupamiento (máximo 10)
         var versionesAgrupamiento = [];
-
-
 
         // ── Evento Geoman al crear polígono ────────────────────
         map.on('pm:create', (e) => {
@@ -2108,37 +2083,6 @@ function getClusterColor(id) {
             XLSX.writeFile(wb, `grupo_${g.name.replace(/\s+/g, '_')}.xlsx`);
         }
 
-function actualizarLeyendaGrupos() {
-    const container = document.getElementById('gruposLeyendaContent');
-    if (!container) return;
-    
-    const gruposLeyenda = document.getElementById('gruposLeyenda');
-    if (Object.keys(editableGroups).length === 0) {
-        gruposLeyenda.style.display = 'none';
-        return;
-    }
-    
-    gruposLeyenda.style.display = 'block';
-    container.innerHTML = '';
-    
-    for (let gid in editableGroups) {
-        const g = editableGroups[gid];
-        const visible = visibilidadGrupos[gid] !== false;
-        const item = document.createElement('div');
-        item.className = `leyenda-item ${visible ? '' : 'disabled'}`;
-        item.innerHTML = `
-            <div class="leyenda-color" style="background:${g.color};"></div>
-            <span>${g.name} (${g.suministros.length})</span>
-        `;
-        item.onclick = () => {
-            visibilidadGrupos[gid] = !visibilidadGrupos[gid];
-            aplicarFiltros();
-        };
-        container.appendChild(item);
-    }
-}
-
-
         function exportarGruposExcel() {
             if (Object.keys(editableGroups).length === 0) {
                 alert("No hay grupos creados.");
@@ -2407,168 +2351,6 @@ function actualizarLeyendaGrupos() {
             actualizarLeyendaGrupos();
             alert('Grupos y colores limpiados.');
         }
-// ── Conversión UTM si es necesario (copia de inicio1 si usas UTM) ──
-proj4.defs("EPSG:32717", "+proj=utm +zone=17 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs");
-
-function utmToLatLng(x, y) {
-    const px = parseFloat(x);
-    const py = parseFloat(y);
-    if (isNaN(px) || isNaN(py)) return [0, 0];
-    try {
-        const [lng, lat] = proj4('EPSG:32717', 'EPSG:4326', [px, py]);
-        return isNaN(lat) || isNaN(lng) ? [0, 0] : [lat, lng];
-    } catch (e) {
-        return [0, 0];
-    }
-}
-
-// ── Procesar el contenido del .txt (copia casi idéntica de mapa inicio1) ──
-function procesarLinderosTXT(contenido) {
-    linderosLayer.clearLayers();
-
-    const lineas = contenido.trim().split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length > 20 && l.includes('{') && l.includes('}'));
-
-    let cargadas = 0;
-    let fallidas = 0;
-
-    lineas.forEach((linea) => {
-        const cierreJson = linea.lastIndexOf('}');
-        if (cierreJson === -1) {
-            fallidas++;
-            return;
-        }
-
-        const jsonStr = linea.substring(0, cierreJson + 1);
-        let geojson;
-        try {
-            geojson = JSON.parse(jsonStr);
-        } catch (err) {
-            fallidas++;
-            return;
-        }
-
-        const resto = linea.substring(cierreJson + 1).trim();
-        const campos = resto.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-
-        const localidad = campos[0] || '?';
-        const urbaniza  = campos[1] || '?';
-        const calle     = campos[2] || '?';
-        const codigo    = campos[3] || '?';
-        const nombre    = campos.slice(4).join(' ') || 'Sin nombre';
-
-        let anillo = null;
-        if (geojson.type === 'MultiPolygon' && geojson.coordinates?.[0]?.[0]) {
-            anillo = geojson.coordinates[0][0];
-        } else if (geojson.type === 'Polygon' && geojson.coordinates?.[0]) {
-            anillo = geojson.coordinates[0];
-        }
-
-        if (!anillo || anillo.length < 3) {
-            fallidas++;
-            return;
-        }
-
-        let coords = [];
-        anillo.forEach(([x, y]) => {
-            const ll = utmToLatLng(x, y);   // ← si son UTM, si son lat/lon directos → cámbialo a [y, x]
-            if (ll[0] !== 0 && ll[1] !== 0) coords.push(ll);
-        });
-
-        if (coords.length < 3) {
-            fallidas++;
-            return;
-        }
-
-        const poligono = L.polygon(coords, {
-            className: 'lindero-poly'
-        }).addTo(linderosLayer);
-
-        poligono.bindPopup(`
-            <b>${nombre}</b><br>
-            Código: ${codigo}<br>
-            Calle: ${calle}<br>
-            ${urbaniza} – ${localidad}
-        `);
-
-        cargadas++;
-    });
-
-    if (cargadas > 0) {
-        // Opcional: ajustar vista al cargar muchos linderos
-        // map.fitBounds(linderosLayer.getBounds(), { padding: [60, 60] });
-    }
-
-    console.log(`Linderos cargados: ${cargadas} OK / ${fallidas} fallidos`);
-    actualizarLeyendaLinderos();
-}
-
-// ── Toggle visibilidad ──
-function toggleLinderosVisibilidad() {
-    linderosVisible = !linderosVisible;
-    linderosLayer.eachLayer(layer => {
-        layer.setStyle({
-            opacity: linderosVisible ? 0.85 : 0,
-            fillOpacity: linderosVisible ? 0.18 : 0
-        });
-    });
-    actualizarLeyendaLinderos();
-}
-
-// ── Actualizar ítem en leyenda ──
-function actualizarLeyendaLinderos() {
-    let item = document.getElementById('leyenda-linderos-item');
-    const count = linderosLayer.getLayers().length;
-
-    if (!item && count > 0) {
-        const section = document.getElementById('linderosLeyendaSection') ||
-                        document.createElement('div');
-        if (!document.getElementById('linderosLeyendaSection')) {
-            section.id = 'linderosLeyendaSection';
-            section.style.marginTop = '15px';
-            section.style.borderTop = '2px solid #e5e7eb';
-            section.style.paddingTop = '10px';
-            section.innerHTML = '<strong>Linderos Cargados</strong>';
-            document.getElementById('leyenda').appendChild(section);
-        }
-
-        item = document.createElement('div');
-        item.id = 'leyenda-linderos-item';
-        item.className = 'leyenda-item';
-        item.style.cursor = 'pointer';
-        item.innerHTML = `
-            <div class="leyenda-color" style="background:#ef5350;"></div>
-            <span id="textoLinderos">${linderosVisible ? 'Ocultar' : 'Mostrar'} linderos (${count})</span>
-        `;
-        item.onclick = toggleLinderosVisibilidad;
-        section.appendChild(item);
-    } else if (item) {
-        document.getElementById('textoLinderos').textContent = 
-            `${linderosVisible ? 'Ocultar' : 'Mostrar'} linderos (${count})`;
-    }
-}
-// Carga automática desde GitHub al abrir la página
-async function cargarLinderosDesdeGitHub() {
-    try {
-        const response = await fetch(URL_LINDEROS_GITHUB);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const texto = await response.text();
-        procesarLinderosTXT(texto);
-        const count = linderosLayer.getLayers().length;
-        console.log(`Linderos cargados: ${count} polígonos`);
-        if (count === 0) {
-            console.warn("Ningún polígono válido encontrado en linderos.txt");
-        }
-    } catch (err) {
-        console.error("Error al cargar linderos:", err);
-    }
-}
-
-// Ejecutar al cargar la página
-document.addEventListener('DOMContentLoaded', () => {
-    cargarLinderosDesdeGitHub();
-});
 
         console.log("FUSION2 - SOLO POLÍGONO - Versión completa | 15 feb 2026 12:30 PM -05");
     </script>
