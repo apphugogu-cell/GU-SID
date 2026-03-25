@@ -1,184 +1,528 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel Fotográfico - SEDALIB</title>
-  <style>
-    body{font-family:Arial,sans-serif;background:#f0f0f0;padding:20px;}
-    .container{max-width:1200px;margin:auto;background:white;padding:30px;border-radius:15px;box-shadow:0 0 30px rgba(0,0,0,0.3);}
-    h1{text-align:center;color:#1e3d59;font-size:28pt;margin-bottom:20px;}
-
-    /* Controles en filas y columnas */
-    .controles{
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap:15px;
-      margin:30px 0;
-      text-align:center;
-    }
-    .btn, .modo{
-      padding:11px 20px;
-      border:none;
-      border-radius:8px;
-      font-size:14pt;
-      cursor:pointer;
-      font-weight:bold;
-      transition:0.3s;
-    }
-    .btn{background:#0066cc;color:white;}
-    .btn:hover{background:#004a99;}
-    .modo{background:#1e3d59;color:white;}
-    .modo.activo{background:#006400;}
-    .btn.print{background:#006400;}
-    .btn.print:hover{background:#004d00;}
-    .btn.limpiar{background:#c62828;}
-    .btn.limpiar:hover{background:#a51d1d;}
-
-    .contador{text-align:center;font-size:20pt;color:#0066cc;margin:25px;font-weight:bold;}
-    textarea{width:100%;padding:10px;margin:15px 0;font-size:11pt;border:2px solid #0066cc;border-radius:8px;height:90px;}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PT-GURALMO - Panel Fotográfico Profesional</title>
     
-    /* Membrete + botón APLICAR en la misma línea */
-    .membrete-box{
-      background:#e6f2ff;padding:20px;border-radius:10px;display:flex;align-items:flex-end;gap:15px;flex-wrap:wrap;
-    }
-    .membrete-box textarea{flex:1;margin:0;}
-    .membrete-box button{
-      padding:10px 20px;font-size:13pt;height:44px; /* misma altura que el textarea */
-    }
+    <!-- Scripts de Dependencias -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-    .a4{width:210mm;height:297mm;margin:40px auto;background:white;padding:10mm 12mm;
-        border:3px solid black;box-sizing:border-box;font-family:Arial,sans-serif;
-        page-break-after:always;position:relative;box-shadow:0 0 20px rgba(0,0,0,0.3);}
-    .a4 h1{font-size:16pt;text-align:center;margin:0 0 8px;padding-bottom:6px;border-bottom:4px double black;}
-    .membrete{width:175mm;margin:10px auto 12px;background:#1e3d59;color:white;padding:12px;
-              font-size:9.5pt;font-weight:bold;line-height:1.4;text-align:center;border:2px solid black;}
-    .pie{background:#a6d8ff;padding:10px;font-weight:bold;font-size:12pt;position:absolute;bottom:0;width:100%;}
-    .eliminar{position:absolute;top:5px;right:5px;background:red;color:white;border:none;
-              width:30px;height:30px;border-radius:50%;font-size:18pt;cursor:pointer;z-index:10;}
-    .modo2 .fotos{display:flex;flex-direction:column;gap:18px;height:218mm;}
-    .modo2 .foto{flex:1;position:relative;overflow:hidden;border:3px solid black;background:white;}
-    .modo2 .foto img{width:100%;height:100%;object-fit:contain;background:white;}
-    .modo4 .fotos{display:grid;grid-template-columns:1fr 1fr;gap:12px;height:210mm;margin-top:10px;}
-    .modo4 .foto{border:3px solid black;background:white;text-align:center;position:relative;overflow:hidden;}
-    .modo4 .foto img{width:100%;height:86mm;object-fit:contain;background:white;}
-    @media print{
-      body{background:white;margin:0;padding:0;}
-      .container,.controles,.contador,.eliminar,.membrete-box button{display:none !important;}
-      .a4{box-shadow:none;margin:0 0 20mm 0;}
-      @page{size:A4 portrait;margin:0;}
-    }
-  </style>
+    <style>
+        /* Estilos personalizados extraídos de index.css */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;900&family=JetBrains+Mono:wght@400;500;800&display=swap');
+
+        :root {
+            --bg-app: #f1f5f9;
+            --ink: #0f172a;
+            --line: #cbd5e1;
+            --accent: #ea580c;
+        }
+
+        body {
+            background-color: var(--bg-app);
+            color: var(--ink);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .sidebar-control {
+            width: 16rem;
+            background-color: #0f172a;
+            border-right: 1px solid #1e293b;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 1rem;
+            overflow-y: auto;
+            z-index: 40;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .main-viewport {
+            flex: 1;
+            padding: 1rem;
+            background-color: #f1f5f9;
+            min-height: 100vh;
+            overflow-y: auto;
+            position: relative;
+            margin-left: 16rem;
+            background-image: 
+                linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .a4-page {
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto 2rem;
+            background: white;
+            padding: 12mm 15mm 12mm 20mm;
+            border: 1px solid #000;
+            box-sizing: border-box;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        }
+
+        .data-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            margin-bottom: 0.25rem;
+        }
+
+        .technical-input {
+            width: 100%;
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+            font-size: 10px;
+            color: #e2e8f0;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .technical-input:focus {
+            border-color: #ea580c;
+            box-shadow: 0 0 0 1px #ea580c;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body, html {
+                background: white !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            .main-viewport { 
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                background-image: none !important;
+            }
+            .a4-page {
+                margin: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                page-break-after: always;
+                page-break-inside: avoid;
+                transform: none !important;
+                width: 210mm !important;
+                height: 297mm !important;
+            }
+            @page { 
+                size: A4 portrait; 
+                margin: 0; 
+            }
+        }
+
+        /* Custom scrollbar for sidebar */
+        .sidebar-control::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-control::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar-control::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-  <h1>PANEL FOTOGRÁFICO</h1>
+    <div id="root"></div>
 
-  <div class="controles">
-    <input type="file" id="carpeta" webkitdirectory directory style="display:none;">
-    <button class="btn" onclick="document.getElementById('carpeta').click()">
-      SELECCIONAR CARPETA
-    </button>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-    <button class="modo activo" id="btn2" onclick="cambiarModo(2)">2 FOTOS POR HOJA</button>
-    <button class="modo" id="btn4" onclick="cambiarModo(4)">4 FOTOS POR HOJA</button>
+        // Componente de Icono Lucide para React Standalone
+        const Icon = ({ name, size = 16, className = "" }) => {
+            const ref = useRef(null);
+            useEffect(() => {
+                if (ref.current) {
+                    lucide.createIcons({
+                        icons: { [name]: lucide.icons[name] },
+                        nameAttr: 'data-lucide'
+                    });
+                }
+            }, [name]);
+            return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
+        };
 
-    <button class="btn print" onclick="window.print()">GUARDAR COMO PDF</button>
-    <button class="btn limpiar" onclick="limpiarTodo()">LIMPIAR TODO</button>
-  </div>
+        function App() {
+            const [photos, setPhotos] = useState([]);
+            const [layoutMode, setLayoutMode] = useState(2);
+            const [globalTitle, setGlobalTitle] = useState('PANEL FOTOGRAFICO');
+            const [globalHeader, setGlobalHeader] = useState('Descripcion de obra...');
+            const [globalFooter, setGlobalFooter] = useState('PANEL FOTOGRAFICO-GU');
+            const [showReportHeader, setShowReportHeader] = useState(true);
+            const [showReportFooter, setShowReportFooter] = useState(true);
+            const [isDragging, setIsDragging] = useState(false);
+            const [zoom, setZoom] = useState(100);
+            const [draggingId, setDraggingId] = useState(null);
+            const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
 
-  <!-- Membrete + botón APLICAR en la misma línea -->
-  <div class="membrete-box">
-    <div style="flex:1;">
-      <strong>EDITA EL MEMBRETE AQUÍ (se aplica a todas las hojas)</strong>
-      <textarea id="membreteGlobal">Adquisición de Medidor de Corriente de Agua; en el Parque de Medidores de la EPS SEDALIB S.A
-y Ampliación de Cobertura de Micromedición - Provincias de Trujillo, Ascope, Chepén
-y el Distrito de Trujillo, Provincia Trujillo, Departamento La Libertad - Segunda Etapa con CUI N° 2574429</textarea>
-    </div>
-    <button class="btn" onclick="actualizarMembreteGlobal()">APLICAR</button>
-  </div>
+            const imagesInputRef = useRef(null);
 
-  <div class="contador" id="contador">0 hojas generadas</div>
-</div>
+            useEffect(() => {
+                return () => {
+                    photos.forEach(photo => URL.revokeObjectURL(photo.url));
+                };
+            }, [photos]);
 
-<div id="paneles"></div>
+            const handleFiles = (files) => {
+                if (!files) return;
 
-<script>
-let modo = 2;
-let fotosCargadas = [];
+                const newPhotos = Array.from(files)
+                    .filter(file => file.type.startsWith('image/'))
+                    .map(file => ({
+                        id: Math.random().toString(36).substr(2, 9),
+                        file,
+                        url: URL.createObjectURL(file),
+                        name: file.name.split('.').slice(0, -1).join('.'),
+                        zoom: 1,
+                        rotation: 0,
+                        offset: { x: 0, y: 0 },
+                    }));
 
-function cambiarModo(n) {
-  modo = n;
-  document.getElementById('btn2').classList.toggle('activo', n===2);
-  document.getElementById('btn4').classList.toggle('activo', n===4);
-  generarPaneles();
-}
+                setPhotos(prev => {
+                    const combined = [...prev, ...newPhotos];
+                    return combined.sort((a, b) => a.file.name.localeCompare(b.file.name));
+                });
+            };
 
-function actualizarMembreteGlobal() {
-  const texto = document.getElementById('membreteGlobal').value.replace(/\n/g, '<br>');
-  document.querySelectorAll('.membrete').forEach(m => m.innerHTML = texto);
-}
+            const removePhoto = (id) => {
+                setPhotos(prev => {
+                    const photoToRemove = prev.find(p => p.id === id);
+                    if (photoToRemove) URL.revokeObjectURL(photoToRemove.url);
+                    return prev.filter(p => p.id !== id);
+                });
+            };
 
-document.getElementById('carpeta').addEventListener('change', function(e) {
-  fotosCargadas = Array.from(e.target.files)
-    .filter(f => f.type.startsWith('image/'))
-    .sort((a,b) => a.name.localeCompare(b.name));
-  generarPaneles();
-});
+            const clearAll = () => {
+                if (window.confirm('¿Eliminar todas las fotos y limpiar todo?')) {
+                    photos.forEach(p => URL.revokeObjectURL(p.url));
+                    setPhotos([]);
+                }
+            };
 
-function generarPaneles() {
-  if (fotosCargadas.length === 0) return;
-  const nombreCarpeta = (fotosCargadas[0].webkitRelativePath || "").split('/')[0];
-  const contenedor = document.getElementById('paneles');
-  contenedor.innerHTML = '';
-  const fotosPorHoja = modo === 2 ? 2 : 4;
-  const totalHojas = Math.ceil(fotosCargadas.length / fotosPorHoja);
-  const membreteActual = document.getElementById('membreteGlobal').value.replace(/\n/g, '<br>');
+            const photosPerPage = layoutMode;
+            const totalPages = Math.ceil(photos.length / photosPerPage);
 
-  for (let hoja = 0; hoja < totalHojas; hoja++) {
-    const inicio = hoja * fotosPorHoja;
-    const fotosHoja = fotosCargadas.slice(inicio, inicio + fotosPorHoja);
-    const panel = document.createElement('div');
-    panel.className = `a4 modo${modo}`;
-    panel.innerHTML = `
-      <h1>PANEL FOTOGRÁFICO DE INTERVENCIÓN DEL PROYECTO</h1>
-      <div class="membrete">${membreteActual}</div>
-      <div class="fotos">
-        ${fotosHoja.map((foto, i) => {
-          const idxGlobal = inicio + i;
-          const nombreSinExt = foto.name.split('.').slice(0,-1).join('.');
-          const desc = `IMG. ${(idxGlobal+1).toString().padStart(2,'0')} – ${nombreCarpeta} - ${nombreSinExt}`;
-         
-          const reader = new FileReader();
-          reader.onload = e => panel.querySelectorAll('img')[i].src = e.target.result;
-          reader.readAsDataURL(foto);
-          return `
-            <div class="foto">
-              <button class="eliminar" onclick="eliminarFoto(${idxGlobal})">X</button>
-              <img src="">
-              <div class="pie" contenteditable="true">${desc}</div>
-            </div>`;
-        }).join('')}
-      </div>
-    `;
-    contenedor.appendChild(panel);
-  }
-  document.getElementById('contador').textContent =
-    `${totalHojas} hoja(s) - ${fotosCargadas.length} foto(s) cargadas`;
-}
+            return (
+                <div className="flex bg-slate-100 min-h-screen">
+                    {/* Sidebar de Control */}
+                    <aside className="sidebar-control no-print flex flex-col">
+                        <div className="mb-6 border-b border-slate-800 pb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-orange-600 p-1.5 rounded shadow-lg">
+                                    <Icon name="FileText" className="text-white" size={16} />
+                                </div>
+                                <h1 className="text-xs font-black text-white uppercase tracking-tighter">PANEL FOTOGRAFICO-GU</h1>
+                            </div>
+                        </div>
 
-function eliminarFoto(index) {
-  fotosCargadas.splice(index, 1);
-  generarPaneles();
-}
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="data-label">Importación</h3>
+                                <button 
+                                    onClick={() => imagesInputRef.current?.click()}
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-orange-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 transition-all shadow-lg"
+                                >
+                                    <Icon name="Image" size={14} />
+                                    Añadir Imágenes
+                                </button>
+                            </div>
 
-function limpiarTodo() {
-  if(confirm("¿Eliminar todas las fotos y limpiar todo?")) {
-    fotosCargadas = [];
-    document.getElementById('paneles').innerHTML = '';
-    document.getElementById('contador').textContent = "0 hojas generadas";
-  }
-}
-</script>
+                            <div>
+                                <h3 className="data-label">Layout</h3>
+                                <div className="flex p-0.5 bg-slate-800 border border-slate-700 rounded">
+                                    <button 
+                                        onClick={() => setLayoutMode(2)}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded text-[9px] font-black uppercase tracking-widest transition-all ${
+                                            layoutMode === 2 ? 'bg-orange-600 text-white' : 'text-slate-500 hover:text-slate-300'
+                                        }`}
+                                    >
+                                        <Icon name="LayoutList" size={12} />
+                                        2 Fotos
+                                    </button>
+                                    <button 
+                                        onClick={() => setLayoutMode(4)}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded text-[9px] font-black uppercase tracking-widest transition-all ${
+                                            layoutMode === 4 ? 'bg-orange-600 text-white' : 'text-slate-500 hover:text-slate-300'
+                                        }`}
+                                    >
+                                        <Icon name="LayoutGrid" size={12} />
+                                        4 Fotos
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h3 className="data-label">Metadatos</h3>
+                                <div>
+                                    <label className="text-[9px] font-bold text-slate-400 mb-1 block uppercase">Título</label>
+                                    <textarea 
+                                        value={globalTitle}
+                                        onChange={(e) => setGlobalTitle(e.target.value)}
+                                        rows="2"
+                                        className="technical-input"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[9px] font-bold text-slate-400 mb-1 block uppercase">Membrete</label>
+                                    <textarea 
+                                        value={globalHeader}
+                                        onChange={(e) => setGlobalHeader(e.target.value)}
+                                        rows="2"
+                                        className="technical-input"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[9px] font-bold text-slate-400 mb-1 block uppercase">Pie de Página</label>
+                                    <textarea 
+                                        value={globalFooter}
+                                        onChange={(e) => setGlobalFooter(e.target.value)}
+                                        rows="1"
+                                        className="technical-input"
+                                    />
+                                </div>
+
+                                <div className="pt-2 space-y-2">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={showReportHeader} 
+                                            onChange={(e) => setShowReportHeader(e.target.checked)}
+                                            className="w-3 h-3 accent-orange-500"
+                                        />
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Cabecera</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={showReportFooter} 
+                                            onChange={(e) => setShowReportFooter(e.target.checked)}
+                                            className="w-3 h-3 accent-orange-500"
+                                        />
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Pie de Pag.</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-slate-800 space-y-2">
+                                <button 
+                                    onClick={() => window.print()}
+                                    disabled={photos.length === 0}
+                                    className="w-full flex items-center justify-center gap-2 py-2 bg-orange-600 text-white rounded text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 disabled:opacity-30 transition-all"
+                                >
+                                    <Icon name="Printer" size={14} />
+                                    Imprimir PDF
+                                </button>
+                                <button 
+                                    onClick={clearAll}
+                                    className="w-full flex items-center justify-center gap-2 py-1.5 text-red-400 hover:bg-red-900/20 rounded text-[10px] font-bold transition-all"
+                                >
+                                    <Icon name="RotateCcw" size={12} />
+                                    Reiniciar
+                                </button>
+                            </div>
+                        </div>
+                    </aside>
+
+                    {/* Área de Visualización */}
+                    <main 
+                        className="main-viewport"
+                        onMouseMove={(e) => {
+                            if (!draggingId) return;
+                            const photo = photos.find(p => p.id === draggingId);
+                            if (!photo) return;
+
+                            const dx = e.clientX - lastMousePos.x;
+                            const dy = e.clientY - lastMousePos.y;
+                            
+                            const pageScale = zoom / 100;
+                            const moveX = dx / pageScale;
+                            const moveY = dy / pageScale;
+
+                            setPhotos(prev => prev.map(p => p.id === draggingId ? { 
+                                ...p, 
+                                offset: { x: p.offset.x + moveX, y: p.offset.y + moveY } 
+                            } : p));
+                            setLastMousePos({ x: e.clientX, y: e.clientY });
+                        }}
+                        onMouseUp={() => setDraggingId(null)}
+                        onMouseLeave={() => setDraggingId(null)}
+                    >
+                        {/* Barra de Herramientas Flotante */}
+                        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 no-print">
+                            <div className="flex items-center gap-2 bg-slate-900/90 backdrop-blur text-white px-3 py-1.5 rounded-full border border-slate-700 shadow-2xl">
+                                <Icon name="Search" size={12} className="text-orange-500" />
+                                <input 
+                                    type="range" 
+                                    min="40" 
+                                    max="150" 
+                                    value={zoom} 
+                                    onChange={(e) => setZoom(parseInt(e.target.value))}
+                                    className="w-24 accent-orange-500 h-1"
+                                />
+                                <span className="text-[9px] font-black w-6">{zoom}%</span>
+                            </div>
+                        </div>
+
+                        <input type="file" ref={imagesInputRef} className="hidden" multiple accept="image/*" onChange={(e) => handleFiles(e.target.files)} />
+
+                        {photos.length === 0 ? (
+                            <div 
+                                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                                onDragLeave={() => setIsDragging(false)}
+                                onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); }}
+                                onClick={() => imagesInputRef.current?.click()}
+                                className={`h-[calc(100vh-2rem)] border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer ${
+                                    isDragging ? 'border-orange-500 bg-orange-50 scale-[0.99]' : 'border-slate-300 bg-white hover:border-orange-300 hover:bg-slate-50'
+                                }`}
+                            >
+                                <Icon name="Image" size={48} className={`mb-4 ${isDragging ? 'text-orange-500' : 'text-slate-300'}`} />
+                                <h2 className="text-lg font-black text-slate-800 mb-1 uppercase tracking-tight">Área de Trabajo Vacía</h2>
+                                <p className="text-slate-400 text-xs font-medium mb-6">Arrastre sus fotografías aquí o haga clic para seleccionar archivos.</p>
+                                <button className="px-6 py-2 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl">
+                                    Seleccionar Imágenes
+                                </button>
+                            </div>
+                        ) : (
+                            <div id="print-area" className="flex flex-col items-center">
+                                {Array.from({ length: totalPages }).map((_, pageIndex) => (
+                                    <div 
+                                        key={pageIndex} 
+                                        className="a4-page"
+                                        style={{ 
+                                            transform: `scale(${zoom / 100})`, 
+                                            transformOrigin: 'top center', 
+                                            marginBottom: `${(297 * (zoom/100)) - 297 + 32}mm` 
+                                        }}
+                                    >
+                                        {showReportHeader && (
+                                            <div className="text-center mb-6">
+                                                <h2 className="italic text-[18pt] font-bold border-b-4 border-double border-slate-900 pb-2 mb-4 uppercase tracking-tight leading-tight">
+                                                    {globalTitle}
+                                                </h2>
+                                                {globalHeader.trim() && (
+                                                    <div className="bg-slate-900 text-white p-4 text-[10pt] font-mono leading-relaxed border border-slate-900 whitespace-pre-wrap text-center shadow-lg">
+                                                        {globalHeader}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        <div className={`grid gap-6 h-[210mm] ${layoutMode === 2 ? 'grid-rows-2' : 'grid-cols-2 grid-rows-2'}`}>
+                                            {photos.slice(pageIndex * photosPerPage, (pageIndex + 1) * photosPerPage).map((photo, i) => {
+                                                const globalIdx = pageIndex * photosPerPage + i;
+                                                return (
+                                                    <div key={photo.id} className="relative border-y-2 border-r-2 border-l-4 border-slate-900 bg-white flex flex-col group overflow-hidden rounded-xl shadow-md">
+                                                        <button 
+                                                            onClick={() => removePhoto(photo.id)}
+                                                            className="no-print absolute top-3 right-3 z-10 p-2 bg-red-600 text-white rounded-full shadow-xl opacity-0 group-hover:opacity-100 transition-all"
+                                                        >
+                                                            <Icon name="Trash2" size={14} />
+                                                        </button>
+
+                                                        <div className="flex-1 overflow-hidden flex items-center justify-center p-2 bg-white relative">
+                                                            <div className="no-print absolute right-1 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                                                <button 
+                                                                    onClick={() => setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, rotation: (p.rotation + 90) % 360 } : p))}
+                                                                    className="bg-slate-900/80 text-white p-1.5 rounded-full hover:bg-orange-600 transition-colors"
+                                                                >
+                                                                    <Icon name="RotateCcw" size={14} className="rotate-180" />
+                                                                </button>
+                                                                <input 
+                                                                    type="range" 
+                                                                    min="1" 
+                                                                    max="3" 
+                                                                    step="0.01"
+                                                                    value={photo.zoom}
+                                                                    onChange={(e) => {
+                                                                        const val = parseFloat(e.target.value);
+                                                                        setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, zoom: val } : p));
+                                                                    }}
+                                                                    className="h-24 accent-orange-500 cursor-ns-resize"
+                                                                    style={{ appearance: 'slider-vertical' }}
+                                                                />
+                                                            </div>
+
+                                                            <div 
+                                                                className="w-full h-full flex items-center justify-center overflow-hidden cursor-move"
+                                                                onMouseDown={(e) => {
+                                                                    e.preventDefault();
+                                                                    setDraggingId(photo.id);
+                                                                    setLastMousePos({ x: e.clientX, y: e.clientY });
+                                                                }}
+                                                            >
+                                                                <img 
+                                                                    src={photo.url} 
+                                                                    draggable="false"
+                                                                    style={{
+                                                                        transform: `translate(${photo.offset.x}px, ${photo.offset.y}px) rotate(${photo.rotation}deg) scale(${photo.zoom})`,
+                                                                        transition: draggingId === photo.id ? 'none' : 'transform 0.1s ease-out'
+                                                                    }}
+                                                                    className="max-w-full max-h-full object-contain pointer-events-none"
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="bg-slate-100/40 py-1.5 px-4 border-t border-slate-900 min-h-[2.5rem]">
+                                                            <div className="flex items-baseline gap-1.5">
+                                                                <span className="text-[7pt] font-black text-slate-900 uppercase tracking-tight shrink-0">
+                                                                    IMG {(globalIdx + 1).toString().padStart(3, '0')}
+                                                                </span>
+                                                                <div 
+                                                                    contentEditable 
+                                                                    suppressContentEditableWarning
+                                                                    onBlur={(e) => {
+                                                                        const newName = e.currentTarget.innerText;
+                                                                        setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, name: newName } : p));
+                                                                    }}
+                                                                    className="outline-none text-[11pt] italic text-slate-800 leading-snug w-full"
+                                                                >
+                                                                    {photo.name}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {showReportFooter && (
+                                            <div className="absolute bottom-6 left-[20mm] right-[15mm] flex justify-between items-center border-t-2 border-slate-900 pt-4">
+                                                <div className="text-[9pt] font-mono text-slate-600 font-bold uppercase tracking-widest">
+                                                    {globalFooter}
+                                                </div>
+                                                <div className="bg-slate-900 text-white px-3 py-1 rounded text-[9pt] font-black">
+                                                    Pag. {pageIndex + 1}/{totalPages}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
