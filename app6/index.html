@@ -282,6 +282,7 @@
             line-height: 1.2;
             width: 100%;
             outline: none;
+            cursor: text;
         }
 
         /* Modal de Importación */
@@ -390,43 +391,6 @@
             border-color: #ea580c;
         }
 
-        .logo-preview {
-            width: 100%;
-            height: 60px;
-            border: 2px dashed #334155;
-            border-radius: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            background: #1e293b;
-            cursor: pointer;
-            transition: border-color 0.2s;
-        }
-
-        .logo-preview:hover {
-            border-color: #ea580c;
-        }
-
-        .report-logo {
-            max-height: 25mm;
-            max-width: 50mm;
-            object-fit: contain;
-        }
-
-        .page-watermark {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-15deg);
-            width: 80%;
-            height: 80%;
-            object-fit: contain;
-            opacity: 0.06;
-            pointer-events: none;
-            z-index: 0;
-        }
-
         .report-content-layer {
             position: relative;
             z-index: 10;
@@ -507,6 +471,7 @@
             return <span 
                 className={`inline-flex items-center justify-center lucide-icon ${className}`}
                 dangerouslySetInnerHTML={{ __html: svg }} 
+                aria-hidden="true"
             />;
         };
 
@@ -514,7 +479,6 @@
             const [photos, setPhotos] = useState([]);
             const [stagedPhotos, setStagedPhotos] = useState([]);
             const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-            const [logoUrl, setLogoUrl] = useState(null);
             const [layoutMode, setLayoutMode] = useState(2);
             const [globalTitle, setGlobalTitle] = useState('PANEL FOTOGRAFICO');
             const [globalHeader, setGlobalHeader] = useState('Descripcion de obra...');
@@ -533,7 +497,6 @@
 
             const imagesInputRef = useRef(null);
             const folderInputRef = useRef(null);
-            const logoInputRef = useRef(null);
 
             useEffect(() => {
                 const preventDefault = (e) => {
@@ -546,13 +509,13 @@
                     window.removeEventListener('dragover', preventDefault);
                     window.removeEventListener('drop', preventDefault);
                     photos.forEach(photo => URL.revokeObjectURL(photo.url));
-                    if (logoUrl) URL.revokeObjectURL(logoUrl);
                 };
-            }, [photos, logoUrl]);
+            }, [photos]);
 
             const handleFiles = (files) => {
                 if (!files || files.length === 0) return;
 
+                stagedPhotos.forEach(p => URL.revokeObjectURL(p.url));
                 const newPhotos = Array.from(files)
                     .filter(file => file.type.startsWith('image/'))
                     .map(file => {
@@ -644,14 +607,6 @@
                 stagedPhotos.forEach(p => URL.revokeObjectURL(p.url));
                 setStagedPhotos([]);
                 setIsImportModalOpen(false);
-            };
-
-            const handleLogoUpload = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    if (logoUrl) URL.revokeObjectURL(logoUrl);
-                    setLogoUrl(URL.createObjectURL(file));
-                }
             };
 
             const removePhoto = (id) => {
@@ -778,26 +733,6 @@
                             </section>
 
                             <section className="sidebar-section">
-                                <span className="sidebar-title">Logotipo</span>
-                                <div className="space-y-2">
-                                    <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
-                                    <div onClick={() => logoInputRef.current?.click()} className="logo-preview">
-                                        {logoUrl ? (
-                                            <img src={logoUrl} alt="Logo" className="h-full object-contain" />
-                                        ) : (
-                                            <div className="flex flex-col items-center gap-1">
-                                                <Icon name="UploadCloud" size={16} className="text-slate-500" />
-                                                <span className="text-[8px] font-bold text-slate-500 uppercase">Subir Logo</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    {logoUrl && (
-                                        <button onClick={() => setLogoUrl(null)} className="w-full text-[8px] font-bold text-red-400 uppercase hover:text-red-300 transition-colors">Eliminar Logo</button>
-                                    )}
-                                </div>
-                            </section>
-
-                            <section className="sidebar-section">
                                 <span className="sidebar-title">Estructura</span>
                                 <div className="flex p-1 bg-slate-800 border border-slate-700 rounded-lg">
                                     <button onClick={() => setLayoutMode(2)} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${layoutMode === 2 ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}>
@@ -916,7 +851,7 @@
                                 <h2 className="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tight">Panel Vacío</h2>
                                 <p className="text-slate-400 text-sm font-medium mb-8">Arrastre sus fotografías o carpetas aquí para comenzar.</p>
                                 <div className="flex gap-4">
-                                    <button className="px-8 py-3 bg-slate-900 text-white rounded-full text-[11px] font-black uppercase tracking-widest border-none cursor-pointer shadow-xl hover:bg-slate-800 transition-all">Seleccionar Imágenes</button>
+                                    <button onClick={(e) => { e.stopPropagation(); imagesInputRef.current?.click(); }} className="px-8 py-3 bg-slate-900 text-white rounded-full text-[11px] font-black uppercase tracking-widest border-none cursor-pointer shadow-xl hover:bg-slate-800 transition-all">Seleccionar Imágenes</button>
                                     <button onClick={(e) => { e.stopPropagation(); folderInputRef.current?.click(); }} className="px-8 py-3 bg-orange-600 text-white rounded-full text-[11px] font-black uppercase tracking-widest border-none cursor-pointer shadow-xl hover:bg-orange-500 transition-all">Cargar Carpeta</button>
                                 </div>
                             </div>
@@ -924,14 +859,12 @@
                             <div id="print-area" className={`flex ${viewMode === 'grid' ? 'flex-row flex-wrap justify-center gap-x-12 gap-y-4' : 'flex-col items-center'}`}>
                                 {Array.from({ length: totalPages }).map((_, pageIndex) => (
                                     <div key={pageIndex} className={`a4-page flex flex-col ${(!showReportHeader && !showReportFooter) ? 'justify-center' : ''}`} style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top center', marginBottom: `${(297 * (zoom/100)) - 297 + 32}mm`, flexShrink: 0 }}>
-                                        {logoUrl && <img src={logoUrl} className="page-watermark" alt="Watermark" />}
                                         
                                         <div className="report-content-layer">
                                             {showReportHeader && (
                                                 <div className="text-center mb-8 relative">
                                                     <div className="flex items-center justify-between mb-4 border-b-4 border-double border-slate-900 pb-3">
                                                         <div className="w-1/4 flex justify-start">
-                                                            {logoUrl && <img src={logoUrl} className="report-logo" alt="Logo" />}
                                                         </div>
                                                         <h2 className="italic text-[18pt] font-bold uppercase tracking-tight leading-tight flex-1">{globalTitle}</h2>
                                                         <div className="w-1/4"></div>
@@ -977,7 +910,7 @@
                                                                     <img src={photo.url} alt={photo.name} draggable="false" style={{ transform: `translate(${photo.offset.x}px, ${photo.offset.y}px) rotate(${photo.rotation}deg) scale(${photo.zoom})`, transition: draggingId === photo.id ? 'none' : 'transform 0.1s ease-out' }} className="max-w-full max-h-full object-contain" />
                                                                 </div>
                                                             </div>
-                                                            <div className="photo-footer cursor-grab active:cursor-grabbing">
+                                                            <div className="photo-footer">
                                                                 <div className="flex items-baseline gap-2">
                                                                     <span className="img-label">IMG {(globalIndex + 1).toString().padStart(3, '0')}</span>
                                                                     <div contentEditable suppressContentEditableWarning onBlur={(e) => setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, name: e.currentTarget.innerText } : p))} className="img-name">{photo.name}</div>
@@ -989,7 +922,7 @@
                                             </div>
 
                                             {showReportFooter && (
-                                                <div className="absolute bottom-6 left-0 right-0 flex justify-between items-center border-t-2 border-slate-900 pt-5">
+                                                <div className="absolute bottom-6 left-[20mm] right-[15mm] flex justify-between items-center border-t-2 border-slate-900 pt-5">
                                                     <div contentEditable suppressContentEditableWarning onBlur={(e) => setGlobalFooter(e.currentTarget.innerText)} className="text-[9pt] font-mono text-slate-600 font-bold uppercase tracking-widest outline-none">{globalFooter}</div>
                                                     <div className="bg-slate-900 text-white px-4 py-1.5 rounded-md text-[9pt] font-black shadow-lg">PÁGINA {pageIndex + 1} DE {totalPages}</div>
                                                 </div>
