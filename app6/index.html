@@ -11,6 +11,8 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;900&family=JetBrains+Mono:wght@400;500;800&display=swap');
@@ -563,6 +565,236 @@
                 event.target.value = ''; // Reset input
             };
 
+            const exportToWord = async () => {
+                if (photos.length === 0) return;
+
+                try {
+                    // Intento de detección robusta de la librería
+                    const docxLib = window.docx || window.DOCX || (typeof docx !== 'undefined' ? docx : null);
+                    
+                    if (!docxLib) {
+                        console.log("Debug - Librerías cargadas:", Object.keys(window).filter(k => k.length < 10));
+                        alert("La herramienta de Word aún se está cargando o ha sido bloqueada por su navegador. Por favor:\n1. Verifique su conexión a internet.\n2. Intente abrir el archivo con Microsoft Edge o Firefox.\n3. Espere 5 segundos y vuelva a intentar.");
+                        return;
+                    }
+
+                    const { Document, Packer, Paragraph, TextRun, ImageRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle, SectionType, Footer } = docxLib;
+
+                    const sections = [];
+                    const photosPerPage = layoutMode;
+                    const totalPages = Math.ceil(photos.length / photosPerPage);
+
+                    for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+                        const pagePhotos = photos.slice(pageIndex * photosPerPage, (pageIndex + 1) * photosPerPage);
+                        const children = [];
+
+                        // Header (Title and Description)
+                        if (showReportHeader) {
+                            children.push(
+                                new Paragraph({
+                                    alignment: AlignmentType.CENTER,
+                                    children: [
+                                        new TextRun({
+                                            text: globalTitle,
+                                            bold: true,
+                                            size: 36,
+                                            allCaps: true,
+                                            font: "Calibri",
+                                        }),
+                                    ],
+                                    spacing: { after: 200 },
+                                })
+                            );
+
+                            if (globalHeader.trim()) {
+                                children.push(
+                                    new Table({
+                                        width: { size: 100, type: WidthType.PERCENTAGE },
+                                        rows: [
+                                            new TableRow({
+                                                children: [
+                                                    new TableCell({
+                                                        children: [
+                                                            new Paragraph({
+                                                                alignment: AlignmentType.CENTER,
+                                                                children: [
+                                                                    new TextRun({
+                                                                        text: globalHeader,
+                                                                        color: "FFFFFF",
+                                                                        font: "Courier New",
+                                                                        size: 20,
+                                                                    }),
+                                                                ],
+                                                            }),
+                                                        ],
+                                                        shading: { fill: "0F172A" },
+                                                        margins: { top: 200, bottom: 200, left: 200, right: 200 },
+                                                    }),
+                                                ],
+                                            }),
+                                        ],
+                                    })
+                                );
+                                children.push(new Paragraph({ spacing: { before: 400 } }));
+                            }
+                        }
+
+                        // Photos Grid
+                        const tableRows = [];
+                        if (layoutMode === 2) {
+                            // 2 photos per page (1 column, 2 rows)
+                            for (const photo of pagePhotos) {
+                                try {
+                                    const imageBuffer = await fetch(photo.url).then(r => r.arrayBuffer());
+                                    tableRows.push(
+                                        new TableRow({
+                                            children: [
+                                                new TableCell({
+                                                    children: [
+                                                        new Paragraph({
+                                                            alignment: AlignmentType.CENTER,
+                                                            children: [
+                                                                new ImageRun({
+                                                                    data: imageBuffer,
+                                                                    transformation: { width: 450, height: 300 },
+                                                                }),
+                                                            ],
+                                                        }),
+                                                        new Paragraph({
+                                                            children: [
+                                                                new TextRun({
+                                                                    text: `IMG ${photos.indexOf(photo) + 1} - ${photo.name}`,
+                                                                    bold: true,
+                                                                    font: "Calibri",
+                                                                    size: 22,
+                                                                }),
+                                                            ],
+                                                            spacing: { before: 100 },
+                                                            shading: { fill: "F1F5F9" },
+                                                        }),
+                                                    ],
+                                                    borders: {
+                                                        top: { style: BorderStyle.SINGLE, size: 4, color: "0F172A" },
+                                                        bottom: { style: BorderStyle.SINGLE, size: 4, color: "0F172A" },
+                                                        left: { style: BorderStyle.SINGLE, size: 10, color: "0F172A" },
+                                                        right: { style: BorderStyle.SINGLE, size: 4, color: "0F172A" },
+                                                    },
+                                                    margins: { top: 100, bottom: 100, left: 100, right: 100 },
+                                                }),
+                                            ],
+                                        })
+                                    );
+                                } catch (imgErr) {
+                                    console.error("Error cargando imagen para Word:", imgErr);
+                                }
+                            }
+                        } else {
+                            // 4 photos per page (2 columns, 2 rows)
+                            for (let i = 0; i < pagePhotos.length; i += 2) {
+                                const rowPhotos = pagePhotos.slice(i, i + 2);
+                                const cells = [];
+                                for (const photo of rowPhotos) {
+                                    try {
+                                        const imageBuffer = await fetch(photo.url).then(r => r.arrayBuffer());
+                                        cells.push(
+                                            new TableCell({
+                                                children: [
+                                                    new Paragraph({
+                                                        alignment: AlignmentType.CENTER,
+                                                        children: [
+                                                            new ImageRun({
+                                                                data: imageBuffer,
+                                                                transformation: { width: 220, height: 160 },
+                                                            }),
+                                                        ],
+                                                    }),
+                                                    new Paragraph({
+                                                        children: [
+                                                            new TextRun({
+                                                                text: `IMG ${photos.indexOf(photo) + 1} - ${photo.name}`,
+                                                                bold: true,
+                                                                font: "Calibri",
+                                                                size: 18,
+                                                            }),
+                                                        ],
+                                                        spacing: { before: 100 },
+                                                        shading: { fill: "F1F5F9" },
+                                                    }),
+                                                ],
+                                                borders: {
+                                                    top: { style: BorderStyle.SINGLE, size: 4, color: "0F172A" },
+                                                    bottom: { style: BorderStyle.SINGLE, size: 4, color: "0F172A" },
+                                                    left: { style: BorderStyle.SINGLE, size: 10, color: "0F172A" },
+                                                    right: { style: BorderStyle.SINGLE, size: 4, color: "0F172A" },
+                                                },
+                                                margins: { top: 100, bottom: 100, left: 100, right: 100 },
+                                            })
+                                        );
+                                    } catch (imgErr) {
+                                        console.error("Error cargando imagen para Word:", imgErr);
+                                        cells.push(new TableCell({ children: [new Paragraph("Error al cargar imagen")] }));
+                                    }
+                                }
+                                // Add empty cell if row is not full
+                                if (cells.length === 1) {
+                                    cells.push(new TableCell({ children: [] }));
+                                }
+                                tableRows.push(new TableRow({ children: cells }));
+                            }
+                        }
+
+                        children.push(
+                            new Table({
+                                width: { size: 100, type: WidthType.PERCENTAGE },
+                                rows: tableRows,
+                            })
+                        );
+
+                        sections.push({
+                            properties: {
+                                type: SectionType.NEXT_PAGE,
+                            },
+                            children: children,
+                            footers: showReportFooter ? {
+                                default: new Footer({
+                                    children: [
+                                        new Paragraph({
+                                            border: { top: { style: BorderStyle.SINGLE, size: 4, color: "0F172A" } },
+                                            spacing: { before: 200 },
+                                            children: [
+                                                new TextRun({
+                                                    text: globalFooter,
+                                                    bold: true,
+                                                    size: 18,
+                                                    font: "Courier New",
+                                                }),
+                                                new TextRun({
+                                                    text: `\tPágina ${pageIndex + 1} de ${totalPages}`,
+                                                    bold: true,
+                                                    size: 18,
+                                                    font: "Calibri",
+                                                }),
+                                            ],
+                                        }),
+                                    ],
+                                }),
+                            } : undefined,
+                        });
+                    }
+
+                    const doc = new Document({
+                        sections: sections,
+                    });
+
+                    const blob = await Packer.toBlob(doc);
+                    window.saveAs(blob, `${globalTitle || 'Panel_Fotografico'}.docx`);
+
+                } catch (error) {
+                    console.error("Error al exportar a Word:", error);
+                    alert("Hubo un error al generar el archivo Word: " + error.message);
+                }
+            };
+
             useEffect(() => {
                 const preventDefault = (e) => {
                     e.preventDefault();
@@ -866,6 +1098,9 @@
                             </div>
                             <button onClick={() => window.print()} disabled={photos.length === 0} className="sidebar-button sidebar-button-primary">
                                 <Icon name="Printer" size={14} /> Generar Reporte
+                            </button>
+                            <button onClick={exportToWord} disabled={photos.length === 0} className="sidebar-button bg-blue-600 hover:bg-blue-500 text-white border-none shadow-lg shadow-blue-900/40">
+                                <Icon name="FileCode" size={14} /> Exportar a Word
                             </button>
                             <button onClick={clearAll} className="w-full flex items-center justify-center gap-2 py-2 text-slate-500 hover:text-red-400 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border-none bg-transparent cursor-pointer">
                                 <Icon name="RotateCcw" size={12} /> Limpiar Todo
