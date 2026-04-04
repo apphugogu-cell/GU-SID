@@ -5,2354 +5,673 @@
     <title>Conexiones Agua Potable - La Libertad</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Librerías -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-sidebar-v2@3.2.3/css/leaflet-sidebar.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-
-    <!-- Geoman -->
-    <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
 
     <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/jspdf-autotable@3.5.23/dist/jspdf.plugin.autotable.js"></script>
+    <!-- Leaflet.draw se movió al final después de Leaflet.js -->
 
     <style>
-        body { margin:0; padding:0; font-family: 'Segoe UI', Arial, sans-serif; background:#f8f9ff; }
-        #map { height: 100vh; width: 100%; }
-
-        .leaflet-sidebar {
-            background: linear-gradient(to bottom, #ffffff 0%, #f0f7ff 100%) !important;
-            color: #1a365d !important;
-            border-right: 1px solid #bfdbfe;
-            box-shadow: 0 0 25px rgba(0,0,0,0.08);
+        :root {
+            --primary: #1d4ed8;
+            --primary-hover: #1e40af;
+            --bg-light: #f8fafc;
         }
 
-        .leaflet-sidebar-tabs ul li a {
-            background: #e0f2fe !important;
-            color: #0369a1 !important;
+        body { 
+            margin:0; 
+            padding:0; 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background: var(--bg-light); 
+            overflow: hidden;
         }
+        #map { height: 100vh; width: 100%; z-index: 1; }
 
-        .leaflet-sidebar-tabs ul li a:hover,
-        .leaflet-sidebar-tabs ul li.active a {
-            background: #bae6fd !important;
+        /* Sidebar */
+        .leaflet-sidebar { 
+            box-shadow: 0 0 25px rgba(0,0,0,0.1); 
+            border-right: 1px solid #e2e8f0; 
+            box-sizing: border-box;
+            zoom: 0.8; /* Selective scale for sidebar */
         }
-
-        .leaflet-sidebar-header {
-            background: #1d4ed8;
-            color: white;
-            padding: 1px;
-            font-size: 20px;
-            font-weight: 600;
-            border-bottom: 1px solid #3b82f6;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .leaflet-sidebar-content {
-            padding: 24px 0px;
-        }
-
-        h4 {
-            color: #1d4ed8;
-            font-size: 22px;
-            margin: 0 0 20px 0;
-            text-align: center;
-            font-weight: 600;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #bfdbfe;
-        }
-
-        button {
-            width: 100%;
-            height: 30px;
-            font-size: 15px;
-            font-weight: 600;
-            margin: 10px 0;
-            padding: 0 16px;
-            border-radius: 8px;
-            border: none;
-            background: #3b82f6;
-            color: white;
-            cursor: pointer;
-            transition: all 0.25s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: 0 2px 8px rgba(59,130,246,0.25);
-        }
-
-        button:hover {
-            background: #2563eb;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(59,130,246,0.35);
-        }
-
-        button:disabled {
-            background: #cbd5e1;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        button.danger {
-            background: #ef4444 !important;
-        }
-
-        button.danger:hover:not(:disabled) {
-            background: #dc2626 !important;
-        }
-
-        button.success {
-            background: #10b981 !important;
-        }
-
-        button.success:hover:not(:disabled) {
-            background: #059669 !important;
-        }
-
-        button.warning {
-            background: #f59e0b !important;
-        }
-
-        button.warning:hover:not(:disabled) {
-            background: #d97706 !important;
-        }
-
-        select, input[type="text"], input[type="file"] {
-            width: 100%;
-            padding: 14px 16px;
-            font-size: 15px;
-            border: 1px solid #93c5fd;
-            border-radius: 8px;
-            margin: 10px 0;
-            background: white;
-        }
-
-        select:focus, input:focus {
-            border-color: #3b82f6;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
-        }
-
-        #leyenda {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: white;
-            padding: 14px 18px;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-            font-size: 13px;
-            border: 1px solid #e5e7eb;
-            z-index: 1000;
-            max-height: 70vh;
-            overflow-y: auto;
-            min-width: 200px;
-        }
-
-        .leyenda-item { 
+        .leaflet-sidebar-header { 
+            background: var(--primary); 
+            color: white; 
+            padding: 10px; 
+            font-size: 22px; 
+            height: 45px; 
             display: flex; 
             align-items: center; 
-            margin: 6px 0; 
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: all 0.2s;
-            user-select: none;
-        }
-
-        .leyenda-item:hover {
-            background: #f0f7ff;
-        }
-
-        .leyenda-item.disabled {
-            opacity: 0.4;
-            text-decoration: line-through;
-        }
-
-        .leyenda-color { 
-            width: 16px; 
-            height: 16px; 
-            border-radius: 50%; 
-            margin-right: 10px; 
-            border: 1px solid #666; 
-            transition: all 0.2s;
-        }
-
-        .leyenda-item.disabled .leyenda-color {
-            background: #ccc !important;
-            border-color: #999;
-        }
-
-        .legend-toggle {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1001;
-            background: white;
-            border: 2px solid #4682b4;
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.25);
-            font-size: 18px;
-            color: #4682b4;
-            transition: all 0.25s;
-        }
-
-        .legend-toggle:hover {
-            background: #4682b4;
-            color: white;
-            transform: scale(1.08);
-            box-shadow: 0 5px 15px rgba(70,130,180,0.4);
-        }
-
-        #leyenda.hidden { display: none !important; }
-
-        .location-control-active { background-color: #a5d8ff !important; }
-        .location-control-active i { animation: pulse 2s infinite; }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.25); }
-            100% { transform: scale(1); }
-        }
-
-        .modal { 
-            display: none; 
-            position: fixed; 
-            z-index: 2000; 
-            left: 0; top: 0; 
-            width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.6); 
-            justify-content: center; 
-            align-items: center; 
-        }
-        .modal-content { 
-            background: white; 
-            color: #1f2937; 
-            padding: 24px; 
-            border-radius: 12px; 
-            width: 480px; 
-            max-height: 85vh; 
-            overflow-y: auto; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.25); 
-        }
-        .close { float: right; font-size: 28px; cursor: pointer; color: #666; }
-
-        #info-panel {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 360px;
-            height: 100%;
-            background: white;
-            box-shadow: -8px 0 25px rgba(0,0,0,0.3);
-            z-index: 1050;
-            transform: translateX(100%);
-            transition: transform 0.35s ease;
-            overflow-y: auto;
-            padding: 20px 24px;
             box-sizing: border-box;
-            border-left: 5px solid #1d4ed8;
+        }
+        .leaflet-sidebar-content {
+            box-sizing: border-box;
+        }
+        .leaflet-sidebar-pane { 
+            padding: 15px !important; 
+            box-sizing: border-box;
         }
 
-        #info-panel.open {
-            transform: translateX(0);
+        /* Botones */
+        button {
+            width: 100%; height: 34px; font-size: 15px; font-weight: 600; margin: 6px 0; border-radius: 8px;
+            border: none; background: #3b82f6; color: white; cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            box-sizing: border-box;
+        }
+        button:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        button.danger { background: #ef4444 !important; }
+        button.warning { background: #f59e0b !important; }
+
+        /* Inputs */
+        select, input[type="text"], input[type="file"] {
+            width: 100%; padding: 8px 10px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px;
+            margin: 6px 0; background: white; outline: none; box-sizing: border-box;
         }
 
-        #info-panel .close-btn {
-            position: absolute;
-            top: 12px;
-            right: 16px;
-            font-size: 32px;
-            cursor: pointer;
-            color: #64748b;
+        /* Panel de Detalles */
+        #info-panel {
+            position: fixed; top: 20px; right: 20px; width: 340px; background: white;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); z-index: 2000; border-radius: 20px; 
+            display: none; flex-direction: column; border: 1px solid #e2e8f0; overflow: hidden;
+            zoom: 0.8; /* Selective scale for info panel */
         }
+        #info-header { padding: 12px 15px; background: #f8fafc; cursor: move; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
+        #info-content { padding: 20px; max-height: 500px; overflow-y: auto; }
 
-        #info-panel h2 {
-            margin: 0 0 20px 0;
-            color: #1d4ed8;
-            font-size: 22px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #bfdbfe;
+        /* Modal de Reporte */
+        #report-modal {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+            z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px;
         }
+        .modal-box { background: white; width: 100%; max-width: 900px; max-height: 90vh; border-radius: 24px; display: flex; flex-direction: column; overflow: hidden; }
+        .modal-header { padding: 20px 25px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 25px; overflow-y: auto; flex: 1; }
+        .modal-footer { padding: 15px 25px; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; }
 
-        #info-panel .detail-item {
-            margin: 14px 0;
-            font-size: 15px;
-            line-height: 1.5;
-        }
+        .report-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+        .report-table th { background: #f1f5f9; padding: 10px; text-align: left; }
+        .report-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
 
-        #info-panel .detail-item strong {
-            color: #1e293b;
-            min-width: 110px;
-            display: inline-block;
-        }
+        .stats-grid { display: grid; grid-template-cols: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .stat-card { padding: 15px; border-radius: 15px; border: 1px solid #f1f5f9; text-align: center; }
 
-        .resaltado-clic {
-            fill: #22c55e !important;
-            fill-opacity: 1 !important;
-            stroke: #14532d !important;
-            stroke-width: 6 !important;
-            stroke-opacity: 1 !important;
-            r: 12 !important;
-            filter: drop-shadow(0 0 10px #22c55e) drop-shadow(0 0 4px #15803d) !important;
-            transition: all 0.2s ease;
+        #leyenda {
+            position: absolute; bottom: 30px; right: 20px; background: white; padding: 15px; border-radius: 15px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-size: 15px; z-index: 1000;
+            transition: all 0.3s ease;
+            zoom: 0.8; /* Selective scale for legend */
         }
+        #leyenda.hidden-legend {
+            transform: translateX(calc(100% + 40px));
+        }
+        .leyenda-item { 
+            display: flex; align-items: center; margin: 6px 0; cursor: pointer; 
+            padding: 4px 8px; border-radius: 6px; transition: background 0.2s;
+        }
+        .leyenda-item:hover { background: #f1f5f9; }
+        .leyenda-item.inactive { opacity: 0.4; text-decoration: line-through; }
+        .leyenda-color { width: 12px; height: 12px; border-radius: 4px; margin-right: 10px; }
 
-        #grupos-control-panel {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            background: white;
-            padding: 16px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            z-index: 1000;
-            width: 280px;
-            max-height: calc(100vh - 100px);
-            overflow-y: auto;
-            border: 2px solid #3b82f6;
-            display: none;
+        #toggle-leyenda {
+            position: absolute; bottom: 30px; right: 20px; z-index: 1001;
+            width: 40px; height: 40px; border-radius: 10px; background: white;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex;
+            align-items: center; justify-content: center; cursor: pointer;
+            transition: all 0.3s ease;
+            zoom: 0.8; /* Selective scale for legend toggle */
         }
+        #toggle-leyenda:hover { background: #f8fafc; }
 
-        #grupos-control-panel.visible {
-            display: block;
-        }
-
-        #grupos-control-panel h4 {
-            font-size: 16px;
-            margin: 0 0 12px 0;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #bfdbfe;
-        }
-
-        .grupo-activo-item {
-            background: #f0f9ff;
-            border: 2px solid #3b82f6;
-            border-radius: 8px;
-            padding: 10px;
-            margin: 8px 0;
-            position: relative;
-        }
-
-        .grupo-activo-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .grupo-color-dot {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            border: 2px solid #333;
-        }
-
-        .btn-accion {
-            width: 100%;
-            height: 28px;
-            font-size: 12px;
-            margin: 4px 0;
-        }
-
-        .counter-panel {
-            position: fixed;
-            top: 20px;
-            right: 320px;
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-            color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            z-index: 3000;
-            display: none;
-            min-width: 200px;
-            font-weight: 600;
-        }
-
-        .counter-panel.visible {
-            display: block;
-        }
-
-        .btn-small {
-            width: auto;
-            height: 32px;
-            padding: 0 12px;
-            font-size: 12px;
-            margin: 4px 2px;
-        }
-
-        .group-item {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 12px;
-            margin: 8px 0;
-        }
-
-        .group-item.editing {
-            border-color: #f59e0b;
-            background: #fffbeb;
-        }
-
-        .file-actions {
-            display: flex;
-            gap: 5px;
-            margin-top: 5px;
-        }
-
-        .btn-refresh {
-            background: #3b82f6;
-            width: 28px;
-            height: 28px;
-            padding: 0;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-refresh:hover {
-            background: #2563eb;
-            transform: rotate(180deg);
-        }
-
-        @media print {
-            #leyenda, .leaflet-control-container, .leaflet-sidebar, .legend-toggle, #info-panel,
-            .modal, button, select, input, .leaflet-top, .leaflet-bottom, .counter-panel,
-            #grupos-control-panel { display: none !important; }
-            #map { height: 100vh !important; }
-            body::before {
-                content: "Mapa de Conexiones de Agua Potable - Región La Libertad";
-                display: block;
-                text-align: center;
-                font-size: 26px;
-                font-weight: bold;
-                color: #1d4ed8;
-                margin: 30px 0 20px;
-            }
-        }
-
-        .gps-marker {
-            background: #3b82f6;
-            border: 3px solid white;
-            border-radius: 50%;
-            box-shadow: 0 0 0 2px #3b82f6, 0 0 20px rgba(59,130,246,0.5);
-        }
-        .gps-accuracy {
-            fill: #3b82f6;
-            fill-opacity: 0.2;
-            stroke: #3b82f6;
-            stroke-width: 1;
+        #matrix-status {
+            position: fixed; bottom: 10px; left: 10px; background: #1e293b; color: #38bdf8;
+            padding: 5px 12px; font-size: 14px; font-weight: bold; z-index: 2000; border-radius: 8px;
+            zoom: 0.8; /* Selective scale for status bar */
         }
     </style>
 </head>
-<body data-print-date="">
+<body>
 
-    <!-- Panel de Control de Grupos -->
-    <div id="grupos-control-panel">
-        <h4><i class="fa fa-layer-group"></i> Control de Grupos</h4>
-        <div id="grupos-activos-lista"></div>
-        <hr style="border-color: #bfdbfe; margin: 12px 0;">
-        <button onclick="finalizarEdicionTodos()" class="danger" style="height: 32px; font-size: 13px;">
-            <i class="fa fa-times"></i> Cerrar Edición
-        </button>
-    </div>
+    <div id="matrix-status">Cargando Matriz Maestra...</div>
 
     <div id="map"></div>
 
     <div id="sidebar" class="leaflet-sidebar collapsed">
         <div class="leaflet-sidebar-tabs">
             <ul role="tablist">
-                <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
+                <li><a href="#home" role="tab"><i class="fa fa-home"></i></a></li>
+                <li><a href="#menu" role="tab"><i class="fa fa-bars"></i></a></li>
             </ul>
         </div>
-
         <div class="leaflet-sidebar-content">
             <div class="leaflet-sidebar-pane active" id="home">
-                <h1 class="leaflet-sidebar-header">
-                    <i class="fa fa-tint"></i> Conexiones Agua Potable
-                    <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span>
-                </h1>
+                <h1 class="leaflet-sidebar-header">Gestión de Suministros <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+                
+                <div style="padding: 15px 0;">
+                    <label style="font-weight: bold; color: #1d4ed8; font-size: 14px; text-transform: uppercase;">CARGAR EXCEL:</label>
+                    <input type="file" id="excelFile" accept=".xlsx" multiple />
 
-                <input type="file" id="excelFile" accept=".xlsx" multiple />
+                    <select id="distritoFilter"><option value="">Todos los Distritos</option></select>
 
-                <button id="btn-matriz" style="background:#7c3aed; color:white; margin:10px 0;">
-                    <i class="fa fa-database"></i> Cargar Matriz del Proyecto
-                </button>
+                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin:20px 0;">
 
-                <button onclick="toggleJsonReferencia()" id="btn-ver-json" style="background: #0369a1; margin-top: 8px;">
-                    <i class="fa fa-map-marker-alt"></i> <span id="txt-btn-json">Ver Puntos de Referencia (JSON)</span>
-                </button>
+                    <button id="btnSeleccionar" onclick="toggleModoClic()"><i class="fa fa-mouse-pointer"></i> MODO SELECCIÓN</button>
+                    
+                    <button id="btnArea" onclick="activarSeleccionArea()" class="warning" style="background: #8b5cf6 !important;">
+                        <i class="fa fa-draw-polygon"></i> SELECCIÓN POR ÁREA
+                    </button>
 
-                <select id="distritoFilter">
-                    <option value="">Selecciona distrito</option>
-                </select>
+                    <button id="btnExportarSeleccion" disabled onclick="exportarSeleccionExcel()" class="warning">
+                        <i class="fa fa-download"></i> EXPORTAR SELECCIÓN (<span id="count-seleccion">0</span>)
+                    </button>
 
-                <button onclick="abrirGestionArchivos()"><i class="fa fa-folder"></i> Gestionar Archivos</button>
+                    <button onclick="limpiarSeleccion()"><i class="fa fa-eraser"></i> Limpiar Selección</button>
 
-                <div style="margin-top:20px;">
-                    <button id="btnConteo" disabled onclick="ejecutarConteo()"><i class="fa fa-chart-pie"></i> Ver Conteo General</button>
-                    <button id="btnReporte" disabled onclick="ejecutarReporte()"><i class="fa fa-table"></i> Reporte por Localidad</button>
+                    <button onclick="window.print()" style="background: #475569;"><i class="fa fa-print"></i> IMPRIMIR MAPA</button>
+
+                    <input type="text" id="search-box" placeholder="Buscar Suministro / Medidor..." oninput="buscarSuministro(this.value)">
                 </div>
+            </div>
 
-                <button id="btnSeleccionar" onclick="toggleModoClic()"><i class="fa fa-hand-pointer"></i> SELECCIONAR PUNTOS</button>
-                <button onclick="limpiarSeleccion()"><i class="fa fa-eraser"></i> Limpiar Selección</button>
-
-                <button onclick="toggleModoPoligono()" id="btnPoligono" class="warning">
-                    <i class="fa fa-draw-polygon"></i> Dibujar Polígono y Crear Grupo
-                </button>
-
-                <button onclick="prepararAgrupamiento()">
-                    <i class="fa fa-calculator"></i> Agrupar por Cantidad
-                </button>
-
-                <button onclick="mostrarPanelVersiones()" style="background: #3b82f6;">
-                    <i class="fa fa-history"></i> Ver Versiones de Agrupación
-                </button>
-
-                <button onclick="abrirGestionGrupos()" style="background: #8b5cf6;">
-                    <i class="fa fa-edit"></i> Gestionar Grupos
-                </button>
-
-                <button onclick="limpiarAgrupamiento()">
-                    <i class="fa fa-undo"></i> Limpiar Grupos / Colores
-                </button>
-
-                <button onclick="imprimirMapaNormal()">
-                    <i class="fa fa-print"></i> IMPRIMIR MAPA
-                </button>
-
-                <hr style="border-color:#bfdbfe; margin:20px 0;">
-
-                <input type="text" id="search-box" placeholder="Buscar SUMINISTRO / Dir / Medidor">
-
-                <hr style="border-color:#bfdbfe; margin:20px 0;">
-
-                <div id="export-buttons">
-                    <button onclick="exportarSeleccionPDF()"><i class="fa fa-file-pdf"></i> PDF (sin ubicación)</button>
-                    <button onclick="exportarSeleccionExcel()"><i class="fa fa-file-excel"></i> EXCEL (sin ubicación)</button>
+            <div class="leaflet-sidebar-pane" id="menu">
+                <h1 class="leaflet-sidebar-header">Análisis y Reportes <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+                <div style="padding: 15px 0;">
+                    <label style="font-weight: bold; color: #1d4ed8; font-size: 14px; text-transform: uppercase;">HERRAMIENTAS:</label>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                        <button id="btnConteo" disabled onclick="ejecutarConteo()" style="height: 40px; font-size: 16px;">
+                            <i class="fa fa-chart-pie"></i> EJECUTAR CONTEO
+                        </button>
+                        <button id="btnReporte" disabled onclick="abrirReporte()" style="height: 40px; font-size: 16px;">
+                            <i class="fa fa-file-alt"></i> VER REPORTE DETALLADO
+                        </button>
+                    </div>
+                    <p style="font-size: 14px; color: #64748b; margin-top: 15px; line-height: 1.4;">
+                        * Estas opciones se habilitan una vez cargado el archivo Excel con los datos de suministros.
+                    </p>
                 </div>
-                <small style="color:#64748b; display:block; text-align:center; margin-top:10px;">
-                    Exporta la selección actual sin coordenadas
-                </small>
             </div>
         </div>
     </div>
 
     <div id="info-panel">
-        <span class="close-btn" onclick="cerrarPanelInfo()">×</span>
-        <h2>Detalle del Suministro</h2>
+        <div id="info-header">
+            <span style="font-weight: 800; font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Detalle del Suministro</span>
+            <i class="fa fa-times" onclick="cerrarPanelInfo()" style="cursor:pointer; color: #cbd5e1;"></i>
+        </div>
         <div id="info-content"></div>
     </div>
 
-    <div id="leyenda" class="hidden">
-        <strong>Actividades</strong><br>
-        <div class="leyenda-item" onclick="toggleTipoVisibilidad('A1')" id="leyenda-A1">
-            <div class="leyenda-color" style="background:#d32f2f;"></div>A1
-        </div>
-        <div class="leyenda-item" onclick="toggleTipoVisibilidad('A2')" id="leyenda-A2">
-            <div class="leyenda-color" style="background:#ffeb3b;"></div>A2
-        </div>
-        <div class="leyenda-item" onclick="toggleTipoVisibilidad('A3')" id="leyenda-A3">
-            <div class="leyenda-color" style="background:#4caf50;"></div>A3
-        </div>
-        <div class="leyenda-item" onclick="toggleTipoVisibilidad('IMPOSIBILIDAD')" id="leyenda-IMPOSIBILIDAD">
-            <div class="leyenda-color" style="background:#212121;"></div>Imposibilidad
-        </div>
-        <div class="leyenda-item" onclick="toggleTipoVisibilidad('PROYECTO')" id="leyenda-PROYECTO">
-            <div class="leyenda-color" style="background:#4682b4;"></div>Proyecto Total
-        </div>
-        <div class="leyenda-item" onclick="toggleTipoVisibilidad('VERENCAMPO')" id="leyenda-VERENCAMPO">
-            <div class="leyenda-color" style="background:#ff9800;"></div>Ver en Campo
-        </div>
-
-        <div id="gruposLeyenda" style="margin-top: 15px; border-top: 2px solid #e5e7eb; padding-top: 10px; display: none;">
-            <strong>Mis Grupos</strong>
-            <div id="gruposLeyendaContent"></div>
-        </div>
-
-        <div id="archivosLeyenda" style="margin-top: 15px; border-top: 2px solid #e5e7eb; padding-top: 10px; display: none;">
-            <strong>Archivos</strong>
-            <div id="archivosLeyendaContent"></div>
-        </div>
-    </div>
-
-    <div class="legend-toggle" id="toggleLeyenda" title="Mostrar/Ocultar leyenda">
-        <i class="fa fa-eye"></i>
-    </div>
-
-    <div id="conteoModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModal('conteoModal')">×</span>
-            <h4>Conteo General</h4>
-            <div>A1: <span id="modalCountA1">0</span></div>
-            <div>A2: <span id="modalCountA2">0</span></div>
-            <div>A3: <span id="modalCountA3">0</span></div>
-            <div>Imposibilidad: <span id="modalCountIMP">0</span></div>
-            <div>Proyecto Total: <span id="modalCountPROY">0</span></div>
-            <div>Ver en Campo: <span id="modalCountVERCAMPO">0</span></div>
-            <hr>
-            <div>Total cargados: <span id="modalCountTotal">0</span></div>
-            <div>Selección actual: <span id="modalSelectionCount">0</span> puntos</div>
-        </div>
-    </div>
-
-    <div id="reporteModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModal('reporteModal')">×</span>
-            <h4>Reporte por Localidad</h4>
-            <div id="reporteContenido"></div>
-        </div>
-    </div>
-
-    <div id="gestionArchivosModal" class="modal">
-        <div class="modal-content" style="width:480px;">
-            <span class="close" onclick="cerrarModal('gestionArchivosModal')">×</span>
-            <h4>Gestionar Archivos</h4>
-            <div id="gestionFilesList" style="margin: 15px 0; max-height:400px; overflow-y:auto;"></div>
-            <button onclick="aplicarGestionArchivos()" style="margin-top:20px; background:#16a34a; color:white; padding:12px; width:100%;">
-                Aplicar y Cerrar
-            </button>
-        </div>
-    </div>
-
-    <div id="agrupamientoModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModal('agrupamientoModal')">×</span>
-            <h4>Resumen de Grupos por Proximidad</h4>
-            <div style="margin: 15px 0; display: flex; gap: 12px;">
-                <button onclick="exportarGruposExcel()" style="background:#1e8449; flex:1;">
-                    <i class="fa fa-file-excel"></i> Exportar Excel Completo
-                </button>
-                <button onclick="exportarGruposPDF()" style="background:#d35400; flex:1;">
-                    <i class="fa fa-file-pdf"></i> Exportar PDF
-                </button>
+    <div id="report-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 style="margin:0; font-size: 22px; color: #1e293b;">Reporte de Actividades</h2>
+                <i class="fa fa-times" onclick="cerrarReporte()" style="cursor:pointer; font-size: 20px; color: #94a3b8;"></i>
             </div>
-            <div id="agrupamientoContenido" style="margin-top:20px;"></div>
-        </div>
-    </div>
-
-    <div id="gestionGruposModal" class="modal">
-        <div class="modal-content" style="width: 550px;">
-            <span class="close" onclick="cerrarModal('gestionGruposModal')">×</span>
-            <h4>Gestionar Grupos</h4>
-            <div style="background: #f0f9ff; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px;">
-                <i class="fa fa-info-circle"></i> 
-                Activa "Editar" para hacer clic en el mapa y agregar/quitar puntos de un grupo específico.
+            <div class="modal-body">
+                <div class="stats-grid" id="stats-container"></div>
+                <div style="overflow-x: auto;">
+                    <table class="report-table">
+                        <thead><tr><th>Suministro</th><th>Actividad</th><th>Distrito</th><th>Usuario</th></tr></thead>
+                        <tbody id="report-table-body"></tbody>
+                    </table>
+                </div>
             </div>
-            <div id="listaGruposEdicion" style="max-height: 400px; overflow-y: auto;"></div>
+            <div class="modal-footer">
+                <button onclick="exportarExcel()" class="success" style="width: auto; padding: 0 20px;"><i class="fa fa-file-excel"></i> Excel Completo</button>
+                <button onclick="cerrarReporte()" style="width: auto; padding: 0 20px; background: #94a3b8;">Cerrar</button>
+            </div>
         </div>
     </div>
 
-    <!-- Scripts -->
+    <div id="toggle-leyenda" onclick="toggleLeyendaCompleta()">
+        <i class="fa fa-list-ul" style="color: #1d4ed8;"></i>
+    </div>
+
+    <div id="leyenda">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="font-size: 16px;">Capas / Actividades</strong>
+            <i class="fa fa-chevron-right" onclick="toggleLeyendaCompleta()" style="cursor: pointer; color: #94a3b8; font-size: 13px;"></i>
+        </div>
+        <div class="leyenda-item" onclick="toggleCapa('A1', this)"><div class="leyenda-color" style="background:#d32f2f;"></div>A1</div>
+        <div class="leyenda-item" onclick="toggleCapa('A2', this)"><div class="leyenda-color" style="background:#ffeb3b;"></div>A2</div>
+        <div class="leyenda-item" onclick="toggleCapa('A3', this)"><div class="leyenda-color" style="background:#4caf50;"></div>A3</div>
+        <div class="leyenda-item" onclick="toggleCapa('IMPOSIBILIDAD', this)"><div class="leyenda-color" style="background:#212121;"></div>Imposibilidad</div>
+        <div class="leyenda-item" onclick="toggleCapa('PROYECTO', this)"><div class="leyenda-color" style="background:#4682b4;"></div>Proyecto</div>
+        <div class="leyenda-item" onclick="toggleCapa('VERENCAMPO', this)"><div class="leyenda-color" style="background:#ff9800;"></div>Ver en Campo</div>
+        <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 8px 0;">
+        <div class="leyenda-item" onclick="toggleCapa('MATRIZ', this)"><div class="leyenda-color" style="background:#94a3b8; border: 1px dashed #475569;"></div>Matriz Maestra (JSON)</div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="https://unpkg.com/leaflet-sidebar-v2@3.2.3/js/leaflet-sidebar.min.js"></script>
-    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="https://unpkg.com/jspdf-autotable@3.5.23/dist/jspdf.plugin.autotable.js"></script>
-
-    <!-- Geoman -->
-    <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
     <script>
-        const { jsPDF } = window.jspdf;
+        var map = L.map('map', { zoomControl: false }).setView([-7.8, -78.5], 9);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        var map = L.map('map').setView([-7.8, -78.5], 9);
-
-        var baseLayers = {
-            "Calles": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }),
-            "Satélite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Esri' })
-        };
-        baseLayers["Calles"].addTo(map);
-        L.control.layers(baseLayers, null, {position: 'topright'}).addTo(map);
-
-        map.pm.setGlobalOptions({
-            pinning: false,
-            snapping: true,
-            allowSelfIntersection: false
+        var sidebar = L.control.sidebar({ container: 'sidebar', position: 'left' }).addTo(map);
+        var clusterGroup = L.markerClusterGroup({ disableClusteringAtZoom: 16 }).addTo(map);
+        var matrixClusterGroup = L.markerClusterGroup({ 
+            disableClusteringAtZoom: 16,
+            polygonOptions: { fillColor: '#94a3b8', color: '#475569', weight: 1, opacity: 0.5, fillOpacity: 0.2 }
         });
-        map.pm.removeControls();
-
-
-
-map.pm.addControls({
-    position: 'topleft',
-    drawCircle: false,
-    drawMarker: false,
-    drawPolygon: true,
-    drawPolyline: false,
-    drawRectangle: false,
-    editMode: false,
-    dragMode: false,
-    removalMode: false,
-    cutPolygon: false
-});
-
-
-
-
-        var loadedFiles = [];
+        
+        var matrizUbicaciones = new Map();
+        var allMarkers = [];
+        var matrixMarkers = [];
         var selectedMarkers = [];
         var modoClic = false;
-        var visibilidad = {
-            A1: true,
-            A2: true,
-            A3: true,
-            IMPOSIBILIDAD: true,
-            PROYECTO: true,
-            VERENCAMPO: true
-        };
-        var visibilidadArchivos = {};
-        var sidebar = L.control.sidebar({
-            container: 'sidebar',
-            position: 'left',
-            closeButton: true,
-            autopan: false
-        }).addTo(map);
-        var matrizUbicaciones = new Map();
-        let currentHighlightedMarker = null;
-        let currentSelectedMarker = null;
-        var clusterHulls = L.layerGroup().addTo(map);
-        const clusterColors = [
-            '#e53935', '#d81b60', '#8e24aa', '#5e35b1', '#3949ab', '#1e88e5',
-            '#039be5', '#00acc1', '#00897b', '#43a047', '#7cb342', '#c0ca33',
-            '#fdd835', '#ffb300', '#fb8c00', '#f4511e', '#6d4c41', '#757575',
-            '#546e7a', '#ec407a', '#ab47bc', '#7e57c2', '#5c6bc0', '#42a5f5'
-        ];
-        var editableGroups = {};
-        var groupIdCounter = 1;
-        var currentEditingGroup = null;
-        var contadorAgrupaciones = 0;
-        var maxIntentos = 5;
-        var jsonReferenciaLayer = L.layerGroup();
-        var jsonReferenciaVisible = false;
-        var jsonPuntosCargados = [];
-        var suministrosSinUbicacion = [];
-        var gpsMarker = null;
-        var gpsCircle = null;
-        var gpsInterval = null;
-        var modoPoligono = false;
-        var visibilidadGrupos = {};
-
-        // Historial de versiones de agrupamiento (máximo 10)
-        var versionesAgrupamiento = [];
-
-        // ── Evento Geoman al crear polígono ────────────────────
-        map.on('pm:create', (e) => {
-            if (e.shape === 'Poly') {
-                try {
-                    const polygonGeoJSON = e.layer.toGeoJSON();
-                    let puntosSeleccionados = [];
-
-                    getAllVisibleMarkers().forEach(marker => {
-                        const point = turf.point([marker.getLatLng().lng, marker.getLatLng().lat]);
-                        if (turf.booleanPointInPolygon(point, polygonGeoJSON)) {
-                            puntosSeleccionados.push(marker);
-                            marker.setStyle({
-                                fillColor: '#22c55e',
-                                color: '#14532d',
-                                weight: 3,
-                                radius: 10
-                            });
-                        }
-                    });
-
-                    map.removeLayer(e.layer);
-
-                    if (puntosSeleccionados.length === 0) {
-                        alert("Ningún punto dentro del polígono dibujado.");
-                        getAllVisibleMarkers().forEach(m => {
-                            let color = m.properties.color || getColor(m.properties?.tipoFiltro || 'default');
-                            for (let gid in editableGroups) {
-                                if (editableGroups[gid].suministros.includes(m.uniqueId)) {
-                                    color = editableGroups[gid].color;
-                                    break;
-                                }
-                            }
-                            m.setStyle({ fillColor: color, color: '#000', weight: 1, radius: 6 });
-                        });
-                    } else {
-                        const sugerido = `Grupo Polígono ${new Date().toLocaleTimeString('es-PE', {hour: '2-digit', minute:'2-digit'})}`;
-                        const nombre = prompt(`Se encontraron ${puntosSeleccionados.length} puntos dentro del polígono.\n\nNombre del nuevo grupo:`, sugerido);
-
-                        if (nombre) {
-                            const id = `grp_${groupIdCounter++}`;
-                            const color = getClusterColor(Object.keys(editableGroups).length);
-
-                            const suministros = puntosSeleccionados.map(m => m.uniqueId);
-                            const props = puntosSeleccionados.map(m => m.properties);
-
-                            editableGroups[id] = {
-                                id: id,
-                                name: nombre,
-                                color: color,
-                                suministros: suministros,
-                                properties: props,
-                                markers: [...puntosSeleccionados]
-                            };
-
-                            inicializarVisibilidadGrupo(id);
-
-                            puntosSeleccionados.forEach(m => {
-                                m.setStyle({
-                                    fillColor: color,
-                                    weight: 2,
-                                    radius: 8
-                                });
-                            });
-
-                            mostrarPanelGrupos();
-                            actualizarLeyendaGrupos();
-                            aplicarFiltros();
-
-                            alert(`¡Grupo "${nombre}" creado con ${puntosSeleccionados.length} puntos!`);
-                        } else {
-                            puntosSeleccionados.forEach(m => {
-                                let color = m.properties.color || getColor(m.properties?.tipoFiltro || 'default');
-                                for (let gid in editableGroups) {
-                                    if (editableGroups[gid].suministros.includes(m.uniqueId)) {
-                                        color = editableGroups[gid].color;
-                                        break;
-                                    }
-                                }
-                                m.setStyle({ fillColor: color, color: '#000', weight: 1, radius: 6 });
-                            });
-                        }
-                    }
-
-                    if (modoPoligono) toggleModoPoligono();
-
-                } catch (err) {
-                    console.error("Error en selección por polígono:", err);
-                    alert("Error al procesar el polígono. Intenta dibujar uno más simple.");
-                    map.removeLayer(e.layer);
-                }
-            }
+        var modoArea = false;
+        var highlightCircle = null;
+        var drawnItems = new L.FeatureGroup().addTo(map);
+        var drawControl = new L.Control.Draw({
+            draw: {
+                polygon: { allowIntersection: false, showArea: true, shapeOptions: { color: '#8b5cf6' } },
+                polyline: false, rectangle: { shapeOptions: { color: '#8b5cf6' } }, circle: false, marker: false, circlemarker: false
+            },
+            edit: { featureGroup: drawnItems, remove: true }
         });
 
-        function getAllVisibleMarkers() {
-            let all = [];
-            loadedFiles.forEach(file => {
-                if (file.visible && visibilidadArchivos[file.id]) {
-                    file.markers.forEach(m => all.push(m));
+        map.on(L.Draw.Event.CREATED, function (event) {
+            const layer = event.layer;
+            drawnItems.addLayer(layer);
+            seleccionarEnArea(layer);
+            modoArea = false;
+            document.getElementById('btnArea').innerHTML = '<i class="fa fa-draw-polygon"></i> SELECCIÓN POR ÁREA';
+            document.getElementById('btnArea').style.background = '#8b5cf6';
+        });
+
+        function activarSeleccionArea() {
+            modoArea = !modoArea;
+            if (modoArea) {
+                new L.Draw.Polygon(map, drawControl.options.draw.polygon).enable();
+                document.getElementById('btnArea').innerHTML = '<i class="fa fa-times"></i> CANCELAR ÁREA';
+                document.getElementById('btnArea').style.background = '#ef4444';
+            } else {
+                map.eachLayer(l => { if(l instanceof L.Draw.Polygon) l.disable(); });
+                document.getElementById('btnArea').innerHTML = '<i class="fa fa-draw-polygon"></i> SELECCIÓN POR ÁREA';
+                document.getElementById('btnArea').style.background = '#8b5cf6';
+            }
+        }
+
+        function seleccionarEnArea(layer) {
+            const polygonGeoJSON = layer.toGeoJSON();
+            const visibleMarkers = allMarkers.filter(m => clusterGroup.hasLayer(m));
+            
+            visibleMarkers.forEach(m => {
+                const pt = turf.point([m.getLatLng().lng, m.getLatLng().lat]);
+                if (turf.booleanPointInPolygon(pt, polygonGeoJSON)) {
+                    if (selectedMarkers.indexOf(m) === -1) {
+                        selectedMarkers.push(m);
+                        m.setStyle({ weight: 5, color: '#22c55e' });
+                    }
                 }
             });
-            return all;
+            actualizarUISeleccion();
         }
 
-        function toggleModoPoligono() {
-            modoPoligono = !modoPoligono;
-            const btn = document.getElementById('btnPoligono');
+        var capasVisibles = { A1: true, A2: true, A3: true, IMPOSIBILIDAD: true, PROYECTO: true, VERENCAMPO: true, MATRIZ: false };
 
-            if (modoPoligono) {
-                btn.innerHTML = '<i class="fa fa-stop"></i> Terminar Polígono';
-                btn.classList.remove('warning');
-                btn.classList.add('danger');
-                map.getContainer().style.cursor = 'crosshair';
-
-                map.pm.enableDraw('Poly', {
-                    finishOn: 'dblclick',
-                    allowSelfIntersection: false,
-                    tooltips: true,
-                    snapping: true,
-                    hintline: { color: '#3b82f6', dashArray: [5, 5] },
-                    pathOptions: {
-                        color: '#3b82f6',
-                        weight: 4,
-                        opacity: 0.7,
-                        fillOpacity: 0.15
-                    }
-                });
-            } else {
-                btn.innerHTML = '<i class="fa fa-draw-polygon"></i> Dibujar Polígono y Crear Grupo';
-                btn.classList.remove('danger');
-                btn.classList.add('warning');
-                map.getContainer().style.cursor = 'grab';
-                map.pm.disableDraw();
-            }
-        }
-
-        function getClusterColor(id) {
-            return clusterColors[id % clusterColors.length];
-        }
-
-        function normalizarSuministro(s) {
-            if (!s) return '';
-            return s.toString().trim().replace(/\s+/g, ' ').toUpperCase();
-        }
-
-        function obtenerIdentificador(row) {
-            const camposPosibles = [
-                'SUMINISTRO', 'Suministro', 'suministro', 'N° SUMINISTRO', 'COD SUMINISTRO', 'SUM',
-                'CLICODFAC', 'CLICOD', 'CODFAC', 'CLIFAC', 'FAC',
-                'ID', 'Id', 'id', 'ID_SUMINISTRO', 'ID_SUM',
-                'NUMERO', 'Numero', 'NUM', 'NRO', 'NÚMERO',
-                'CONTRATO', 'Contrato', 'CONTRAT',
-                'SERVICIO', 'Servicio', 'SERV'
-            ];
-            for (let campo of camposPosibles) {
-                if (row[campo] && row[campo].toString().trim() !== '') {
-                    return row[campo].toString().trim();
-                }
-            }
-            return null;
-        }
-
-        function tienePalabraCampo(texto) {
-            if (!texto) return false;
-            return texto.toString().toLowerCase().includes('campo');
-        }
-
-        function getColor(tipo) {
-            switch(tipo) {
-                case 'A1': return '#d32f2f';
-                case 'A2': return '#ffeb3b';
-                case 'A3': return '#4caf50';
-                case 'IMPOSIBILIDAD': return '#212121';
-                case 'PROYECTO': return '#4682b4';
-                case 'VERENCAMPO': return '#ff9800';
-                default: return '#888888';
-            }
-        }
-
-        function crearMarcador(lat, lng, color) {
-            return L.circleMarker([lat, lng], {
-                radius: 6,
-                fillColor: color,
-                color: '#000',
-                weight: 1,
-                opacity: 1,
-                fillOpacity: 0.85
-            });
-        }
-
-        function resaltarMarcador(marker) {
-            if (currentHighlightedMarker && currentHighlightedMarker !== marker) {
-                currentHighlightedMarker.setStyle({
-                    fillColor: currentHighlightedMarker.originalColor || currentHighlightedMarker.options.fillColor,
-                    radius: 6,
-                    weight: 1,
-                    color: '#000'
-                });
-            }
-            marker.originalColor = marker.options.fillColor;
-            marker.setStyle({ className: 'resaltado-clic' });
-            currentHighlightedMarker = marker;
-        }
-
-        function quitarResaltado() {
-            if (currentHighlightedMarker) {
-                currentHighlightedMarker.setStyle({
-                    fillColor: currentHighlightedMarker.originalColor || currentHighlightedMarker.options.fillColor,
-                    radius: 6,
-                    weight: 1,
-                    color: '#000'
-                });
-                currentHighlightedMarker = null;
-            }
-        }
-
-        function mostrarInfoPanel(props) {
-            const content = document.getElementById('info-content');
-            const suministro = props.SUMINISTRO || props['SUMINISTRO'] || props['N° SUMINISTRO'] || props['COD SUMINISTRO'] || 'SIN SUMINISTRO';
-            const id = props.ID || 'N/D';
-            const medidor = props.MEDIDOR || 'SIN MEDIDOR';
-            const actividad = props.ACTIVIDAD || 'SIN DATO';
-            const usuario = props.Usuario || '—';
-            const direccion = props.DIRECCION || '—';
-            const distrito = props.DISTRITO || '—';
-            const verCampo = tienePalabraCampo([
-                props['VER EN CAMPO'],
-                props['VER_EN_CAMPO'],
-                props['VERENCAMPO'],
-                props.ACTIVIDAD,
-                props.OBSERVACION,
-                props.NOTAS
-            ].filter(Boolean).join(' ')) ? 'SÍ' : 'NO';
-
-            let grupoInfo = '';
-            const gruposActuales = [];
-            for (let gid in editableGroups) {
-                if (editableGroups[gid].suministros.includes(normalizarSuministro(suministro))) {
-                    gruposActuales.push(editableGroups[gid].name);
-                }
-            }
-
-            if (gruposActuales.length > 0) {
-                grupoInfo = `<div style="margin-top: 8px; padding: 6px; background: #f0f9ff; border-left: 4px solid #3b82f6; border-radius: 4px; font-size: 13px;">
-                    <strong>En grupos:</strong> ${gruposActuales.join(', ')}
-                </div>`;
-            }
-
-            content.innerHTML = `
-                <div style="font-size:20px; font-weight:bold; color:#1d4ed8; margin-bottom:16px;">
-                    ${suministro}
-                </div>
-                ${id !== 'N/D' ? `<div style="color:#555; margin-bottom:20px; font-size:14px;">ID: ${id}</div>` : ''}
-                <div class="detail-item"><strong>Medidor:</strong> ${medidor}</div>
-                <div class="detail-item"><strong>Actividad:</strong> ${actividad}</div>
-                <div class="detail-item"><strong>Usuario:</strong> ${usuario}</div>
-                <div class="detail-item"><strong>Dirección:</strong> ${direccion}</div>
-                <div class="detail-item"><strong>Distrito:</strong> ${distrito}</div>
-                <div class="detail-item"><strong>Ver en Campo:</strong> ${verCampo}</div>
-                ${grupoInfo}
-            `;
-
-            document.getElementById('info-panel').classList.add('open');
-        }
-
-        function cerrarPanelInfo() {
-            document.getElementById('info-panel').classList.remove('open');
-            quitarResaltado();
-            currentSelectedMarker = null;
-        }
-
-        L.Control.UbicacionButton = L.Control.extend({
-            options: { position: 'topright' },
-            onAdd: function(map) {
-                const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-                this.button = L.DomUtil.create('a', '', container);
-                this.button.href = '#';
-                this.button.title = 'Mi ubicación en tiempo real';
-                this.button.innerHTML = '<i class="fa fa-location-arrow" style="font-size:18px; line-height:26px;"></i>';
-                this.button.style.width = '34px';
-                this.button.style.height = '34px';
-                this.button.style.display = 'block';
-                this.button.style.textAlign = 'center';
-                this.button.style.backgroundColor = '#ffffff';
-                this.button.style.borderBottom = '1px solid #ccc';
-
-                L.DomEvent
-                    .on(this.button, 'mousedown', L.DomEvent.stopPropagation)
-                    .on(this.button, 'click', L.DomEvent.preventDefault)
-                    .on(this.button, 'click', toggleGeolocation);
-
-                return container;
-            }
-        });
-
-        const ubicacionControl = new L.Control.UbicacionButton();
-        ubicacionControl.addTo(map);
-
-        function toggleGeolocation() {
-            const btn = ubicacionControl.button;
-            if (gpsInterval) {
-                clearInterval(gpsInterval);
-                gpsInterval = null;
-                if (gpsMarker) map.removeLayer(gpsMarker);
-                if (gpsCircle) map.removeLayer(gpsCircle);
-                btn.classList.remove('location-control-active');
-                btn.innerHTML = '<i class="fa fa-location-arrow" style="font-size:18px; line-height:26px;"></i>';
-            } else {
-                if (!navigator.geolocation) {
-                    alert('Geolocalización no soportada');
-                    return;
-                }
-                btn.classList.add('location-control-active');
-                btn.innerHTML = '<i class="fa fa-spinner fa-spin" style="font-size:18px; line-height:26px;"></i>';
-
-                function updatePosition() {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const lat = position.coords.latitude;
-                            const lng = position.coords.longitude;
-                            const accuracy = position.coords.accuracy;
-
-                            if (!gpsMarker) {
-                                gpsMarker = L.marker([lat, lng], {
-                                    icon: L.divIcon({
-                                        className: 'gps-marker',
-                                        iconSize: [16, 16],
-                                        iconAnchor: [8, 8]
-                                    })
-                                }).addTo(map);
-                                gpsCircle = L.circle([lat, lng], {
-                                    radius: accuracy,
-                                    className: 'gps-accuracy'
-                                }).addTo(map);
-                            } else {
-                                gpsMarker.setLatLng([lat, lng]);
-                                gpsCircle.setLatLng([lat, lng]);
-                                gpsCircle.setRadius(accuracy);
-                            }
-
-                            btn.innerHTML = '<i class="fa fa-location-arrow" style="font-size:18px; line-height:26px;"></i>';
-                        },
-                        (error) => {
-                            console.error('Error GPS:', error);
-                        },
-                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                    );
-                }
-
-                updatePosition();
-                gpsInterval = setInterval(updatePosition, 5000);
-                map.locate({setView: true, maxZoom: 16});
-            }
-        }
-
-        document.getElementById('toggleLeyenda').addEventListener('click', function() {
-            const leyenda = document.getElementById('leyenda');
-            const icon = this.querySelector('i');
-            leyenda.classList.toggle('hidden');
-            icon.classList.toggle('fa-eye');
-            icon.classList.toggle('fa-eye-slash');
-            this.title = leyenda.classList.contains('hidden') ? "Mostrar leyenda" : "Ocultar leyenda";
-        });
-
-        document.getElementById('btn-matriz').addEventListener('click', function() {
-            document.getElementById('excelFile').click();
-        });
-
-        async function cargarMatrizJsonDesdeGitHub() {
-            const urlJson = "https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/refs/heads/main/app5/matriz_maestra.json";
-
+        // --- CARGA AUTOMÁTICA DE MATRIZ ---
+        async function cargarMatriz() {
+            const url = "https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/refs/heads/main/app5/matriz_maestra.json";
+            console.log("Iniciando carga de Matriz Maestra desde:", url);
+            
             try {
-                const response = await fetch(urlJson);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status} – No se pudo descargar el archivo`);
-                }
-
-                const json = await response.json();
-
-                let cargados = 0;
-                matrizUbicaciones.clear();
-
-                json.forEach(row => {
-                    const suministro = normalizarSuministro(
-                        row.SUMINISTRO ||
-                        row['SUMINISTRO'] ||
-                        row['N° SUMINISTRO'] ||
-                        row['COD SUMINISTRO'] ||
-                        row.codigo ||
-                        row.id ||
-                        row.CODIGO ||
-                        ''
-                    );
-
-                    const lat = parseFloat(
-                        row.LATITUD ||
-                        row.lat ||
-                        row.LAT ||
-                        row.latitude ||
-                        row.y ||
-                        row.Y ||
-                        row['LAT.'] ||
-                        0
-                    );
-
-                    const lng = parseFloat(
-                        row.LONGITUD ||
-                        row.lng ||
-                        row.LON ||
-                        row.longitude ||
-                        row.x ||
-                        row.X ||
-                        row['LON.'] ||
-                        0
-                    );
-
-                    if (suministro && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-                        matrizUbicaciones.set(suministro, { lat, lng });
-                        cargados++;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                
+                const json = await res.json();
+                console.log("JSON descargado, procesando " + json.length + " registros...");
+                
+                json.forEach((r, index) => {
+                    let s = (r.SUMINISTRO || r.codigo || r.id || '').toString().trim().toUpperCase();
+                    if(s) {
+                        matrizUbicaciones.set(s, r);
+                        
+                        const lat = parseFloat(r.LATITUD || r.lat || 0);
+                        const lng = parseFloat(r.LONGITUD || r.lng || 0);
+                        if (lat && lng) {
+                            let mm = L.circleMarker([lat, lng], { 
+                                radius: 4, 
+                                fillColor: '#94a3b8', 
+                                color: '#475569', 
+                                weight: 0.5, 
+                                fillOpacity: 0.4 
+                            });
+                            mm.properties = { ...r, SUMINISTRO: s, tipoFiltro: 'MATRIZ' };
+                            mm.on('click', function() { mostrarInfo(mm.properties); });
+                            matrixMarkers.push(mm);
+                        }
                     }
                 });
-
-                alert(`¡MATRIZ MAESTRA CARGADA CORRECTAMENTE!\n\n` +
-                      `Archivo: matriz_maestra.json (carpeta app5)\n` +
-                      `Suministros con coordenadas válidas: ${cargados}\n` +
-                      `Fecha: ${new Date().toLocaleString('es-PE')}\n\n` +
-                      `Ahora puedes cargar tus archivos de campo normalmente.`);
-
-                actualizarLeyendaJSONInicial();
-
-            } catch (err) {
-                console.error("Error cargando matriz maestra:", err);
-                alert(`No se pudo cargar la matriz maestra desde GitHub\n\n` +
-                      `Error: ${err.message}\n\n` +
-                      `Verifica:\n` +
-                      `1. La URL es exactamente esta:\n   ${urlJson}\n` +
-                      `2. El archivo existe en la rama main → carpeta app5\n` +
-                      `3. El repositorio es público\n` +
-                      `4. No hay problemas de conexión o caché\n\n` +
-                      `Intentando carga manual...`);
-                document.getElementById('excelFile').click();
+                
+                console.log("Matriz procesada correctamente. Total suministros: " + matrizUbicaciones.size);
+                document.getElementById('matrix-status').innerText = "✓ Matriz Lista: " + matrizUbicaciones.size + " registros";
+                document.getElementById('matrix-status').style.color = "#4ade80";
+                
+            } catch(e) { 
+                console.error("Error cargando la matriz:", e);
+                document.getElementById('matrix-status').innerText = "⚠ Error al cargar Matriz (Ver Consola)";
+                document.getElementById('matrix-status').style.color = "#ef4444";
             }
         }
 
-        window.addEventListener('load', cargarMatrizJsonDesdeGitHub);
-
-        document.getElementById('excelFile').addEventListener('change', function(e) {
-            procesarArchivos(e.target.files);
-            e.target.value = '';
-        });
-
-        function procesarArchivos(files, esActualizacion = false, fileIndex = null) {
-            if (files.length === 0) return;
-            let conUbicacionPropia = 0;
-            let ubicadosPorMatriz = 0;
-            let noUbicados = 0;
-            let sinUbicacionLista = [];
-
-            if (esActualizacion && fileIndex !== null) {
-                const oldFile = loadedFiles[fileIndex];
-                if (map.hasLayer(oldFile.clusterGroup)) map.removeLayer(oldFile.clusterGroup);
-                if (map.hasLayer(oldFile.individualLayer)) map.removeLayer(oldFile.individualLayer);
-                loadedFiles.splice(fileIndex, 1);
+        function toggleCapa(tipo, element) {
+            capasVisibles[tipo] = !capasVisibles[tipo];
+            if (element) element.classList.toggle('inactive', !capasVisibles[tipo]);
+            
+            if (tipo === 'MATRIZ') {
+                if (capasVisibles.MATRIZ) {
+                    matrixMarkers.forEach(m => matrixClusterGroup.addLayer(m));
+                    map.addLayer(matrixClusterGroup);
+                } else {
+                    map.removeLayer(matrixClusterGroup);
+                    matrixClusterGroup.clearLayers();
+                }
+            } else {
+                actualizarFiltrosGlobales();
             }
+        }
 
-            Array.from(files).forEach((file, idx) => {
-                var reader = new FileReader();
+        function toggleLeyendaCompleta() {
+            const leyenda = document.getElementById('leyenda');
+            const toggle = document.getElementById('toggle-leyenda');
+            leyenda.classList.toggle('hidden-legend');
+            toggle.style.opacity = leyenda.classList.contains('hidden-legend') ? '1' : '0';
+            toggle.style.pointerEvents = leyenda.classList.contains('hidden-legend') ? 'auto' : 'none';
+        }
+
+        function actualizarFiltrosGlobales() {
+            clusterGroup.clearLayers();
+            const distritoActivo = document.getElementById('distritoFilter').value.toUpperCase();
+            
+            allMarkers.forEach(m => {
+                const p = m.properties;
+                const distM = (p.DISTRITO || "").toString().toUpperCase().trim();
+                const cumpleDistrito = !distritoActivo || distM === distritoActivo;
+                const cumpleCapa = capasVisibles[p.tipoFiltro];
+                
+                if (cumpleDistrito && cumpleCapa) {
+                    clusterGroup.addLayer(m);
+                }
+            });
+        }
+
+        window.onload = function() {
+            cargarMatriz();
+            makeDraggable(document.getElementById("info-panel"), document.getElementById("info-header"));
+            // Inicialmente el botón de toggle está oculto porque la leyenda está visible
+            document.getElementById('toggle-leyenda').style.opacity = '0';
+            document.getElementById('toggle-leyenda').style.pointerEvents = 'none';
+        };
+
+        // --- PROCESAR EXCEL ---
+        document.getElementById('excelFile').onchange = function(e) {
+            Array.from(e.target.files).forEach(file => {
+                const reader = new FileReader();
                 reader.onload = function(ev) {
-                    var data = new Uint8Array(ev.target.result);
-                    var workbook = XLSX.read(data, {type: 'array'});
-                    var sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    var json = XLSX.utils.sheet_to_json(sheet, {defval: ""});
-                    const fileEntry = {
-                        filename: file.name,
-                        data: json,
-                        markers: [],
-                        clusterGroup: L.markerClusterGroup({
-                            chunkedLoading: true,
-                            disableClusteringAtZoom: 16,
-                            maxClusterRadius: 50
-                        }),
-                        individualLayer: L.layerGroup(),
-                        visible: true,
-                        selectedForAnalysis: true,
-                        id: 'file_' + Date.now() + '_' + idx
-                    };
-                    visibilidadArchivos[fileEntry.id] = true;
-
+                    const data = new Uint8Array(ev.target.result);
+                    const wb = XLSX.read(data, {type: 'array'});
+                    const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval: ""});
+                    
                     json.forEach(row => {
-                        let lat = parseFloat(row.LATITUD || row.LAT || row.Latitud);
-                        let lng = parseFloat(row.LONGITUD || row.LON || row.Longitud);
-                        let identificadorRaw = obtenerIdentificador(row);
-                        let suministro = normalizarSuministro(identificadorRaw);
+                        let s = "";
+                        for (let k in row) if (k.toUpperCase().trim() === "SUMINISTRO") s = row[k].toString().trim().toUpperCase();
 
-                        if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
-                            if (suministro && matrizUbicaciones.has(suministro)) {
-                                const info = matrizUbicaciones.get(suministro);
-                                lat = info.lat;
-                                lng = info.lng;
-                                ubicadosPorMatriz++;
-                            } else {
-                                noUbicados++;
-                                sinUbicacionLista.push({
-                                    identificador: identificadorRaw,
-                                    suministroNormalizado: suministro,
-                                    actividad: row.ACTIVIDAD,
-                                    medidor: row.MEDIDOR,
-                                    direccion: row.DIRECCION,
-                                    distrito: row.DISTRITO,
-                                    observacion: row.OBSERVACION,
-                                    archivo: file.name,
-                                    filaDatos: row
+                        if (s && matrizUbicaciones.has(s)) {
+                            const dataMatriz = matrizUbicaciones.get(s);
+                            const lat = parseFloat(dataMatriz.LATITUD || dataMatriz.lat || 0);
+                            const lng = parseFloat(dataMatriz.LONGITUD || dataMatriz.lng || 0);
+
+                            if (lat && lng) {
+                                let tipo = row.ACTIVIDAD || 'PROYECTO';
+                                if (JSON.stringify(row).toLowerCase().includes('campo')) tipo = 'VERENCAMPO';
+                                let color = { A1:'#d32f2f', A2:'#ffeb3b', A3:'#4caf50', IMPOSIBILIDAD:'#212121', PROYECTO:'#4682b4', VERENCAMPO:'#ff9800' }[tipo] || '#888';
+                                
+                                let m = L.circleMarker([lat, lng], { radius: 6, fillColor: color, color: '#000', weight: 1, fillOpacity: 0.85 });
+                                
+                                // COMBINACIÓN DE DATOS: Prioridad al Excel, luego a la Matriz JSON
+                                m.properties = { ...dataMatriz, ...row, tipoFiltro: tipo, color: color, SUMINISTRO: s };
+                                
+                                m.on('click', function() {
+                                    if (modoClic) toggleSeleccion(m);
+                                    else mostrarInfo(m.properties);
                                 });
-                                return;
+                                allMarkers.push(m);
+                                clusterGroup.addLayer(m);
                             }
-                        } else {
-                            conUbicacionPropia++;
-                            if (suministro) matrizUbicaciones.set(suministro, {lat, lng});
                         }
-
-                        const textoCampo = [
-                            row['VER EN CAMPO'],
-                            row['VER_EN_CAMPO'],
-                            row['VERENCAMPO'],
-                            row.ACTIVIDAD,
-                            row.OBSERVACION,
-                            row.NOTAS
-                        ].filter(Boolean).join(' ').toLowerCase();
-
-                        const esVerEnCampo = tienePalabraCampo(textoCampo);
-                        const actividadRaw = (row.ACTIVIDAD || '').toString().trim().toUpperCase();
-                        let tipo = 'PROYECTO';
-                        if (esVerEnCampo) tipo = 'VERENCAMPO';
-                        else if (actividadRaw === 'A1') tipo = 'A1';
-                        else if (actividadRaw === 'A2') tipo = 'A2';
-                        else if (actividadRaw === 'A3') tipo = 'A3';
-                        else if (actividadRaw === 'IMPOSIBILIDAD') tipo = 'IMPOSIBILIDAD';
-
-                        const color = getColor(tipo);
-
-                        var marker = crearMarcador(lat, lng, color);
-                        marker.properties = { ...row, tipoFiltro: tipo, color: color, filename: file.name };
-                        marker.uniqueId = suministro || `${lat}_${lng}`;
-                        marker.fileId = fileEntry.id;
-
-                        marker.on('click', function(e) {
-                            if (currentEditingGroup) {
-                                toggleMarkerInGroup(this, currentEditingGroup);
-                                return;
-                            }
-                            if (modoClic) {
-                                toggleSeleccionMarker(this);
-                            } else {
-                                resaltarMarcador(this);
-                                mostrarInfoPanel(this.properties);
-                                currentSelectedMarker = this;
-                            }
-                        });
-
-                        fileEntry.markers.push(marker);
-                        fileEntry.clusterGroup.addLayer(marker);
-                        fileEntry.individualLayer.addLayer(marker);
                     });
-
-                    if (esActualizacion && fileIndex !== null) {
-                        loadedFiles.splice(fileIndex, 0, fileEntry);
-                    } else {
-                        loadedFiles.push(fileEntry);
-                    }
-
                     actualizarDistritos();
-                    aplicarFiltros();
-                    actualizarBotonesAnalisis();
-                    actualizarLeyendaArchivos();
-
-                    suministrosSinUbicacion = suministrosSinUbicacion.concat(sinUbicacionLista);
-
-                    mostrarReporteCarga(file.name, fileEntry.markers.length, conUbicacionPropia,
-                                       ubicadosPorMatriz, sinUbicacionLista);
+                    document.getElementById('btnConteo').disabled = false;
+                    document.getElementById('btnReporte').disabled = false;
                 };
                 reader.readAsArrayBuffer(file);
             });
-        }
+        };
 
-        function mostrarReporteCarga(nombreArchivo, totalCargados, conUbicacionPropia, ubicadosPorMatriz, sinUbicacionLista) {
-            const totalSinUbicacion = sinUbicacionLista.length;
-            const porcentajeExitoso = totalCargados > 0 ? ((totalCargados / (totalCargados + totalSinUbicacion)) * 100).toFixed(1) : 0;
-            let html = `
-                <div style="text-align:center; margin-bottom:20px;">
-                    <h3 style="color:#1d4ed8; margin:0 0 10px 0;">📊 Reporte de Carga</h3>
-                    <div style="font-size:24px; font-weight:bold; color:#059669;">${totalCargados}</div>
-                    <div style="color:#666; font-size:14px;">Suministros ubicados en mapa</div>
-                </div>
-                <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:15px; margin-bottom:15px;">
-                    <div style="font-weight:bold; color:#166534; margin-bottom:8px;">✓ Ubicados Exitosamente</div>
-                    <div style="display:flex; justify-content:space-between; margin:5px 0;">
-                        <span>Con coordenadas propias:</span>
-                        <strong>${conUbicacionPropia}</strong>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; margin:5px 0;">
-                        <span>Ubicados por matriz:</span>
-                        <strong>${ubicadosPorMatriz}</strong>
-                    </div>
-                    <div style="border-top:1px solid #86efac; margin-top:8px; padding-top:8px; display:flex; justify-content:space-between; font-weight:bold;">
-                        <span>Total en mapa:</span>
-                        <span style="color:#059669;">${totalCargados}</span>
-                    </div>
-                </div>
-            `;
-            if (totalSinUbicacion > 0) {
-                html += `
-                    <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:15px; margin-bottom:15px;">
-                        <div style="font-weight:bold; color:#991b1b; margin-bottom:8px;">⚠ Sin Ubicación (${totalSinUbicacion})</div>
-                        <div style="font-size:13px; color:#666; margin-bottom:10px;">
-                            Estos suministros no tienen coordenadas ni coinciden en la matriz de datos.
-                        </div>
-                        <div style="max-height:150px; overflow-y:auto; background:white; border:1px solid #e5e7eb; border-radius:4px; padding:8px; font-size:12px; margin-bottom:10px;">
-                            ${sinUbicacionLista.slice(0, 10).map(s => `
-                                <div style="padding:4px 0; border-bottom:1px solid #f3f4f6;">
-                                    <strong>${s.identificador}</strong> - ${s.actividad || 'Sin actividad'}
-                                    ${s.direccion ? `<br><small style="color:#6b7280;">${s.direccion}</small>` : ''}
-                                </div>
-                            `).join('')}
-                            ${sinUbicacionLista.length > 10 ? `<div style="text-align:center; color:#9ca3af; padding:8px;">... y ${sinUbicacionLista.length - 10} más</div>` : ''}
-                        </div>
-                        <button id="btn-descargar-sin-ubic" style="background:#dc2626; width:100%; margin:0; cursor: pointer;">
-                            <i class="fa fa-file-excel"></i> Descargar Listado Sin Ubicación (${totalSinUbicacion})
-                        </button>
-                    </div>
-                `;
+        // --- LÓGICA DE SELECCIÓN ---
+        function toggleSeleccion(m) {
+            const idx = selectedMarkers.indexOf(m);
+            if (idx === -1) {
+                selectedMarkers.push(m);
+                m.setStyle({ weight: 5, color: '#22c55e' });
             } else {
-                html += `
-                    <div style="background:#dbeafe; border:1px solid #93c5fd; border-radius:8px; padding:15px; text-align:center;">
-                        <div style="font-size:24px; margin-bottom:5px;">🎉</div>
-                        <div style="font-weight:bold; color:#1e40af;">¡Todos los suministros tienen ubicación!</div>
-                    </div>
-                `;
+                selectedMarkers.splice(idx, 1);
+                m.setStyle({ weight: 1, color: '#000' });
             }
-            html += `
-                <div style="margin-top:15px; text-align:center; font-size:12px; color:#6b7280;">
-                    Archivo: <strong>${nombreArchivo}</strong> | Tasa de éxito: ${porcentajeExitoso}%
-                </div>
-            `;
-            document.getElementById('agrupamientoContenido').innerHTML = html;
-            document.getElementById('agrupamientoModal').style.display = 'flex';
-
-            setTimeout(() => {
-                const btn = document.getElementById('btn-descargar-sin-ubic');
-                if (btn) {
-                    btn.onclick = function() {
-                        descargarSinUbicacion();
-                    };
-                }
-            }, 100);
+            actualizarUISeleccion();
         }
 
-        function descargarSinUbicacion() {
-            if (suministrosSinUbicacion.length === 0) {
-                alert("No hay suministros sin ubicación para descargar");
-                return;
-            }
-            const data = suministrosSinUbicacion.map(s => {
-                let row = {
-                    SUMINISTRO_ID: s.identificador,
-                    SUMINISTRO_NORMALIZADO: s.suministroNormalizado,
-                    ACTIVIDAD: s.actividad,
-                    MEDIDOR: s.medidor,
-                    DIRECCION: s.direccion,
-                    DISTRITO: s.distrito,
-                    OBSERVACION: s.observacion,
-                    ARCHIVO_ORIGEN: s.archivo,
-                    MOTIVO: 'Sin coordenadas (LAT/LON) y sin coincidencia en matriz data.json'
-                };
-                if (s.filaDatos) {
-                    for (let key in s.filaDatos) {
-                        if (/^(LAT|LON|lat|lon|Latitud|Longitud|latitude|longitude|COORD|coord)/i.test(key)) continue;
-                        if (!row.hasOwnProperty(key) && s.filaDatos[key] !== undefined && s.filaDatos[key] !== null) {
-                            row[key] = s.filaDatos[key];
-                        }
-                    }
-                }
-                return row;
-            });
-            const ws = XLSX.utils.json_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Sin Ubicacion");
-            XLSX.writeFile(wb, `suministros_sin_ubicacion_${new Date().toISOString().slice(0,10)}.xlsx`);
-        }
-
-        function actualizarDistritos() {
-            const allDistritos = new Set();
-            loadedFiles.forEach(file => {
-                file.data.forEach(row => {
-                    if (row.DISTRITO) allDistritos.add(row.DISTRITO);
-                });
-            });
-            const distritos = [...allDistritos].sort();
-            const selectDist = document.getElementById('distritoFilter');
-            selectDist.innerHTML = '<option value="">Selecciona distrito</option><option value="TODOS">TODOS DISTRITOS</option>';
-            distritos.forEach(d => {
-                let opt = document.createElement('option');
-                opt.value = d; opt.text = d;
-                selectDist.appendChild(opt);
-            });
-        }
-
-        function actualizarBotonesAnalisis() {
-            const tieneArchivosSeleccionados = loadedFiles.some(f => f.visible && f.selectedForAnalysis);
-            document.getElementById('btnConteo').disabled = !tieneArchivosSeleccionados;
-            document.getElementById('btnReporte').disabled = !tieneArchivosSeleccionados;
-        }
-
-        function actualizarLeyendaArchivos() {
-            const container = document.getElementById('archivosLeyenda');
-            const content = document.getElementById('archivosLeyendaContent');
-            if (loadedFiles.length === 0) {
-                container.style.display = 'none';
-                return;
-            }
-            container.style.display = 'block';
-            content.innerHTML = '';
-            loadedFiles.forEach((file, index) => {
-                const isVisible = visibilidadArchivos[file.id] !== false;
-                const disabledClass = isVisible ? '' : 'disabled';
-                const opacityStyle = isVisible ? '' : 'opacity:0.4;';
-                const textDecoration = isVisible ? '' : 'text-decoration: line-through;';
-                const colorStyle = isVisible ? 'background:#666;' : 'background:#ccc !important;';
-                content.innerHTML += `
-                    <div class="leyenda-item ${disabledClass}" id="leyenda-archivo-${file.id}" onclick="toggleArchivoVisibilidad('${file.id}')" style="cursor: pointer; ${opacityStyle}">
-                        <div class="leyenda-color" style="${colorStyle}"></div>
-                        <span style="${textDecoration}" title="${file.filename}">${file.filename.substring(0, 18)}${file.filename.length > 18 ? '...' : ''} (${file.markers.length})</span>
-                    </div>
-                `;
-            });
-        }
-
-        function toggleArchivoVisibilidad(fileId) {
-            visibilidadArchivos[fileId] = !visibilidadArchivos[fileId];
-            aplicarFiltros();
-        }
-
-        function toggleTipoVisibilidad(tipo) {
-            visibilidad[tipo] = !visibilidad[tipo];
-            const item = document.getElementById(`leyenda-${tipo}`);
-            if (visibilidad[tipo]) {
-                item.classList.remove('disabled');
-            } else {
-                item.classList.add('disabled');
-            }
-            aplicarFiltros();
-        }
-
-        function abrirGestionArchivos() {
-            if (loadedFiles.length === 0) return alert('No hay archivos cargados.');
-            let html = '';
-            loadedFiles.forEach((file, index) => {
-                const visChecked = file.visible ? 'checked' : '';
-                html += `
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:#f1f5f9; margin:8px 0; border-radius:8px; border:1px solid #e2e8f0;">
-                        <div style="flex:1;">
-                            <strong>${file.filename}</strong><br>
-                            <small>${file.markers.length} puntos</small>
-                        </div>
-                        <div style="display:flex; gap:8px; align-items:center;">
-                            <label title="Visible en mapa" style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                <input type="checkbox" class="file-vis" data-index="${index}" ${visChecked} onchange="toggleArchivoVisibilidad('${file.id}')">
-                                <span style="font-size:12px;">Ver</span>
-                            </label>
-                            <button class="btn-refresh" title="Actualizar archivo" onclick="actualizarArchivo(${index})">
-                                <i class="fa fa-refresh"></i>
-                            </button>
-                            <button class="danger" style="width:auto; height:28px; padding:0 12px; font-size:13px;"
-                                    onclick="eliminarArchivo(${index})">Eliminar</button>
-                        </div>
-                    </div>
-                `;
-            });
-            document.getElementById('gestionFilesList').innerHTML = html;
-            document.getElementById('gestionArchivosModal').style.display = 'flex';
-        }
-
-        function actualizarArchivo(index) {
-            const fileName = loadedFiles[index].filename;
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.xlsx';
-            input.onchange = function(e) {
-                if (e.target.files.length > 0) {
-                    if (confirm(`¿Actualizar "${fileName}" con "${e.target.files[0].name}"?\n\nSe reemplazarán todos los datos.`)) {
-                        procesarArchivos(e.target.files, true, index);
-                    }
-                }
-            };
-            input.click();
-        }
-
-        function eliminarArchivo(index) {
-            if (!confirm(`¿Eliminar "${loadedFiles[index].filename}" permanentemente?`)) return;
-            const file = loadedFiles[index];
-            if (map.hasLayer(file.clusterGroup)) map.removeLayer(file.clusterGroup);
-            if (map.hasLayer(file.individualLayer)) map.removeLayer(file.individualLayer);
-            delete visibilidadArchivos[file.id];
-            loadedFiles.splice(index, 1);
-            actualizarDistritos();
-            aplicarFiltros();
-            actualizarBotonesAnalisis();
-            actualizarLeyendaArchivos();
-            abrirGestionArchivos();
-        }
-
-        function aplicarGestionArchivos() {
-            document.querySelectorAll('.file-vis').forEach(cb => {
-                const idx = parseInt(cb.dataset.index);
-                loadedFiles[idx].visible = cb.checked;
-                loadedFiles[idx].selectedForAnalysis = cb.checked;
-            });
-            aplicarFiltros();
-            actualizarBotonesAnalisis();
-            cerrarModal('gestionArchivosModal');
-        }
-
-        function ejecutarConteo() {
-            actualizarConteos();
-            document.getElementById('conteoModal').style.display = 'flex';
-        }
-
-        function ejecutarReporte() {
-            const datos = [];
-            loadedFiles.forEach(file => {
-                if (file.visible && file.selectedForAnalysis) {
-                    datos.push(...file.data);
-                }
-            });
-            if (datos.length === 0) {
-                alert('No hay archivos seleccionados para análisis.');
-                return;
-            }
-            const porDistrito = {};
-            const totales = { A1:0, A2:0, A3:0, IMPOSIBILIDAD:0, PROYECTO:0, VERENCAMPO:0, total:0 };
-            datos.forEach(row => {
-                const distrito = row.DISTRITO || 'SIN DISTRITO';
-                if (!porDistrito[distrito]) porDistrito[distrito] = { A1:0, A2:0, A3:0, IMPOSIBILIDAD:0, PROYECTO:0, VERENCAMPO:0, total:0 };
-                const textoCampo = [
-                    row['VER EN CAMPO'],
-                    row['VER_EN_CAMPO'],
-                    row['VERENCAMPO'],
-                    row.ACTIVIDAD,
-                    row.OBSERVACION
-                ].filter(Boolean).join(' ').toLowerCase();
-                const esVerEnCampo = tienePalabraCampo(textoCampo);
-                let tipo = 'PROYECTO';
-                const act = (row.ACTIVIDAD || '').toString().trim().toUpperCase();
-                if (esVerEnCampo) {
-                    tipo = 'VERENCAMPO';
-                } else if (act === 'A1') {
-                    tipo = 'A1';
-                } else if (act === 'A2') {
-                    tipo = 'A2';
-                } else if (act === 'A3') {
-                    tipo = 'A3';
-                } else if (act === 'IMPOSIBILIDAD') {
-                    tipo = 'IMPOSIBILIDAD';
-                }
-                porDistrito[distrito][tipo]++;
-                porDistrito[distrito].total++;
-                totales[tipo]++;
-                totales.total++;
-            });
-            let html = '<table style="width:100%; border-collapse:collapse;"><tr><th>Distrito</th><th>A1</th><th>A2</th><th>A3</th><th>Impos.</th><th>Proy.</th><th>Ver Campo</th><th>Total</th></tr>';
-            Object.keys(porDistrito).sort().forEach(dist => {
-                const d = porDistrito[dist];
-                html += `<tr><td>${dist}</td><td>${d.A1}</td><td>${d.A2}</td><td>${d.A3}</td><td>${d.IMPOSIBILIDAD}</td><td>${d.PROYECTO}</td><td>${d.VERENCAMPO}</td><td>${d.total}</td></tr>`;
-            });
-            html += `<tr style="font-weight:bold; background:#f0f0f0;"><td><strong>TOTAL GENERAL</strong></td><td><strong>${totales.A1}</strong></td><td><strong>${totales.A2}</strong></td><td><strong>${totales.A3}</strong></td><td><strong>${totales.IMPOSIBILIDAD}</strong></td><td><strong>${totales.PROYECTO}</strong></td><td><strong>${totales.VERENCAMPO}</strong></td><td><strong>${totales.total}</strong></td></tr></table>`;
-            document.getElementById('reporteContenido').innerHTML = html;
-            document.getElementById('reporteModal').style.display = 'flex';
-        }
-
-        function exportarSeleccionPDF() {
-            if (selectedMarkers.length === 0) {
-                alert("No hay puntos seleccionados.");
-                return;
-            }
-            const doc = new jsPDF('p', 'mm', 'a4');
-            doc.setFontSize(16);
-            doc.text("Reporte de Puntos Seleccionados - Agua Potable", 20, 20);
-            doc.setFontSize(12);
-            doc.text(`Total: ${selectedMarkers.length} puntos | Fecha: ${new Date().toLocaleDateString('es-PE')}`, 20, 30);
-            const headers = [["N°", "SUMINISTRO", "Tipo", "Medidor", "Dirección", "Distrito"]];
-            const data = selectedMarkers.map((p, i) => [
-                i + 1,
-                p.SUMINISTRO || p['SUMINISTRO'] || p['N° SUMINISTRO'] || p['COD SUMINISTRO'] || 'SIN SUMINISTRO',
-                p.tipoFiltro || '—',
-                p.MEDIDOR || 'SIN',
-                p.DIRECCION || '',
-                p.DISTRITO || ''
-            ]);
-            doc.autoTable({
-                head: headers,
-                body: data,
-                startY: 40,
-                theme: 'grid',
-                headStyles: { fillColor: [29, 78, 216] },
-                columnStyles: {
-                    0: { cellWidth: 10 },
-                    1: { cellWidth: 40 },
-                    2: { cellWidth: 20 },
-                    3: { cellWidth: 40 },
-                    4: { cellWidth: 60 },
-                    5: { cellWidth: 30 }
-                }
-            });
-            doc.save("reporte_seleccionados_sin_ubicacion.pdf");
-        }
-
-        function exportarSeleccionExcel() {
-            if (selectedMarkers.length === 0) {
-                alert("No hay puntos seleccionados.");
-                return;
-            }
-            const data = selectedMarkers.map(p => ({
-                SUMINISTRO: p.SUMINISTRO || p['SUMINISTRO'] || p['N° SUMINISTRO'] || p['COD SUMINISTRO'] || 'SIN SUMINISTRO',
-                ACTIVIDAD: p.ACTIVIDAD || 'SIN DATO',
-                MEDIDOR: p.MEDIDOR || 'SIN MEDIDOR',
-                USUARIO: p.Usuario || p.USUARIO || '—',
-                DIRECCION: p.DIRECCION || '',
-                DISTRITO: p.DISTRITO || '',
-                TIPO: p.tipoFiltro || '—',
-                OBSERVACION: p.OBSERVACION || '',
-                NOTAS: p.NOTAS || ''
-            }));
-            const ws = XLSX.utils.json_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Seleccion Completa");
-            XLSX.writeFile(wb, "seleccion_completa_sin_ubicacion.xlsx");
-        }
-
-        function aplicarFiltros() {
-            loadedFiles.forEach(file => {
-                if (map.hasLayer(file.clusterGroup)) map.removeLayer(file.clusterGroup);
-                if (map.hasLayer(file.individualLayer)) map.removeLayer(file.individualLayer);
-                file.clusterGroup.clearLayers();
-                file.individualLayer.clearLayers();
-                if (!file.visible || !visibilidadArchivos[file.id]) return;
-                const distrito = document.getElementById('distritoFilter').value;
-                file.markers.forEach(m => {
-                    if (distrito !== '' && distrito !== 'TODOS' && m.properties.DISTRITO !== distrito) return;
-                    if (!visibilidad[m.properties.tipoFiltro]) return;
-                    let color = m.properties.color;
-                    let enGrupo = false;
-                    let grupoVisible = true;
-                    for (let gid in editableGroups) {
-                        if (editableGroups[gid].suministros.includes(m.uniqueId)) {
-                            if (visibilidadGrupos[gid] === false) {
-                                grupoVisible = false;
-                            }
-                            color = editableGroups[gid].color;
-                            enGrupo = true;
-                            break;
-                        }
-                    }
-                    if (enGrupo && !grupoVisible) return;
-                    const marker = crearMarcador(m.getLatLng().lat, m.getLatLng().lng, color);
-                    marker.properties = m.properties;
-                    marker.uniqueId = m.uniqueId;
-                    marker.fileId = m.fileId;
-                    marker.sourceMarker = m;
-                    marker.on('click', function(e) {
-                        if (currentEditingGroup) {
-                            toggleMarkerInGroup(this, currentEditingGroup);
-                            return;
-                        }
-                        if (modoClic) {
-                            toggleSeleccionMarker(this);
-                        } else {
-                            resaltarMarcador(this);
-                            mostrarInfoPanel(this.properties);
-                            currentSelectedMarker = this;
-                        }
-                    });
-                    file.clusterGroup.addLayer(marker);
-                    file.individualLayer.addLayer(marker);
-                });
-            });
-            controlarVistaPorZoom();
-            actualizarLeyendaGrupos();
-        }
-
-        function controlarVistaPorZoom() {
-            const zoom = map.getZoom();
-            loadedFiles.forEach(file => {
-                if (!file.visible || !visibilidadArchivos[file.id]) return;
-                if (zoom >= 16) {
-                    map.removeLayer(file.clusterGroup);
-                    map.addLayer(file.individualLayer);
-                } else {
-                    map.removeLayer(file.individualLayer);
-                    map.addLayer(file.clusterGroup);
-                }
-            });
-        }
-
-        function toggleModoClic() {
-            modoClic = !modoClic;
-            map.getContainer().style.cursor = modoClic ? 'crosshair' : 'grab';
-            document.getElementById('btnSeleccionar').classList.toggle('active', modoClic);
-            if (modoClic) {
-                alert("Modo selección activado. Haz clic en los puntos para seleccionarlos.");
-                cerrarPanelInfo();
-            }
-            aplicarFiltros();
-        }
-
-        function toggleSeleccionMarker(marker) {
-            const props = marker.properties;
-            const key = props.ID || props.SUMINISTRO || `${props.LATITUD || 'lat'}_${props.LONGITUD || 'lng'}`;
-            const index = selectedMarkers.findIndex(s => {
-                const sKey = s.ID || s.SUMINISTRO || `${s.LATITUD || 'lat'}_${s.LONGITUD || 'lng'}`;
-                return sKey === key;
-            });
-            if (index === -1) {
-                selectedMarkers.push(props);
-                if (!marker.options.originalStyle) {
-                    marker.options.originalStyle = { ...marker.options };
-                }
-                marker.setStyle({
-                    fillColor: '#22c55e',
-                    color: '#14532d',
-                    weight: 6,
-                    radius: 12,
-                    className: 'resaltado-clic'
-                });
-            } else {
-                selectedMarkers.splice(index, 1);
-                if (marker.options.originalStyle) {
-                    marker.setStyle(marker.options.originalStyle);
-                } else {
-                    marker.setStyle({
-                        fillColor: props.color || '#888',
-                        color: '#000',
-                        weight: 1,
-                        radius: 6,
-                        className: ''
-                    });
-                }
-            }
-            actualizarConteos();
+        function actualizarUISeleccion() {
+            const count = selectedMarkers.length;
+            document.getElementById('count-seleccion').innerText = count;
+            document.getElementById('btnExportarSeleccion').disabled = count === 0;
         }
 
         function limpiarSeleccion() {
+            selectedMarkers.forEach(m => m.setStyle({ weight: 1, color: '#000' }));
             selectedMarkers = [];
-            loadedFiles.forEach(file => {
-                if (!file.visible) return;
-                file.clusterGroup.eachLayer(marker => {
-                    if (marker.options.originalStyle) {
-                        marker.setStyle(marker.options.originalStyle);
-                    } else {
-                        marker.setStyle({
-                            fillColor: marker.properties.color,
-                            color: '#000',
-                            weight: 1,
-                            radius: 6,
-                            className: ''
-                        });
-                    }
+            drawnItems.clearLayers();
+            actualizarUISeleccion();
+        }
+
+        function exportarSeleccionExcel() {
+            if (selectedMarkers.length === 0) return;
+            
+            // Filtrar datos para excluir ubicación
+            const data = selectedMarkers.map(m => {
+                const p = { ...m.properties };
+                const excluir = ["LATITUD", "LONGITUD", "LAT", "LNG", "color", "tipoFiltro"];
+                excluir.forEach(key => {
+                    delete p[key];
+                    // También borrar variantes en minúsculas
+                    delete p[key.toLowerCase()];
                 });
+                return p;
             });
-            aplicarFiltros();
-            actualizarConteos();
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Seleccion");
+            XLSX.writeFile(wb, "Suministros_Seleccionados_Area.xlsx");
         }
 
-        function cerrarModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
+        // --- INTERFAZ INFO PANEL ---
+        function mostrarInfo(p) {
+            let h = `<h2 style="margin:0 0 15px 0; color:#1d4ed8; font-size: 22px; font-weight: 800; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">Suministro: ${p.SUMINISTRO}</h2>`;
+            const camposPrincipales = ["USUARIO", "MEDIDOR", "CATEGORIA", "REUBICACION", "DIRECCION", "DISTRITO", "LOCALIDAD", "ACTIVIDAD", "OBSERVACION"];
+            const excluir = ["SUMINISTRO", "COLOR", "TIPOFILTRO", "LATITUD", "LONGITUD", "LAT", "LNG"];
 
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
+            const renderRow = (label, value) => `
+                <div style="margin-bottom: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 6px;">
+                    <div style="font-size: 13px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">${label}</div>
+                    <div style="font-size: 17px; color: #1e293b; font-weight: 600;">${value}</div>
+                </div>
+            `;
+
+            camposPrincipales.forEach(campo => {
+                for (let k in p) {
+                    if (k.toUpperCase().trim() === campo && p[k] !== "") {
+                        h += renderRow(k, p[k]);
+                        excluir.push(k.toUpperCase().trim());
+                        break;
+                    }
+                }
+            });
+
+            for (let k in p) {
+                const keyUpper = k.toUpperCase().trim();
+                if (typeof p[k] !== 'object' && !excluir.includes(keyUpper) && p[k] !== "") {
+                    h += renderRow(k, p[k]);
+                }
             }
+
+            document.getElementById('info-content').innerHTML = h;
+            document.getElementById('info-panel').style.display = 'flex';
+        }
+
+        function cerrarPanelInfo() { document.getElementById('info-panel').style.display = 'none'; }
+
+        function toggleModoClic() { 
+            modoClic = !modoClic; 
+            document.getElementById('btnSeleccionar').classList.toggle('danger', modoClic);
+            document.getElementById('btnSeleccionar').innerHTML = modoClic ? '<i class="fa fa-times"></i> CANCELAR SELECCIÓN' : '<i class="fa fa-mouse-pointer"></i> MODO SELECCIÓN';
+            map.getContainer().style.cursor = modoClic ? 'crosshair' : '';
+        }
+
+        function abrirReporte() {
+            const visibleMarkers = allMarkers.filter(m => clusterGroup.hasLayer(m));
+            const stats = { A1:0, A2:0, A3:0, IMPOSIBILIDAD:0, PROYECTO:0, VERENCAMPO:0 };
+            let tableHtml = "";
+            visibleMarkers.forEach(m => {
+                const p = m.properties;
+                stats[p.tipoFiltro]++;
+                tableHtml += `<tr><td>${p.SUMINISTRO}</td><td><span style="color:${p.color}; font-weight:bold;">${p.tipoFiltro}</span></td><td>${p.DISTRITO || '—'}</td><td>${p.USUARIO || p.Usuario || '—'}</td></tr>`;
+            });
+            document.getElementById('stats-container').innerHTML = Object.keys(stats).map(k => `<div class="stat-card"><label style="font-size:13px; font-weight:700; color:#94a3b8; text-transform:uppercase;">${k}</label><span style="display:block; font-size:24px; font-weight:800;">${stats[k]}</span></div>`).join('');
+            document.getElementById('report-table-body').innerHTML = tableHtml;
+            document.getElementById('report-modal').style.display = 'flex';
+        }
+        function cerrarReporte() { document.getElementById('report-modal').style.display = 'none'; }
+
+        function exportarExcel() {
+            const visibleData = allMarkers.filter(m => clusterGroup.hasLayer(m)).map(m => m.properties);
+            const ws = XLSX.utils.json_to_sheet(visibleData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+            XLSX.writeFile(wb, "Reporte_Completo_Visible.xlsx");
+        }
+
+        // --- FILTRO POR DISTRITO ---
+        function actualizarDistritos() {
+            let dists = new Set(); 
+            allMarkers.forEach(m => { 
+                if(m.properties.DISTRITO) dists.add(m.properties.DISTRITO.toString().trim().toUpperCase()); 
+            });
+            let s = document.getElementById('distritoFilter'); 
+            s.innerHTML = '<option value="">Todos los Distritos</option>';
+            Array.from(dists).sort().forEach(d => s.innerHTML += `<option value="${d}">${d}</option>`);
+        }
+
+        document.getElementById('distritoFilter').onchange = function() {
+            actualizarFiltrosGlobales();
         };
 
-        map.on('zoomend', controlarVistaPorZoom);
-        document.getElementById('distritoFilter').addEventListener('change', aplicarFiltros);
-
-        function actualizarConteos() {
-            const markers = getSelectedVisibleMarkers();
-            const c = { A1:0, A2:0, A3:0, IMPOSIBILIDAD:0, PROYECTO:0, VERENCAMPO:0, total: markers.length };
-            markers.forEach(m => {
-                if (c.hasOwnProperty(m.properties.tipoFiltro)) c[m.properties.tipoFiltro]++;
+        function buscarSuministro(val) {
+            const query = val.toUpperCase().trim();
+            if(!query || query.length < 3) return;
+            
+            // Limpiar resaltado previo
+            if (highlightCircle) map.removeLayer(highlightCircle);
+            
+            const searchPool = [...allMarkers, ...matrixMarkers];
+            
+            const found = searchPool.find(m => {
+                const p = m.properties;
+                const suministro = (p.SUMINISTRO || "").toString().toUpperCase();
+                const usuario = (p.USUARIO || p.Usuario || p.NOMBRE || "").toString().toUpperCase();
+                const medidor = (p.MEDIDOR || "").toString().toUpperCase();
+                return suministro.includes(query) || usuario.includes(query) || medidor.includes(query);
             });
-            document.getElementById('modalCountA1').textContent = c.A1;
-            document.getElementById('modalCountA2').textContent = c.A2;
-            document.getElementById('modalCountA3').textContent = c.A3;
-            document.getElementById('modalCountIMP').textContent = c.IMPOSIBILIDAD;
-            document.getElementById('modalCountPROY').textContent = c.PROYECTO;
-            document.getElementById('modalCountVERCAMPO').textContent = c.VERENCAMPO;
-            document.getElementById('modalCountTotal').textContent = c.total;
-            document.getElementById('modalSelectionCount').textContent = selectedMarkers.length;
-            document.getElementById('conteoModal').style.display = 'flex';
-        }
 
-        function getSelectedVisibleMarkers() {
-            let markers = [];
-            loadedFiles.forEach(file => {
-                if (file.visible && file.selectedForAnalysis && visibilidadArchivos[file.id]) {
-                    markers = markers.concat(file.markers);
-                }
-            });
-            return markers;
-        }
-
-        function mostrarPanelGrupos() {
-            const panel = document.getElementById('grupos-control-panel');
-            const lista = document.getElementById('grupos-activos-lista');
-            if (Object.keys(editableGroups).length === 0) {
-                panel.classList.remove('visible');
-                return;
-            }
-            panel.classList.add('visible');
-            lista.innerHTML = '';
-            for (let gid in editableGroups) {
-                const g = editableGroups[gid];
-                const div = document.createElement('div');
-                div.className = `grupo-activo-item ${currentEditingGroup === gid ? 'editing' : ''}`;
-                div.innerHTML = `
-                    <div class="grupo-activo-header">
-                        <div class="grupo-color-dot" style="background:${g.color};"></div>
-                        <strong style="flex:1; font-size:14px;">${g.name}</strong>
-                        <span style="font-size:12px; color:#666;">${g.suministros.length} pts</span>
-                    </div>
-                    <div style="display:flex; gap:4px;">
-                        <button onclick="toggleEditGroupPanel('${gid}')" class="btn-accion ${currentEditingGroup === gid ? 'success' : 'warning'}" style="flex:1;">
-                            <i class="fa fa-${currentEditingGroup === gid ? 'check' : 'edit'}"></i>
-                            ${currentEditingGroup === gid ? 'Terminar' : 'Editar'}
-                        </button>
-                        <button onclick="eliminarGrupo('${gid}')" class="btn-accion danger" style="width:auto; padding:0 8px;">
-                            <i class="fa fa-trash"></i>
-                        </button>
-                    </div>
-                    ${currentEditingGroup === gid ? `
-                        <div style="margin-top:8px; padding:8px; background:#fffbeb; border-radius:4px; font-size:12px; color:#92400e;">
-                            <i class="fa fa-hand-pointer"></i> Clic en puntos del mapa para agregar/quitar
-                        </div>
-                    ` : ''}
-                `;
-                lista.appendChild(div);
-            }
-        }
-
-        function toggleEditGroupPanel(gid) {
-            if (currentEditingGroup === gid) {
-                currentEditingGroup = null;
-            } else {
-                currentEditingGroup = gid;
-                alert(`Modo edición activado para "${editableGroups[gid].name}".\nClic en puntos del mapa para agregarlos o quitarlos.`);
-            }
-            mostrarPanelGrupos();
-        }
-
-        function finalizarEdicionTodos() {
-            currentEditingGroup = null;
-            document.getElementById('grupos-control-panel').classList.remove('visible');
-        }
-
-        function abrirGestionGrupos() {
-            mostrarPanelGrupos();
-            const container = document.getElementById('listaGruposEdicion');
-            container.innerHTML = '';
-            if (Object.keys(editableGroups).length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #666;">No hay grupos creados. Crea grupos dibujando polígonos.</p>';
-            } else {
-                for (let id in editableGroups) {
-                    const g = editableGroups[id];
-                    const div = document.createElement('div');
-                    div.className = 'group-item';
-                    div.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 20px; height: 20px; background: ${g.color}; border-radius: 50%; border: 2px solid #333;"></div>
-                                <input type="text" value="${g.name}" onchange="renombrarGrupo('${id}', this.value)"
-                                       style="width: 150px; font-weight: bold; font-size: 14px; padding: 4px;">
-                            </div>
-                            <span style="font-size: 12px; color: #666;">${g.suministros.length} pts</span>
-                        </div>
-                        <div style="display: flex; gap: 5px;">
-                            <button onclick="toggleEditGroupPanel('${id}')" id="btn-edit-${id}" class="btn-small ${currentEditingGroup === id ? 'success' : 'warning'}">
-                                <i class="fa fa-${currentEditingGroup === id ? 'check' : 'edit'}"></i>
-                                ${currentEditingGroup === id ? 'Terminar' : 'Editar'}
-                            </button>
-                            <button onclick="verDetalleGrupo('${id}')" class="btn-small" style="background: #3b82f6;">
-                                <i class="fa fa-list"></i> Ver
-                            </button>
-                            <button onclick="exportarUnGrupo('${id}')" class="btn-small success">
-                                <i class="fa fa-file-excel"></i> Excel
-                            </button>
-                            <button onclick="eliminarGrupo('${id}')" class="btn-small danger">
-                                <i class="fa fa-trash"></i>
-                            </button>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                }
-            }
-            document.getElementById('gestionGruposModal').style.display = 'flex';
-        }
-
-        function toggleMarkerInGroup(marker, groupId) {
-            const grupo = editableGroups[groupId];
-            const index = grupo.suministros.indexOf(marker.uniqueId);
-            if (index === -1) {
-                for (let gid in editableGroups) {
-                    if (gid !== groupId && editableGroups[gid].suministros.includes(marker.uniqueId)) {
-                        L.popup().setLatLng(marker.getLatLng())
-                            .setContent('<div style="color:#dc2626; font-weight:bold;">⚠️ Ya está en "' + editableGroups[gid].name + '"</div>')
-                            .openOn(map);
-                        setTimeout(() => map.closePopup(), 1500);
-                        return;
-                    }
-                }
-            }
-            if (index === -1) {
-                grupo.suministros.push(marker.uniqueId);
-                grupo.properties.push(marker.properties);
-                grupo.markers.push(marker);
-                marker.setStyle({
-                    fillColor: grupo.color,
-                    color: '#fff',
-                    weight: 3,
-                    radius: 9
-                });
-                L.popup().setLatLng(marker.getLatLng())
-                    .setContent(`<div style="color:${grupo.color}; font-weight:bold;">+ Agregado</div>`)
-                    .openOn(map);
-                setTimeout(() => map.closePopup(), 600);
-            } else {
-                grupo.suministros.splice(index, 1);
-                grupo.properties.splice(index, 1);
-                grupo.markers = grupo.markers.filter(m => m.uniqueId !== marker.uniqueId);
-                const colorOriginal = getColor(marker.properties.tipoFiltro);
-                marker.setStyle({
-                    fillColor: colorOriginal,
-                    color: '#000',
-                    weight: 1,
-                    radius: 6
-                });
-                L.popup().setLatLng(marker.getLatLng())
-                    .setContent('<div style="color:#666;">- Removido</div>')
-                    .openOn(map);
-                setTimeout(() => map.closePopup(), 600);
-            }
-            mostrarPanelGrupos();
-            actualizarLeyendaGrupos();
-        }
-
-        function renombrarGrupo(id, nuevoNombre) {
-            if (editableGroups[id]) {
-                editableGroups[id].name = nuevoNombre;
-                mostrarPanelGrupos();
-                actualizarLeyendaGrupos();
-            }
-        }
-
-        function eliminarGrupo(id) {
-            if (!confirm('¿Eliminar este grupo?')) return;
-            const grupo = editableGroups[id];
-            grupo.markers.forEach(m => {
-                const colorOriginal = getColor(m.properties.tipoFiltro);
-                m.setStyle({
-                    fillColor: colorOriginal,
-                    color: '#000',
-                    weight: 1,
-                    radius: 6
-                });
-            });
-            delete editableGroups[id];
-            if (currentEditingGroup === id) currentEditingGroup = null;
-            mostrarPanelGrupos();
-            abrirGestionGrupos();
-            actualizarLeyendaGrupos();
-            aplicarFiltros();
-        }
-
-        function verDetalleGrupo(id) {
-            const g = editableGroups[id];
-            let html = `<h4>${g.name} (${g.suministros.length} puntos)</h4><ul style="max-height: 300px; overflow-y: auto; font-size: 13px;">`;
-            g.suministros.forEach((sum, idx) => {
-                html += `<li style="margin: 4px 0;"><strong>${sum}</strong> - ${g.properties[idx].ACTIVIDAD || 'N/D'}</li>`;
-            });
-            html += '</ul>';
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.style.display = 'flex';
-            modal.innerHTML = `
-                <div class="modal-content" style="width: 400px;">
-                    <span class="close" onclick="this.parentElement.parentElement.remove()">×</span>
-                    ${html}
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
-        function exportarUnGrupo(id) {
-            const g = editableGroups[id];
-            const data = g.properties.map((p, idx) => {
-                let suministro = g.suministros[idx] || p.SUMINISTRO || p['SUMINISTRO'] || '';
-                if (!suministro) suministro = 'SIN_SUMINISTRO_' + (idx + 1);
-                let row = {
-                    SUMINISTRO: suministro.toString().trim().toUpperCase(),
-                    GRUPO_ASIGNADO: g.name,
-                    ACTIVIDAD: p.ACTIVIDAD || '',
-                    MEDIDOR: p.MEDIDOR || '',
-                    USUARIO: p.Usuario || p.USUARIO || '',
-                    DIRECCION: p.DIRECCION || '',
-                    DISTRITO: p.DISTRITO || '',
-                    LOCALIDAD: p.LOCALIDAD || '',
-                    OBSERVACION: p.OBSERVACION || ''
-                };
-                for (let key in p) {
-                    if (/^(LAT|LON|lat|lon|Latitud|Longitud|coord|COORD)/i.test(key)) continue;
-                    if (['tipoFiltro', 'color', 'uniqueId', 'fileId'].includes(key)) continue;
-                    if (!row.hasOwnProperty(key) && p[key] !== undefined) {
-                        row[key] = p[key];
-                    }
-                }
-                return row;
-            });
-            const reorderedData = data.map(row => {
-                const { SUMINISTRO, ...rest } = row;
-                return { SUMINISTRO, ...rest };
-            });
-            const ws = XLSX.utils.json_to_sheet(reorderedData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, g.name);
-            XLSX.writeFile(wb, `grupo_${g.name.replace(/\s+/g, '_')}.xlsx`);
-        }
-
-        function exportarGruposExcel() {
-            if (Object.keys(editableGroups).length === 0) {
-                alert("No hay grupos creados.");
-                return;
-            }
-            const wb = XLSX.utils.book_new();
-            for (let id in editableGroups) {
-                const g = editableGroups[id];
-                const data = g.properties.map((p, idx) => {
-                    let suministro = g.suministros[idx] || p.SUMINISTRO || p['SUMINISTRO'] || '';
-                    if (!suministro) suministro = 'SIN_SUMINISTRO_' + (idx + 1);
-                    let row = {
-                        SUMINISTRO: suministro.toString().trim().toUpperCase(),
-                        GRUPO: g.name,
-                        ACTIVIDAD: p.ACTIVIDAD || '',
-                        MEDIDOR: p.MEDIDOR || '',
-                        USUARIO: p.Usuario || p.USUARIO || '',
-                        DIRECCION: p.DIRECCION || '',
-                        DISTRITO: p.DISTRITO || '',
-                        LOCALIDAD: p.LOCALIDAD || '',
-                        OBSERVACION: p.OBSERVACION || ''
-                    };
-                    for (let key in p) {
-                        if (/^(LAT|LON|lat|lon|Latitud|Longitud|coord|COORD)/i.test(key)) continue;
-                        if (['tipoFiltro', 'color', 'uniqueId', 'fileId'].includes(key)) continue;
-                        if (!row.hasOwnProperty(key) && p[key] !== undefined) {
-                            row[key] = p[key];
-                        }
-                    }
-                    return row;
-                });
-                const ws = XLSX.utils.json_to_sheet(data);
-                XLSX.utils.book_append_sheet(wb, ws, g.name.substring(0, 31)); // límite de nombre de hoja
-            }
-            XLSX.writeFile(wb, `todos_los_grupos_${new Date().toISOString().slice(0,10)}.xlsx`);
-        }
-
-        function exportarGruposPDF() {
-            if (Object.keys(editableGroups).length === 0) {
-                alert("No hay grupos creados.");
-                return;
-            }
-            const doc = new jsPDF('p', 'mm', 'a4');
-            let y = 20;
-            doc.setFontSize(16);
-            doc.text("Resumen de Grupos - Agua Potable", 20, y);
-            y += 10;
-            doc.setFontSize(12);
-            doc.text(`Fecha: ${new Date().toLocaleDateString('es-PE')}`, 20, y);
-            y += 10;
-
-            for (let id in editableGroups) {
-                const g = editableGroups[id];
-                doc.setFontSize(14);
-                doc.text(`Grupo: ${g.name} (${g.suministros.length} puntos)`, 20, y);
-                y += 8;
-                doc.setFontSize(10);
-                doc.text(`Color: ${g.color}`, 25, y);
-                y += 6;
-
-                const headers = [["SUMINISTRO", "ACTIVIDAD", "MEDIDOR", "DIRECCIÓN", "DISTRITO"]];
-                const data = g.properties.map((p, idx) => [
-                    g.suministros[idx] || p.SUMINISTRO || 'N/D',
-                    p.ACTIVIDAD || 'N/D',
-                    p.MEDIDOR || 'N/D',
-                    p.DIRECCION || '',
-                    p.DISTRITO || ''
-                ]);
-                doc.autoTable({
-                    head: headers,
-                    body: data,
-                    startY: y,
-                    theme: 'grid',
-                    headStyles: { fillColor: g.color.replace('#', '') },
-                    margin: { left: 20 },
-                    styles: { fontSize: 8 }
-                });
-                y = doc.lastAutoTable.finalY + 10;
-                if (y > 270) {
-                    doc.addPage();
-                    y = 20;
-                }
-            }
-            doc.save("resumen_grupos.pdf");
-        }
-
-        function toggleJsonReferencia() {
-            if (!jsonReferenciaVisible) {
-                if (matrizUbicaciones.size === 0) {
-                    alert("No hay datos de referencia cargados.");
-                    return;
-                }
-                jsonReferenciaLayer.clearLayers();
-                jsonPuntosCargados = [];
-                let contador = 0;
-                matrizUbicaciones.forEach((coords, suministro) => {
-                    const marker = L.circleMarker([coords.lat, coords.lng], {
-                        radius: 5,
-                        fillColor: '#0ea5e9',
-                        color: '#0284c7',
-                        weight: 2,
-                        opacity: 0.8,
-                        fillOpacity: 0.6
+            if(found) { 
+                const latlng = found.getLatLng();
+                
+                // Si el marcador está en un grupo de clusters, expandirlo
+                if (clusterGroup.hasLayer(found)) {
+                    clusterGroup.zoomToShowLayer(found, () => {
+                        found.fire('click');
                     });
-                    marker.bindPopup(`
-                        <div style="font-size: 13px;">
-                            <strong style="color: #0284c7;">📍 Punto de Referencia (JSON)</strong><br>
-                            <hr style="margin: 5px 0;">
-                            <b>ID:</b> ${suministro}<br>
-                            <b>Lat:</b> ${coords.lat.toFixed(6)}<br>
-                            <b>Lon:</b> ${coords.lng.toFixed(6)}
-                        </div>
-                    `);
-                    marker.bindTooltip(`Ref: ${suministro}`, {
-                        permanent: false,
-                        direction: 'top'
+                } else if (matrixMarkers.includes(found)) {
+                    // Si es de la matriz y la capa está oculta, mostrarla
+                    if (!capasVisibles.MATRIZ) {
+                        toggleCapa('MATRIZ', document.querySelector('.leyenda-item:last-child'));
+                    }
+                    matrixClusterGroup.zoomToShowLayer(found, () => {
+                        found.fire('click');
                     });
-                    jsonReferenciaLayer.addLayer(marker);
-                    jsonPuntosCargados.push({suministro, lat: coords.lat, lng: coords.lng});
-                    contador++;
-                });
-                jsonReferenciaLayer.addTo(map);
-                jsonReferenciaVisible = true;
-                document.getElementById('txt-btn-json').textContent = `Ocultar Puntos JSON (${contador})`;
-                document.getElementById('btn-ver-json').style.background = '#dc2626';
-                agregarALeyendaJSON(contador);
-            } else {
-                map.removeLayer(jsonReferenciaLayer);
-                jsonReferenciaVisible = false;
-                document.getElementById('txt-btn-json').textContent = 'Ver Puntos de Referencia (JSON)';
-                document.getElementById('btn-ver-json').style.background = '#0369a1';
-                const leyendaJSON = document.getElementById('leyenda-json-ref');
-                if (leyendaJSON) leyendaJSON.remove();
-            }
-        }
-
-        function actualizarLeyendaJSONInicial() {
-            if (matrizUbicaciones.size > 0) {
-                const contador = matrizUbicaciones.size;
-                agregarALeyendaJSON(contador);
-            }
-        }
-
-        function agregarALeyendaJSON(contador) {
-            const container = document.getElementById('archivosLeyendaContent');
-            if (!container) return;
-
-            const yaExiste = document.getElementById('leyenda-json-ref');
-            if (yaExiste) yaExiste.remove();
-
-            const div = document.createElement('div');
-            div.id = 'leyenda-json-ref';
-            div.className = 'leyenda-item';
-            div.innerHTML = `
-                <div class="leyenda-color" style="background:#0ea5e9;"></div>
-                <span>Puntos JSON (${contador})</span>
-            `;
-            div.onclick = toggleJsonReferencia;
-            container.appendChild(div);
-            document.getElementById('archivosLeyenda').style.display = 'block';
-        }
-
-        function guardarVersionAgrupamiento() {
-            if (versionesAgrupamiento.length >= 10) {
-                versionesAgrupamiento.shift();
-            }
-            versionesAgrupamiento.push({
-                fecha: new Date().toLocaleString('es-PE'),
-                modo: contadorAgrupaciones,
-                grupos: JSON.parse(JSON.stringify(editableGroups))
-            });
-        }
-
-        function mostrarPanelVersiones() {
-            let html = '<h4>Versiones de Agrupamiento</h4>';
-            if (versionesAgrupamiento.length === 0) {
-                html += '<p>No hay versiones guardadas aún.</p>';
-            } else {
-                html += '<ul style="max-height:300px; overflow-y:auto;">';
-                versionesAgrupamiento.forEach((v, i) => {
-                    html += `<li style="margin:8px 0;">
-                        <strong>${v.fecha}</strong> - Modo ${v.modo} - ${Object.keys(v.grupos).length} grupos
-                        <button onclick="cargarVersion(${i})" style="margin-left:10px; background:#3b82f6; color:white; padding:4px 8px; border:none; border-radius:4px; cursor:pointer;">Cargar</button>
-                    </li>`;
-                });
-                html += '</ul>';
-            }
-
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.style.display = 'flex';
-            modal.innerHTML = `
-                <div class="modal-content" style="width:400px;">
-                    <span class="close" onclick="this.parentElement.parentElement.remove()">×</span>
-                    ${html}
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
-        function cargarVersion(index) {
-            const version = versionesAgrupamiento[index];
-            if (!version) return;
-
-            limpiarAgrupamientoSilencioso();
-
-            editableGroups = JSON.parse(JSON.stringify(version.grupos));
-
-            Object.keys(editableGroups).forEach(gid => {
-                const grupo = editableGroups[gid];
-                grupo.markers = [];
-                inicializarVisibilidadGrupo(gid);
-            });
-
-            aplicarFiltros();
-            mostrarPanelGrupos();
-            actualizarLeyendaGrupos();
-
-            alert(`Versión cargada: ${version.fecha} (Modo ${version.modo})`);
-        }
-
-        function imprimirMapaNormal() {
-            const elementosOcultar = [
-                '#sidebar', '#info-panel', '#counterPanel', '#grupos-control-panel',
-                '.legend-toggle', '.modal'
-            ];
-            elementosOcultar.forEach(sel => {
-                document.querySelectorAll(sel).forEach(el => el.style.display = 'none');
-            });
-
-            window.print();
-
-            setTimeout(() => {
-                elementosOcultar.forEach(sel => {
-                    document.querySelectorAll(sel).forEach(el => el.style.display = '');
-                });
-            }, 1000);
-        }
-
-        function limpiarAgrupamientoSilencioso() {
-            for (let id in editableGroups) {
-                const grupo = editableGroups[id];
-                if (grupo.markers) {
-                    grupo.markers.forEach(m => {
-                        const colorOriginal = getColor(m.properties.tipoFiltro);
-                        m.setStyle({
-                            fillColor: colorOriginal,
-                            color: '#000',
-                            weight: 1,
-                            radius: 6
-                        });
-                    });
+                } else {
+                    map.setView(latlng, 19);
+                    mostrarInfo(found.properties);
                 }
+
+                // Crear efecto de resaltado (Círculo pulsante temporal)
+                highlightCircle = L.circleMarker(latlng, {
+                    radius: 20,
+                    color: '#facc15',
+                    weight: 4,
+                    fillColor: '#facc15',
+                    fillOpacity: 0.3,
+                    className: 'pulse-highlight'
+                }).addTo(map);
+
+                // Animación simple de "pulso" y auto-eliminación
+                let size = 20;
+                let growing = true;
+                const interval = setInterval(() => {
+                    if (!highlightCircle) { clearInterval(interval); return; }
+                    size = growing ? size + 2 : size - 2;
+                    if (size > 35) growing = false;
+                    if (size < 20) growing = true;
+                    highlightCircle.setRadius(size);
+                }, 50);
+
+                setTimeout(() => {
+                    if (highlightCircle) {
+                        map.removeLayer(highlightCircle);
+                        highlightCircle = null;
+                        clearInterval(interval);
+                    }
+                }, 4000);
             }
-            editableGroups = {};
-            clusterHulls.clearLayers();
-            const panel = document.getElementById('grupos-control-panel');
-            if (panel) panel.classList.remove('visible');
         }
 
-        function limpiarAgrupamiento() {
-            if (!confirm('¿Limpiar todos los grupos y colores?')) return;
-            limpiarAgrupamientoSilencioso();
-            versionesAgrupamiento = [];
-            aplicarFiltros();
-            actualizarLeyendaGrupos();
-            alert('Grupos y colores limpiados.');
+        function ejecutarConteo() {
+            let c = { A1:0, A2:0, A3:0, IMPOSIBILIDAD:0, PROYECTO:0, VERENCAMPO:0 };
+            allMarkers.forEach(m => { if(clusterGroup.hasLayer(m)) c[m.properties.tipoFiltro]++; });
+            alert(`Resumen Visible:\nA1: ${c.A1}\nA2: ${c.A2}\nA3: ${c.A3}\nProyecto: ${c.PROYECTO}\nCampo: ${c.VERENCAMPO}`);
         }
 
-        console.log("FUSION2 - SOLO POLÍGONO - Versión completa | 15 feb 2026 12:30 PM -05");
+        function makeDraggable(el, handle) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            handle.onmousedown = dragMouseDown;
+            function dragMouseDown(e) { e = e || window.event; e.preventDefault(); pos3 = e.clientX; pos4 = e.clientY; document.onmouseup = closeDragElement; document.onmousemove = elementDrag; }
+            function elementDrag(e) { e = e || window.event; e.preventDefault(); pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY; pos3 = e.clientX; pos4 = e.clientY; el.style.top = (el.offsetTop - pos2) + "px"; el.style.left = (el.offsetLeft - pos1) + "px"; el.style.right = "auto"; }
+            function closeDragElement() { document.onmouseup = null; document.onmousemove = null; }
+        }
     </script>
 </body>
 </html>
