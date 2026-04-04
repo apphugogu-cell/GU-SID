@@ -225,7 +225,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button onclick="exportarExcel()" class="success" style="width: auto; padding: 0 20px;"><i class="fa fa-file-excel"></i> Excel Completo</button>
+                <button onclick="exportarExcel()" class="success" style="width: auto; padding: 0 20px; background: #16a34a !important;"><i class="fa fa-file-excel"></i> Excel</button>
+                <button onclick="exportarPDF()" class="success" style="width: auto; padding: 0 20px; background: #dc2626 !important;"><i class="fa fa-file-pdf"></i> PDF</button>
                 <button onclick="cerrarReporte()" style="width: auto; padding: 0 20px; background: #94a3b8;">Cerrar</button>
             </div>
         </div>
@@ -568,11 +569,50 @@
         function cerrarReporte() { document.getElementById('report-modal').style.display = 'none'; }
 
         function exportarExcel() {
-            const visibleData = allMarkers.filter(m => clusterGroup.hasLayer(m)).map(m => m.properties);
+            const visibleData = allMarkers.filter(m => clusterGroup.hasLayer(m)).map(m => {
+                const p = { ...m.properties };
+                const excluir = ["LATITUD", "LONGITUD", "LAT", "LNG", "color", "tipoFiltro"];
+                excluir.forEach(key => {
+                    delete p[key];
+                    delete p[key.toLowerCase()];
+                });
+                return p;
+            });
             const ws = XLSX.utils.json_to_sheet(visibleData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Reporte");
             XLSX.writeFile(wb, "Reporte_Completo_Visible.xlsx");
+        }
+
+        function exportarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+            
+            const visibleData = allMarkers.filter(m => clusterGroup.hasLayer(m)).map(m => {
+                const p = { ...m.properties };
+                const excluir = ["LATITUD", "LONGITUD", "LAT", "LNG", "color", "tipoFiltro"];
+                excluir.forEach(key => {
+                    delete p[key];
+                    delete p[key.toLowerCase()];
+                });
+                return p;
+            });
+
+            if (visibleData.length === 0) return;
+
+            const headers = Object.keys(visibleData[0]);
+            const rows = visibleData.map(obj => headers.map(key => obj[key]));
+
+            doc.text("Reporte de Suministros Visibles", 14, 15);
+            doc.autoTable({
+                head: [headers],
+                body: rows,
+                startY: 20,
+                theme: 'grid',
+                styles: { fontSize: 8 }
+            });
+
+            doc.save("Reporte_Suministros.pdf");
         }
 
         // --- FILTRO POR DISTRITO ---
