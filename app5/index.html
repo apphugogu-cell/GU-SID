@@ -136,6 +136,22 @@
             padding: 5px 12px; font-size: 14px; font-weight: bold; z-index: 2000; border-radius: 8px;
             zoom: 0.8; /* Selective scale for status bar */
         }
+        .btn-location {
+            background: white;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-radius: 4px;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content:center;
+            cursor: pointer;
+            color: #1d4ed8;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+        .btn-location:hover { background: #f1f5f9; color: #1e40af; }
+        .btn-location.active { color: #ef4444; border-color: #ef4444; }
     </style>
 </head>
 <body>
@@ -156,7 +172,10 @@
                 <h1 class="leaflet-sidebar-header">Gestión de Suministros <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
                 
                 <div style="padding: 15px 0;">
-                    <label style="font-weight: bold; color: #1d4ed8; font-size: 14px; text-transform: uppercase;">CARGAR EXCEL:</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <label style="font-weight: bold; color: #1d4ed8; font-size: 14px; text-transform: uppercase;">CARGAR EXCEL:</label>
+                        <i class="fa fa-question-circle" onclick="abrirInstrucciones()" style="cursor: pointer; color: #3b82f6; font-size: 18px;" title="Ver instrucciones de carga"></i>
+                    </div>
                     <input type="file" id="excelFile" accept=".xlsx" multiple />
 
                     <select id="distritoFilter"><option value="">Todos los Distritos</option></select>
@@ -232,6 +251,36 @@
         </div>
     </div>
 
+    <!-- Modal de Instrucciones -->
+    <div id="instrucciones-modal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 4000; display: none; align-items: center; justify-content: center; padding: 20px;">
+        <div class="modal-box" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 style="margin:0; font-size: 20px; color: #1e293b;"><i class="fa fa-info-circle" style="color: #3b82f6;"></i> Instrucciones de Carga</h2>
+                <i class="fa fa-times" onclick="cerrarInstrucciones()" style="cursor:pointer; font-size: 18px; color: #94a3b8;"></i>
+            </div>
+            <div class="modal-body" style="line-height: 1.6; color: #334155;">
+                <p>Para que los suministros se muestren correctamente en el mapa, el archivo Excel debe contener las siguientes columnas:</p>
+                <ul style="padding-left: 20px; margin-bottom: 20px;">
+                    <li><strong>SUMINISTRO:</strong> (Obligatorio) Número identificador para ubicar en la matriz.</li>
+                    <li><strong>ACTIVIDAD:</strong> (Opcional) Define el color (A1, A2, A3, PROYECTO, IMPOSIBILIDAD, OTROS).</li>
+                    <li><strong>VER EN CAMPO:</strong> (Opcional) Si se pone "SI", el punto será naranja.</li>
+                    <li><strong>REUBICACION:</strong> (Opcional) Si se pone "SI", el punto será morado.</li>
+                    <li><strong>DISTRITO:</strong> (Opcional) Para usar los filtros del panel lateral.</li>
+                    <li><strong>USUARIO / MEDIDOR:</strong> (Opcional) Para mostrar en el panel de detalles.</li>
+                </ul>
+                <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <p style="margin: 0; font-size: 14px;"><strong>Nota:</strong> Si la palabra <strong>"CAMPO"</strong> aparece en cualquier columna, el punto se marcará automáticamente en color naranja.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="descargarModelo()" style="width: auto; padding: 0 20px; background: #1d4ed8 !important;">
+                    <i class="fa fa-download"></i> DESCARGAR MODELO EXCEL
+                </button>
+                <button onclick="cerrarInstrucciones()" style="width: auto; padding: 0 20px; background: #94a3b8;">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toggle-leyenda" onclick="toggleLeyendaCompleta()">
         <i class="fa fa-list-ul" style="color: #1d4ed8;"></i>
     </div>
@@ -247,8 +296,12 @@
         <div class="leyenda-item" onclick="toggleCapa('IMPOSIBILIDAD', this)"><div class="leyenda-color" style="background:#212121;"></div>Imposibilidad</div>
         <div class="leyenda-item" onclick="toggleCapa('PROYECTO', this)"><div class="leyenda-color" style="background:#4682b4;"></div>Proyecto</div>
         <div class="leyenda-item" onclick="toggleCapa('VERENCAMPO', this)"><div class="leyenda-color" style="background:#ff9800;"></div>Ver en Campo</div>
+        <div class="leyenda-item" onclick="toggleCapa('REUBICACION', this)"><div class="leyenda-color" style="background:#9c27b0;"></div>Reubicación</div>
         <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 8px 0;">
-        <div class="leyenda-item" onclick="toggleCapa('MATRIZ', this)"><div class="leyenda-color" style="background:#94a3b8; border: 1px dashed #475569;"></div>Matriz Maestra (JSON)</div>
+        <div class="leyenda-item" onclick="toggleCapa('MATRIZ', this)">
+            <div class="leyenda-color" style="background:#93c5fd; border: 1px solid #3b82f6; border-radius: 50%;"></div>
+            Matriz Maestra
+        </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -261,6 +314,23 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
+        // Crear pane para Matriz Maestra (debajo de otros marcadores)
+        map.createPane('matrizPane');
+        map.getPane('matrizPane').style.zIndex = 350;
+
+        // Botón de ubicación personalizada
+        const locationControl = L.control({ position: 'bottomright' });
+        locationControl.onAdd = function() {
+            const div = L.DomUtil.create('div', 'leaflet-bar');
+            div.innerHTML = `
+                <button id="btn-location" class="btn-location" onclick="toggleLocation()" title="Activar Ubicación Real">
+                    <i class="fa fa-location-arrow"></i>
+                </button>
+            `;
+            return div;
+        };
+        locationControl.addTo(map);
+
         var sidebar = L.control.sidebar({ container: 'sidebar', position: 'left' }).addTo(map);
         var clusterGroup = L.markerClusterGroup({ disableClusteringAtZoom: 16 }).addTo(map);
         var matrixClusterGroup = L.markerClusterGroup({ 
@@ -268,6 +338,65 @@
             polygonOptions: { fillColor: '#94a3b8', color: '#475569', weight: 1, opacity: 0.5, fillOpacity: 0.2 }
         });
         
+        var userLocationMarker = null;
+        var userLocationCircle = null;
+        var watchId = null;
+
+        function toggleLocation() {
+            const btn = document.getElementById('btn-location');
+            if (watchId !== null) {
+                // Detener seguimiento
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                if (userLocationMarker) map.removeLayer(userLocationMarker);
+                if (userLocationCircle) map.removeLayer(userLocationCircle);
+                userLocationMarker = null;
+                userLocationCircle = null;
+                btn.classList.remove('active');
+                btn.title = "Activar Ubicación Real";
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                alert("Tu navegador no soporta geolocalización.");
+                return;
+            }
+
+            btn.classList.add('active');
+            btn.title = "Desactivar Ubicación Real";
+
+            watchId = navigator.geolocation.watchPosition((pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const accuracy = pos.coords.accuracy;
+
+                if (!userLocationMarker) {
+                    userLocationMarker = L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            className: 'user-location-icon',
+                            html: '<div style="width:16px; height:16px; background:#3b82f6; border:3px solid white; border-radius:50%; box-shadow:0 0 10px rgba(0,0,0,0.3);"></div>',
+                            iconSize: [16, 16],
+                            iconAnchor: [8, 8]
+                        })
+                    }).addTo(map);
+                    userLocationCircle = L.circle([lat, lng], { radius: accuracy, color: '#3b82f6', weight: 1, fillOpacity: 0.1 }).addTo(map);
+                    map.setView([lat, lng], 17);
+                } else {
+                    userLocationMarker.setLatLng([lat, lng]);
+                    userLocationCircle.setLatLng([lat, lng]);
+                    userLocationCircle.setRadius(accuracy);
+                }
+            }, (err) => {
+                console.error("Error de geolocalización:", err);
+                alert("No se pudo obtener tu ubicación. Asegúrate de dar permisos.");
+                toggleLocation(); // Reset
+            }, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            });
+        }
+
         var matrizUbicaciones = new Map();
         var allMarkers = [];
         var matrixMarkers = [];
@@ -308,9 +437,15 @@
 
         function seleccionarEnArea(layer) {
             const polygonGeoJSON = layer.toGeoJSON();
-            const visibleMarkers = allMarkers.filter(m => clusterGroup.hasLayer(m));
             
-            visibleMarkers.forEach(m => {
+            // Marcadores de Excel
+            const visibleMarkers = allMarkers.filter(m => clusterGroup.hasLayer(m));
+            // Marcadores de Matriz
+            const visibleMatrix = matrixMarkers.filter(m => matrixClusterGroup.hasLayer(m));
+            
+            const combined = [...visibleMarkers, ...visibleMatrix];
+            
+            combined.forEach(m => {
                 const pt = turf.point([m.getLatLng().lng, m.getLatLng().lat]);
                 if (turf.booleanPointInPolygon(pt, polygonGeoJSON)) {
                     if (selectedMarkers.indexOf(m) === -1) {
@@ -322,50 +457,106 @@
             actualizarUISeleccion();
         }
 
-        var capasVisibles = { A1: true, A2: true, A3: true, IMPOSIBILIDAD: true, PROYECTO: true, VERENCAMPO: true, MATRIZ: false };
+        var capasVisibles = { A1: true, A2: true, A3: true, IMPOSIBILIDAD: true, PROYECTO: true, VERENCAMPO: true, REUBICACION: true, MATRIZ: false };
+
+        // --- OPTIMIZACIÓN: CACHÉ DE MATRIZ CON INDEXEDDB ---
+        const DB_NAME = "MatrizDB";
+        const STORE_NAME = "matriz";
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
+                    }
+                };
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function saveToCache(data) {
+            const db = await openDB();
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            tx.objectStore(STORE_NAME).put(data, "maestra");
+            return tx.complete;
+        }
+
+        async function getFromCache() {
+            const db = await openDB();
+            return new Promise((resolve) => {
+                const request = db.transaction(STORE_NAME).objectStore(STORE_NAME).get("maestra");
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => resolve(null);
+            });
+        }
+
+        async function borrarCache() {
+            const db = await openDB();
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            tx.objectStore(STORE_NAME).delete("maestra");
+            location.reload();
+        }
 
         // --- CARGA AUTOMÁTICA DE MATRIZ ---
-        async function cargarMatriz() {
+        async function cargarMatriz(forceRefresh = false) {
             const url = "https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/refs/heads/main/app5/matriz_maestra.json";
-            console.log("Iniciando carga de Matriz Maestra desde:", url);
+            const statusEl = document.getElementById('matrix-status');
             
             try {
-                const res = await fetch(url);
-                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                let json = null;
+                if (!forceRefresh) {
+                    statusEl.innerText = "⌛ Buscando en memoria local...";
+                    json = await getFromCache();
+                }
+
+                if (!json) {
+                    console.log("Iniciando descarga de Matriz Maestra desde GitHub...");
+                    statusEl.innerText = "⌛ Descargando Matriz (GitHub)...";
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    json = await res.json();
+                    await saveToCache(json);
+                    console.log("Matriz guardada en caché local.");
+                } else {
+                    console.log("Matriz cargada desde caché local (IndexedDB).");
+                }
                 
-                const json = await res.json();
-                console.log("JSON descargado, procesando " + json.length + " registros...");
-                
-                json.forEach((r, index) => {
+                console.log("Procesando " + json.length + " registros...");
+                json.forEach((r) => {
                     let s = (r.SUMINISTRO || r.codigo || r.id || '').toString().trim().toUpperCase();
                     if(s) {
                         matrizUbicaciones.set(s, r);
-                        
                         const lat = parseFloat(r.LATITUD || r.lat || 0);
                         const lng = parseFloat(r.LONGITUD || r.lng || 0);
                         if (lat && lng) {
                             let mm = L.circleMarker([lat, lng], { 
-                                radius: 4, 
-                                fillColor: '#94a3b8', 
-                                color: '#475569', 
-                                weight: 0.5, 
-                                fillOpacity: 0.4 
+                                radius: 6, 
+                                fillColor: '#93c5fd', 
+                                color: '#3b82f6', 
+                                weight: 1, 
+                                fillOpacity: 0.7,
+                                pane: 'matrizPane'
                             });
-                            mm.properties = { ...r, SUMINISTRO: s, tipoFiltro: 'MATRIZ' };
-                            mm.on('click', function() { mostrarInfo(mm.properties); });
+                            mm.properties = { ...r, SUMINISTRO: s, tipoFiltro: 'MATRIZ', color: '#3b82f6' };
+                            mm.on('click', function() { 
+                                if (modoClic) toggleSeleccion(mm);
+                                else mostrarInfo(mm.properties); 
+                            });
                             matrixMarkers.push(mm);
                         }
                     }
                 });
                 
-                console.log("Matriz procesada correctamente. Total suministros: " + matrizUbicaciones.size);
-                document.getElementById('matrix-status').innerText = "✓ Matriz Lista: " + matrizUbicaciones.size + " registros";
-                document.getElementById('matrix-status').style.color = "#4ade80";
+                statusEl.innerHTML = `✓ Matriz Lista: ${matrizUbicaciones.size} registros <span onclick="cargarMatriz(true)" style="cursor:pointer; text-decoration:underline; margin-left:10px; font-size:10px;">[Actualizar]</span>`;
+                statusEl.style.color = "#4ade80";
                 
             } catch(e) { 
                 console.error("Error cargando la matriz:", e);
-                document.getElementById('matrix-status').innerText = "⚠ Error al cargar Matriz (Ver Consola)";
-                document.getElementById('matrix-status').style.color = "#ef4444";
+                statusEl.innerText = "⚠ Error al cargar Matriz";
+                statusEl.style.color = "#ef4444";
             }
         }
 
@@ -437,13 +628,30 @@
                             const lng = parseFloat(dataMatriz.LONGITUD || dataMatriz.lng || 0);
 
                             if (lat && lng) {
-                                let tipo = row.ACTIVIDAD || 'PROYECTO';
-                                if (JSON.stringify(row).toLowerCase().includes('campo')) tipo = 'VERENCAMPO';
-                                let color = { A1:'#d32f2f', A2:'#ffeb3b', A3:'#4caf50', IMPOSIBILIDAD:'#212121', PROYECTO:'#4682b4', VERENCAMPO:'#ff9800' }[tipo] || '#888';
+                                let tipo = (row.ACTIVIDAD || 'PROYECTO').toString().toUpperCase().trim();
+                                
+                                // Buscar columnas específicas
+                                let verCampo = false;
+                                let reubicacion = false;
+                                for (let k in row) {
+                                    const key = k.toUpperCase().trim();
+                                    const val = row[k].toString().toUpperCase().trim();
+                                    if (key === "VER EN CAMPO" && val === "SI") verCampo = true;
+                                    if (key === "REUBICACION" && val === "SI") reubicacion = true;
+                                }
+
+                                if (reubicacion) tipo = 'REUBICACION';
+                                else if (verCampo || JSON.stringify(row).toLowerCase().includes('campo')) tipo = 'VERENCAMPO';
+                                
+                                let color = { 
+                                    A1:'#d32f2f', A2:'#ffeb3b', A3:'#4caf50', 
+                                    IMPOSIBILIDAD:'#212121', PROYECTO:'#4682b4', 
+                                    VERENCAMPO:'#ff9800', REUBICACION:'#9c27b0' 
+                                }[tipo] || '#4682b4';
                                 
                                 let m = L.circleMarker([lat, lng], { radius: 6, fillColor: color, color: '#000', weight: 1, fillOpacity: 0.85 });
                                 
-                                // COMBINACIÓN DE DATOS: Prioridad al Excel, luego a la Matriz JSON
+                                // COMBINACIÓN DE DATOS: Prioridad al Excel, luego a la Matriz
                                 m.properties = { ...dataMatriz, ...row, tipoFiltro: tipo, color: color, SUMINISTRO: s };
                                 
                                 m.on('click', function() {
@@ -471,7 +679,9 @@
                 m.setStyle({ weight: 5, color: '#22c55e' });
             } else {
                 selectedMarkers.splice(idx, 1);
-                m.setStyle({ weight: 1, color: '#000' });
+                // Restaurar color original
+                const originalColor = m.properties.tipoFiltro === 'MATRIZ' ? '#3b82f6' : '#000';
+                m.setStyle({ weight: 1, color: originalColor });
             }
             actualizarUISeleccion();
         }
@@ -483,7 +693,10 @@
         }
 
         function limpiarSeleccion() {
-            selectedMarkers.forEach(m => m.setStyle({ weight: 1, color: '#000' }));
+            selectedMarkers.forEach(m => {
+                const originalColor = m.properties.tipoFiltro === 'MATRIZ' ? '#3b82f6' : '#000';
+                m.setStyle({ weight: 1, color: originalColor });
+            });
             selectedMarkers = [];
             drawnItems.clearLayers();
             actualizarUISeleccion();
@@ -512,7 +725,23 @@
 
         // --- INTERFAZ INFO PANEL ---
         function mostrarInfo(p) {
-            let h = `<h2 style="margin:0 0 15px 0; color:#1d4ed8; font-size: 22px; font-weight: 800; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">Suministro: ${p.SUMINISTRO}</h2>`;
+            const lat = p.LATITUD || p.lat;
+            const lng = p.LONGITUD || p.lng;
+            
+            let h = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
+                    <h2 style="margin:0; color:#1d4ed8; font-size: 22px; font-weight: 800;">Suministro: ${p.SUMINISTRO}</h2>
+                    ${(lat && lng) ? `
+                        <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" 
+                           target="_blank" 
+                           title="Ver en Google Maps"
+                           style="background:#ea4335; color:white; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+                           <i class="fa fa-map-marker-alt"></i>
+                        </a>
+                    ` : ''}
+                </div>
+            `;
+            
             const camposPrincipales = ["USUARIO", "MEDIDOR", "CATEGORIA", "REUBICACION", "DIRECCION", "DISTRITO", "LOCALIDAD", "ACTIVIDAD", "OBSERVACION"];
             const excluir = ["SUMINISTRO", "COLOR", "TIPOFILTRO", "LATITUD", "LONGITUD", "LAT", "LNG"];
 
@@ -555,7 +784,7 @@
 
         function abrirReporte() {
             const visibleMarkers = allMarkers.filter(m => clusterGroup.hasLayer(m));
-            const stats = { A1:0, A2:0, A3:0, IMPOSIBILIDAD:0, PROYECTO:0, VERENCAMPO:0 };
+            const stats = { A1:0, A2:0, A3:0, IMPOSIBILIDAD:0, PROYECTO:0, VERENCAMPO:0, REUBICACION:0 };
             let tableHtml = "";
             visibleMarkers.forEach(m => {
                 const p = m.properties;
@@ -567,6 +796,23 @@
             document.getElementById('report-modal').style.display = 'flex';
         }
         function cerrarReporte() { document.getElementById('report-modal').style.display = 'none'; }
+
+        // --- INSTRUCCIONES Y MODELO ---
+        function abrirInstrucciones() { document.getElementById('instrucciones-modal').style.display = 'flex'; }
+        function cerrarInstrucciones() { document.getElementById('instrucciones-modal').style.display = 'none'; }
+
+        function descargarModelo() {
+            const data = [
+                { SUMINISTRO: "1234567", USUARIO: "JUAN PEREZ", MEDIDOR: "ABC-123", ACTIVIDAD: "A1", DISTRITO: "TRUJILLO", "VER EN CAMPO": "NO", REUBICACION: "NO" },
+                { SUMINISTRO: "2345678", USUARIO: "MARIA LOPEZ", MEDIDOR: "XYZ-456", ACTIVIDAD: "A2", DISTRITO: "LA ESPERANZA", "VER EN CAMPO": "SI", REUBICACION: "NO" },
+                { SUMINISTRO: "3456789", USUARIO: "CARLOS RUIZ", MEDIDOR: "DEF-789", ACTIVIDAD: "PROYECTO", DISTRITO: "VICTOR LARCO", "VER EN CAMPO": "NO", REUBICACION: "SI" },
+                { SUMINISTRO: "4567890", USUARIO: "ANA TORRES", MEDIDOR: "GHI-012", ACTIVIDAD: "IMPOSIBILIDAD", DISTRITO: "MOCHE", "VER EN CAMPO": "NO", REUBICACION: "NO" }
+            ];
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Modelo_Carga");
+            XLSX.writeFile(wb, "Modelo_Carga_Suministros.xlsx");
+        }
 
         function exportarExcel() {
             const visibleData = allMarkers.filter(m => clusterGroup.hasLayer(m)).map(m => {
@@ -650,22 +896,21 @@
             if(found) { 
                 const latlng = found.getLatLng();
                 
+                // Mostrar la información inmediatamente
+                mostrarInfo(found.properties);
+                
                 // Si el marcador está en un grupo de clusters, expandirlo
                 if (clusterGroup.hasLayer(found)) {
-                    clusterGroup.zoomToShowLayer(found, () => {
-                        found.fire('click');
-                    });
+                    clusterGroup.zoomToShowLayer(found);
                 } else if (matrixMarkers.includes(found)) {
                     // Si es de la matriz y la capa está oculta, mostrarla
                     if (!capasVisibles.MATRIZ) {
-                        toggleCapa('MATRIZ', document.querySelector('.leyenda-item:last-child'));
+                        const matrizItem = Array.from(document.querySelectorAll('.leyenda-item')).find(el => el.textContent.includes('Matriz Maestra'));
+                        if (matrizItem) toggleCapa('MATRIZ', matrizItem);
                     }
-                    matrixClusterGroup.zoomToShowLayer(found, () => {
-                        found.fire('click');
-                    });
+                    matrixClusterGroup.zoomToShowLayer(found);
                 } else {
                     map.setView(latlng, 19);
-                    mostrarInfo(found.properties);
                 }
 
                 // Crear efecto de resaltado (Círculo pulsante temporal)
