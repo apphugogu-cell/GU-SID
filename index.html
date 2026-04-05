@@ -40,6 +40,25 @@
       border-radius: 50%;
     }
 
+    .uralmo-header {
+      font-size: 2.35rem;
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      color: white;
+    }
+
+    .uralmo-blue {
+      color: #3b82f6;
+    }
+
+    .blue-bar {
+      height: 6px;
+      background: linear-gradient(to right, #60a5fa, #1e40af);
+      border-radius: 3px;
+      margin-top: 4px;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+    }
+
     .tool-item {
       transition: all 0.25s ease;
     }
@@ -49,15 +68,6 @@
     .tool-item.active {
       background-color: #f0f9ff;
       border-left: 5px solid #2563eb;
-    }
-
-    .uralmo-title {
-      font-size: 2.1rem;
-      font-weight: 900;
-      letter-spacing: -2px;
-      background: linear-gradient(to right, #f8fafc, #60a5fa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
     }
   </style>
 </head>
@@ -73,23 +83,34 @@
                class="logo-img w-full h-full object-cover rounded-3xl border-4 border-blue-500 shadow-2xl" alt="Logo Uralmo">
         </div>
       </div>
-      <h1 class="uralmo-title">GRUPO URALMO</h1>
-      <p class="text-blue-400 text-sm tracking-[3px] mt-2 font-medium">INTELIGENCIA DOCUMENTAL</p>
+      
+      <!-- TÍTULO MODIFICADO CON RAYA AZUL -->
+      <div>
+        <h1 class="uralmo-header">
+          GRUPO <span class="uralmo-blue">URALMO</span>
+        </h1>
+        <div class="blue-bar w-96 mx-auto"></div>
+      </div>
+
+      <p class="text-blue-400 text-sm tracking-[3px] mt-3 font-medium">SISTEMAS DE INTELIGENCIA DOCUMENTAL</p>
     </div>
   </div>
 
-  <!-- CONTENIDO PRINCIPAL -->
+  <!-- CONTENIDO PRINCIPAL (todo igual que antes) -->
   <div id="main-content" class="hidden flex-col min-h-screen">
 
-    <!-- HEADER con estilo del logo -->
+    <!-- HEADER -->
     <header class="bg-slate-950 border-b border-slate-800">
       <div class="max-w-7xl mx-auto px-8 py-5 flex items-center justify-between">
         <div class="flex items-center gap-4">
           <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" 
                alt="Logo" class="w-11 h-11 rounded-2xl">
           <div>
-            <h1 class="uralmo-title text-3xl">GRUPO URALMO</h1>
-            <p class="text-xs text-slate-400 tracking-widest">MEDIDORES 2 • HERRAMIENTAS INTERNAS</p>
+            <!-- TÍTULO CON RAYA AZUL EN EL HEADER -->
+            <h1 class="uralmo-header text-3xl">
+              GRUPO <span class="uralmo-blue">URALMO</span>
+            </h1>
+            <div class="blue-bar w-72"></div>
           </div>
         </div>
         <div class="text-right">
@@ -189,7 +210,6 @@
         });
       });
 
-      // Cargar primera herramienta
       listContainer.querySelector('.tool-item').click();
     }
 
