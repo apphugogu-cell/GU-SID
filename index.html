@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GRUPO URALMO | Acceso Inteligencia Documental</title>
+    <title>GRUPO URALMO | Acceso</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -119,21 +119,11 @@
             height: 100%;
             background: #3b82f6;
             box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
-            animation: loading 3s ease-in-out forwards;
+            animation: loading 3.5s ease-in-out forwards;
         }
 
-        .dots {
-            margin-top: 40px;
-            display: flex;
-            gap: 8px;
-        }
-
-        .dot {
-            width: 6px;
-            height: 6px;
-            background: #3b82f6;
-            border-radius: 50%;
-            animation: dotPulse 1.5s infinite;
+        .fade-out {
+            animation: fadeOut 0.8s forwards;
         }
 
         @keyframes loading {
@@ -146,15 +136,6 @@
             50% { opacity: 1; transform: scale(1.1); }
         }
 
-        @keyframes dotPulse {
-            0%, 100% { opacity: 0.2; }
-            50% { opacity: 1; }
-        }
-
-        .fade-out {
-            animation: fadeOut 0.8s forwards;
-        }
-
         @keyframes fadeOut {
             to { opacity: 0; visibility: hidden; }
         }
@@ -162,7 +143,7 @@
 </head>
 <body>
 
-    <div id="splash-content" class="text-center">
+    <div id="splash-screen" class="text-center">
         <div class="flex justify-center">
             <div class="logo-container">
                 <div class="logo-glow"></div>
@@ -182,31 +163,50 @@
         <div class="loader-container">
             <div class="status-text">
                 <i data-lucide="loader-2" style="width: 14px; height: 14px;" class="animate-spin"></i>
-                Iniciando sesión segura
+                Cargando sistema operativo...
             </div>
             <div class="loader-bg">
                 <div class="loader-fill"></div>
             </div>
         </div>
-
-        <div class="dots">
-            <div class="dot" style="animation-delay: 0s"></div>
-            <div class="dot" style="animation-delay: 0.2s"></div>
-            <div class="dot" style="animation-delay: 0.4s"></div>
-        </div>
     </div>
 
     <script>
-        // Inicializar iconos
+        // 1. Inicializar iconos
         lucide.createIcons();
 
-        // Redirección automática después de 3.5 segundos
+        // 2. URL del archivo a cargar
+        const targetUrl = "https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/refs/heads/main/indexok%20.html";
+        let nextHtml = "";
+
+        // 3. Empezar a descargar el contenido de indexok .html de inmediato
+        fetch(targetUrl)
+            .then(response => response.text())
+            .then(data => {
+                nextHtml = data;
+                console.log("Sistema cargado en memoria.");
+            })
+            .catch(err => {
+                console.error("Error cargando el sistema:", err);
+            });
+
+        // 4. Manejar la transición después de la presentación
         setTimeout(function() {
-            document.body.classList.add('fade-out');
+            // Añadir efecto de desvanecimiento
+            document.getElementById('splash-screen').classList.add('fade-out');
+            
             setTimeout(function() {
-                window.location.href = "https://ais-dev-iuzsa5fktrkkcba4yxydko-505936611803.us-east1.run.app";
+                if (nextHtml) {
+                    // Reemplazar todo el documento con el nuevo HTML
+                    document.open();
+                    document.write(nextHtml);
+                    document.close();
+                } else {
+                    // Si la descarga falló o es lenta, redirigir como última opción
+                    window.location.href = targetUrl;
+                }
             }, 800);
-        }, 3500);
+        }, 4000); // 4 segundos de presentación
     </script>
 </body>
 </html>
