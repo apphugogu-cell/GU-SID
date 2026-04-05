@@ -11,7 +11,7 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -28,7 +28,36 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* SPLASH SCREEN OPTIMIZADO */
+    /* MARCO METÁLICO CROMADO PREMIUM (ESTILO SQUIRCLE) */
+    .chrome-frame {
+      position: relative;
+      padding: 6px;
+      background: linear-gradient(135deg, 
+        #ffffff 0%, 
+        #dcdcdc 15%, 
+        #808080 35%, 
+        #f0f0f0 50%, 
+        #666666 65%, 
+        #a0a0a0 85%, 
+        #333333 100%);
+      border-radius: 32px;
+      box-shadow: 
+        0 12px 25px rgba(0,0,0,0.4),
+        inset 0 1px 2px rgba(255,255,255,0.9),
+        inset 0 -1px 2px rgba(0,0,0,0.3);
+      display: inline-block;
+    }
+
+    .chrome-frame img {
+      border-radius: 26px;
+      border: 2px solid #000;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* SPLASH SCREEN (100% SIZE) */
     .splash-screen {
       position: fixed;
       inset: 0;
@@ -38,163 +67,155 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Transición más rápida */
+      font-size: 16px; 
     }
 
     .logo-container {
       position: relative;
-      width: 140px;
-      height: 140px;
+      width: 150px;
+      height: 150px;
       margin-bottom: 2rem;
     }
 
     .logo-glow {
       position: absolute;
-      inset: -20px;
-      background: radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, transparent 70%);
-      filter: blur(20px);
-      animation: pulse-glow 3s infinite ease-in-out;
+      inset: -25px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, transparent 70%);
+      filter: blur(25px);
+      animation: pulse-glow 2s infinite ease-in-out;
     }
 
-    .logo-img {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 28px;
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-      transform: perspective(1000px) rotateX(5deg);
+    /* PANEL OPERATIVO (REDUCCIÓN GENERAL AL 80%) */
+    #main-content {
+      font-size: 13px;
     }
 
-    /* ANIMACIONES */
     @keyframes pulse-glow {
-      0%, 100% { opacity: 0.5; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.15); }
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
     }
 
     @keyframes slide-up {
-      from { opacity: 0; transform: translateY(20px); }
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* BOTONES DEL MENÚ ULTRA-COMPACTOS */
     .tool-item {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 4px 12px !important;
+      border-radius: 8px !important;
+      margin-bottom: 2px;
+      min-height: 36px;
     }
 
     .tool-item.active {
       background: white;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
       border-left: 4px solid var(--primary);
-      transform: translateX(4px);
+      transform: translateX(2px);
+    }
+
+    .icon-box {
+      width: 24px !important;
+      height: 24px !important;
+      border-radius: 6px !important;
+    }
+
+    .icon-box i {
+      width: 14px !important;
+      height: 14px !important;
     }
 
     .detail-card {
-      animation: slide-up 0.4s ease-out forwards;
+      animation: slide-up 0.3s ease-out forwards;
     }
 
-    /* SCROLLBAR PERSONALIZADO */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
   </style>
 </head>
 <body class="min-h-screen bg-slate-50 flex flex-col overflow-hidden">
 
-  <!-- ====================== SPLASH SCREEN ====================== -->
+  <!-- ====================== SPLASH SCREEN (1.5 SEGUNDOS TOTAL) ====================== -->
   <div id="splash-screen" class="splash-screen">
     <div class="logo-container">
       <div class="logo-glow"></div>
-      <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" 
-           class="logo-img" alt="Logo Grupo Uralmo">
+      <div class="chrome-frame w-full h-full">
+        <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" alt="Logo Grupo Uralmo">
+      </div>
     </div>
 
     <div class="text-center space-y-4">
-      <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-white">
+      <h1 class="text-5xl md:text-6xl font-black tracking-tighter text-white">
         GRUPO <span class="text-blue-500">URALMO</span>
       </h1>
-      <p class="text-slate-400 font-medium tracking-[0.3em] uppercase text-xs">Sistemas de Inteligencia Documental</p>
+      <p class="text-slate-400 font-semibold tracking-[0.5em] uppercase text-sm">Sistemas de Inteligencia Documental</p>
       
       <div class="pt-12">
         <div class="flex items-center justify-center gap-3 text-blue-400 text-xs font-bold tracking-widest uppercase mb-4">
-          <i data-lucide="shield-check" class="w-4 h-4"></i>
-          Entorno Seguro de Operaciones
+          <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+          INICIANDO SISTEMA
         </div>
-        <div class="w-64 h-1 bg-slate-800 rounded-full mx-auto overflow-hidden">
-          <div id="loader-bar" class="h-full bg-blue-500 w-0 transition-all duration-[2500ms] ease-in-out"></div>
+        <div class="w-72 h-1 bg-slate-800 rounded-full mx-auto overflow-hidden">
+          <!-- Barra de carga en 1.1 segundos -->
+          <div id="loader-bar" class="h-full bg-blue-500 w-0 transition-all duration-[1100ms] ease-in-out"></div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- ====================== CONTENIDO PRINCIPAL ====================== -->
-  <div id="main-content" class="hidden flex-col min-h-screen opacity-0 transition-opacity duration-700">
+  <div id="main-content" class="hidden flex-col min-h-screen opacity-0 transition-opacity duration-500">
 
-    <!-- Header Moderno -->
+    <!-- Header Compacto -->
     <header class="w-full bg-slate-950 border-b border-slate-800 sticky top-0 z-40">
-      <div class="container mx-auto px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-5">
-          <div class="relative">
-            <div class="absolute -inset-1 bg-blue-500 rounded-xl blur opacity-20"></div>
+      <div class="container mx-auto px-6 py-2 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="chrome-frame !p-1 !rounded-xl shadow-none">
             <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" 
-                 alt="Logo" class="relative w-12 h-12 rounded-xl object-cover border border-slate-700">
+                 alt="Logo" class="!w-9 !h-9 !rounded-lg">
           </div>
           <div>
-            <h1 class="text-xl font-bold text-white tracking-tight">GRUPO URALMO</h1>
-            <div class="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-blue-400">
+            <h1 class="text-xl font-bold text-white tracking-tight leading-none">GRUPO URALMO</h1>
+            <div class="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-blue-400 mt-1">
               <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
               Sistemas Medidores 2
             </div>
           </div>
         </div>
         
-        <div class="hidden md:flex items-center gap-6 text-slate-400 text-xs font-medium">
+        <div class="hidden md:flex items-center gap-6 text-slate-400 text-[11px] font-medium uppercase tracking-wider">
           <div class="flex items-center gap-2">
             <i data-lucide="map-pin" class="w-4 h-4"></i>
             Laredo, La Libertad
           </div>
-          <div class="h-4 w-px bg-slate-800"></div>
-          <div id="current-date" class="font-mono"></div>
+          <div id="current-date" class="font-mono opacity-60"></div>
         </div>
       </div>
     </header>
 
     <!-- Dashboard Layout -->
-    <main class="flex-1 container mx-auto px-4 lg:px-8 py-8 overflow-hidden">
-      <div class="flex flex-col lg:flex-row gap-8 h-full max-w-7xl mx-auto">
+    <main class="flex-1 container mx-auto px-4 lg:px-8 py-4 overflow-hidden">
+      <div class="flex flex-col lg:flex-row gap-6 h-full max-w-7xl mx-auto">
 
-        <!-- Sidebar - Módulos -->
-        <aside class="w-full lg:w-[400px] flex flex-col gap-4">
+        <!-- Sidebar -->
+        <aside class="w-full lg:w-[300px] flex flex-col gap-4">
           <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
-            <div class="px-6 py-5 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
-              <div>
-                <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Módulos de Control</h2>
-                <p class="text-[11px] text-slate-500 font-medium">Selección de herramienta operativa</p>
-              </div>
-              <i data-lucide="layout-grid" class="w-5 h-5 text-slate-400"></i>
+            <div class="px-5 py-2.5 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
+              <h2 class="text-[11px] font-bold text-slate-800 uppercase tracking-wider">Módulos de Control</h2>
+              <i data-lucide="layout-grid" class="w-4 h-4 text-slate-400"></i>
             </div>
             
-            <div id="tools-list" class="flex-1 overflow-y-auto p-2 space-y-1 max-h-[60vh] lg:max-h-[calc(100vh-280px)]">
+            <div id="tools-list" class="flex-1 overflow-y-auto p-2 space-y-0.5 max-h-[60vh] lg:max-h-[calc(100vh-200px)]">
               <!-- JS Inyecta aquí -->
             </div>
           </div>
-          
-          <!-- Info Card -->
-          <div class="bg-blue-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-200 hidden lg:block">
-            <div class="flex items-center gap-3 mb-3">
-              <i data-lucide="help-circle" class="w-5 h-5 opacity-80"></i>
-              <span class="font-bold text-sm">Soporte Técnico</span>
-            </div>
-            <p class="text-xs text-blue-100 leading-relaxed">
-              Para reportar incidencias en los módulos de procesamiento, contacte con el área de TI.
-            </p>
-          </div>
         </aside>
 
-        <!-- Detalle del Módulo -->
+        <!-- Detalle -->
         <section class="flex-1 flex flex-col">
-          <div id="tool-detail" class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 lg:p-12 h-full min-h-[500px]">
+          <div id="tool-detail" class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 lg:p-10 h-full min-h-[450px]">
             <!-- JS Inyecta aquí -->
           </div>
         </section>
@@ -203,12 +224,12 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 py-4 px-8">
-      <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[11px] font-medium text-slate-500 uppercase tracking-widest">
+    <footer class="bg-white border-t border-slate-200 py-3 px-8">
+      <div class="container mx-auto flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
         <p>© 2026 Grupo Uralmo - Inteligencia Documental</p>
         <div class="flex gap-6">
-          <span class="flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-green-500"></i> Servidor Activo</span>
-          <span class="flex items-center gap-1.5"><i data-lucide="lock" class="w-3.5 h-3.5 text-blue-500"></i> Encriptación SSL</span>
+          <span class="flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-green-500"></i> Activo</span>
+          <span class="flex items-center gap-1.5"><i data-lucide="lock" class="w-3.5 h-3.5 text-blue-500"></i> SSL</span>
         </div>
       </div>
     </footer>
@@ -301,12 +322,15 @@
       const mainContent = document.getElementById('main-content');
       const loaderBar = document.getElementById('loader-bar');
 
+      // Inicia carga de barra
       loaderBar.style.width = '100%';
 
+      // Espera a que termine la barra (1.1s) y luego inicia el fade out
       setTimeout(() => {
         splash.style.opacity = '0';
-        splash.style.transform = 'scale(1.1)';
+        splash.style.transform = 'scale(1.05)';
         
+        // Espera al fade out (0.4s) para mostrar el contenido
         setTimeout(() => {
           splash.style.display = 'none';
           mainContent.classList.remove('hidden');
@@ -315,8 +339,8 @@
             document.body.style.overflow = 'auto';
             initializeTools();
           }, 50);
-        }, 800);
-      }, 2600);
+        }, 400);
+      }, 1100);
     }
 
     function initializeTools() {
@@ -325,17 +349,16 @@
 
       tools.forEach((tool, index) => {
         const item = document.createElement('div');
-        item.className = `tool-item group p-4 rounded-xl cursor-pointer flex items-center gap-4 border border-transparent ${index === 0 ? 'active' : ''}`;
+        item.className = `tool-item group flex items-center gap-3 border border-transparent transition-all cursor-pointer ${index === 0 ? 'active' : ''}`;
         
         item.innerHTML = `
-          <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 flex items-center justify-center transition-colors flex-shrink-0">
-            <i data-lucide="${tool.icon}" class="w-5 h-5"></i>
+          <div class="icon-box bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 flex items-center justify-center transition-colors flex-shrink-0">
+            <i data-lucide="${tool.icon}"></i>
           </div>
           <div class="flex-1 min-w-0">
-            <h3 class="text-xs font-bold text-slate-800 truncate uppercase tracking-tight">${tool.title}</h3>
-            <p class="text-[10px] text-slate-500 font-medium mt-0.5">${tool.tag}</p>
+            <h3 class="text-[11px] font-bold text-slate-800 truncate uppercase tracking-tight leading-tight">${tool.title}</h3>
+            <p class="text-[10px] text-slate-400 font-medium mt-0.5">${tool.tag}</p>
           </div>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-all"></i>
         `;
 
         listContainer.appendChild(item);
@@ -346,44 +369,43 @@
 
           detailContainer.innerHTML = `
             <div class="detail-card flex flex-col h-full">
-              <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+              <div class="flex items-center justify-between mb-8">
                 <div class="flex items-center gap-5">
-                  <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-200">
-                    <i data-lucide="${tool.icon}" class="w-8 h-8"></i>
+                  <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-200">
+                    <i data-lucide="${tool.icon}" class="w-7 h-7"></i>
                   </div>
                   <div>
                     <span class="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-1 block">${tool.tag}</span>
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">${tool.title}</h2>
+                    <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">${tool.title}</h2>
                   </div>
                 </div>
-                <div class="px-4 py-2 bg-slate-100 rounded-full text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200">
-                  Módulo ID: 00${tool.id}
+                <div class="px-4 py-2 bg-slate-100 rounded-xl text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200">
+                  ID: 00${tool.id}
                 </div>
               </div>
 
-              <div class="grid lg:grid-cols-5 gap-12 flex-1">
+              <div class="grid lg:grid-cols-5 gap-10 flex-1">
                 <div class="lg:col-span-3 space-y-8">
                   <div>
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Descripción del Sistema</h4>
+                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Descripción del Sistema</h4>
                     <p class="text-slate-600 text-lg leading-relaxed font-medium">${tool.desc}</p>
                   </div>
                   
-                  <div class="flex flex-wrap gap-3">
-                    <span class="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-bold rounded-md border border-green-100">ESTABLE</span>
-                    <span class="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-md border border-blue-100">V. 2.4.0</span>
-                    <span class="px-3 py-1 bg-slate-50 text-slate-600 text-[10px] font-bold rounded-md border border-slate-100">INTERNAL USE</span>
+                  <div class="flex gap-3">
+                    <span class="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-bold rounded border border-green-100">ESTABLE</span>
+                    <span class="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded border border-blue-100">V. 2.4.0</span>
                   </div>
                 </div>
 
                 <div class="lg:col-span-2">
                   <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <h4 class="text-[10px] font-bold text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
                       <i data-lucide="list-checks" class="w-4 h-4 text-blue-600"></i>
                       Capacidades
                     </h4>
                     <ul class="space-y-4">
                       ${tool.features.map(f => `
-                        <li class="flex items-start gap-3 text-slate-600 text-sm font-medium">
+                        <li class="flex items-start gap-3 text-slate-600 text-[12px] font-medium">
                           <i data-lucide="check" class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0"></i>
                           ${f}
                         </li>
@@ -393,9 +415,9 @@
                 </div>
               </div>
 
-              <div class="mt-12 pt-8 border-t border-slate-100">
+              <div class="mt-10 pt-8 border-t border-slate-100">
                 <a href="app${tool.id}/index.html" 
-                   class="group inline-flex items-center gap-4 px-10 py-4 bg-slate-950 hover:bg-blue-600 text-white font-bold rounded-2xl transition-all duration-300 shadow-xl hover:shadow-blue-500/25">
+                   class="group inline-flex items-center gap-4 px-10 py-4 bg-slate-950 hover:bg-blue-600 text-white text-sm font-bold rounded-2xl transition-all duration-300 shadow-xl hover:shadow-blue-500/25">
                   INICIAR MÓDULO OPERATIVO
                   <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
                 </a>
@@ -406,18 +428,16 @@
         });
       });
 
-      // Cargar primera herramienta
       if (tools.length > 0) {
         listContainer.querySelector('.tool-item').click();
       }
     }
 
-    // Fecha actual
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', options);
 
-    // Iniciar
-    setTimeout(hideSplash, 500);
+    // Inicia proceso de splash tras 100ms
+    setTimeout(hideSplash, 100);
     lucide.createIcons();
   </script>
 </body>
