@@ -7,104 +7,157 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
   <style>
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+
+    /* SPLASH SCREEN */
+    .splash-screen {
+      position: fixed;
+      inset: 0;
+      background-color: #0a0a0f;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 1.2s ease;
+    }
+
+    .logo-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      margin-bottom: 30px;
+    }
+
+    .logo-glow {
+      position: absolute;
+      inset: -25px;
+      background: rgba(59, 130, 246, 0.28);
+      filter: blur(35px);
+      border-radius: 50%;
+      animation: pulse 3s infinite ease-in-out;
+    }
+
+    .logo-img {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 32px;
+      border: 3px solid rgba(59, 130, 246, 0.6);
+      box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
+    }
+
     .tool-item {
-      transition: background-color 0.2s ease, border-left-color 0.2s ease;
+      transition: all 0.25s ease;
     }
     .tool-item:hover {
       background-color: #f8fafc;
     }
     .tool-item.active {
       background-color: #f1f5f9;
-      border-left: 4px solid #1d4ed8;
+      border-left: 5px solid #1d4ed8;
     }
-    #header-banner {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; transform: scale(0.95); }
+      50% { opacity: 1; transform: scale(1.08); }
     }
-    #tool-detail {
-      opacity: 0;
-      transition: opacity 0.35s ease;
-    }
-    #tool-detail.loaded {
-      opacity: 1;
+
+    @keyframes loading {
+      0% { width: 0%; }
+      100% { width: 100%; }
     }
   </style>
 </head>
-<body class="min-h-screen bg-gray-50 flex flex-col antialiased">
+<body class="min-h-screen bg-gray-50 flex flex-col antialiased overflow-hidden">
 
-  <!-- MEMBRETE / BANNER SUPERIOR -->
-  <header id="header-banner" class="w-full">
-    <div class="relative w-full h-32 sm:h-40 md:h-48 bg-black overflow-hidden">
-      <!-- Gradiente de fondo -->
-      <div class="absolute inset-0 bg-gradient-to-r from-gray-950 via-blue-950 to-gray-900 opacity-95"></div>
-      
-      <div class="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center relative z-10">
-        <!-- Avatar circular -->
-        <div class="flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-blue-500 shadow-2xl mr-5 sm:mr-8">
-          <img 
-            src="https://files.oaiusercontent.com/file-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" 
-            alt="Grupo Uralmo" 
-            class="w-full h-full object-cover"
-            onerror="this.src='https://via.placeholder.com/120/1e40af/ffffff?text=URALMO';"
-          >
+  <!-- ====================== SPLASH SCREEN ====================== -->
+  <div id="splash-screen" class="splash-screen">
+    <div class="text-center">
+      <div class="flex justify-center">
+        <div class="logo-container">
+          <div class="logo-glow"></div>
+          <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" 
+               class="logo-img" alt="Logo Grupo Uralmo">
         </div>
+      </div>
 
-        <!-- Texto principal -->
-        <div class="flex-1">
-          <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight leading-tight">
-            GRUPO <span class="text-blue-400">URALMO</span>
-          </h1>
-          <p class="text-sm sm:text-base md:text-lg text-blue-300 font-medium mt-1">
-            SISTEMAS DE INTELIGENCIA DOCUMENTAL
-          </p>
-          <p class="text-xs sm:text-sm text-gray-400 mt-2">
-            Medidores 2 • Herramientas Operativas • Laredo, La Libertad
-          </p>
+      <h1 class="text-5xl md:text-6xl font-black tracking-tighter text-white">
+        GRUPO <span class="text-blue-500">URALMO</span>
+      </h1>
+      
+      <div class="flex items-center justify-center gap-5 mt-5">
+        <div class="h-px w-16 bg-blue-500/50"></div>
+        <p class="text-sm tracking-[6px] text-slate-400 font-semibold uppercase">Sistemas de Inteligencia Documental</p>
+        <div class="h-px w-16 bg-blue-500/50"></div>
+      </div>
+
+      <div class="mt-20">
+        <div class="flex items-center justify-center gap-3 text-blue-400 text-sm font-medium tracking-widest">
+          <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+          INICIANDO SISTEMA SEGURO
+        </div>
+        <div class="w-72 h-1.5 bg-slate-800 rounded-full mx-auto mt-6 overflow-hidden">
+          <div class="loader-fill h-full bg-blue-500 rounded-full" style="animation: loading 3.8s ease-in-out forwards;"></div>
         </div>
       </div>
     </div>
-  </header>
+  </div>
 
-  <!-- Contenido principal -->
-  <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 flex-grow">
-    <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 max-w-7xl mx-auto">
+  <!-- ====================== CONTENIDO PRINCIPAL ====================== -->
+  <div id="main-content" class="hidden flex-col min-h-screen">
 
-      <!-- Panel izquierdo - Lista de módulos -->
-      <aside class="w-full lg:w-80 xl:w-96 bg-white rounded-lg shadow border border-slate-200 overflow-hidden">
-        <div class="px-5 py-4 border-b bg-slate-50">
-          <h2 class="text-base font-semibold text-slate-800">Módulos disponibles</h2>
-          <p class="text-xs text-slate-500 mt-0.5">Seleccione una función</p>
+    <!-- Header -->
+    <header id="header-banner" class="w-full bg-black">
+      <div class="relative h-32 sm:h-40 bg-gradient-to-r from-gray-950 via-blue-950 to-gray-900">
+        <div class="container mx-auto px-6 h-full flex items-center">
+          <div class="flex items-center gap-6">
+            <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" 
+                 alt="Grupo Uralmo" class="w-20 h-20 rounded-3xl border-4 border-blue-500 shadow-2xl">
+            <div>
+              <h1 class="text-3xl font-bold text-white tracking-tight">GRUPO URALMO</h1>
+              <p class="text-blue-300">Medidores 2 • Herramientas Operativas</p>
+              <p class="text-xs text-gray-400 mt-1">Laredo, La Libertad • Perú</p>
+            </div>
+          </div>
         </div>
-        <div id="tools-list" class="divide-y divide-slate-100 max-h-[60vh] lg:max-h-[75vh] overflow-y-auto">
-          <!-- Generado dinámicamente -->
-        </div>
-      </aside>
+      </div>
+    </header>
 
-      <!-- Panel derecho - Detalle -->
-      <section class="w-full lg:flex-1 bg-white rounded-lg shadow border border-slate-200">
-        <div id="tool-detail" class="p-6 lg:p-8 min-h-[55vh] lg:min-h-[65vh]">
-          <!-- Contenido cargado por JS -->
-        </div>
-      </section>
+    <!-- Contenido principal -->
+    <main class="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
 
-    </div>
-  </main>
+        <!-- Panel izquierdo - Lista de módulos -->
+        <aside class="w-full lg:w-96 bg-white rounded-3xl shadow border border-slate-200 overflow-hidden">
+          <div class="px-6 py-5 border-b bg-slate-50">
+            <h2 class="text-lg font-semibold text-slate-800">Módulos disponibles</h2>
+            <p class="text-xs text-slate-500 mt-1">Seleccione una función</p>
+          </div>
+          <div id="tools-list" class="divide-y divide-slate-100 max-h-[68vh] overflow-y-auto"></div>
+        </aside>
 
-  <!-- Footer -->
-  <footer class="bg-slate-900 text-slate-400 py-5 mt-auto">
-    <div class="container mx-auto px-6 text-center text-sm">
+        <!-- Panel derecho - Detalle -->
+        <section class="flex-1 bg-white rounded-3xl shadow border border-slate-200">
+          <div id="tool-detail" class="p-8 lg:p-10 min-h-[65vh]"></div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-5 text-center text-sm">
       <p>© 2026 Grupo Uralmo • Laredo, La Libertad, Perú</p>
-      <p class="mt-1 text-xs opacity-70">Sistemas de Inteligencia Documental • Herramientas de soporte operativo</p>
-    </div>
-  </footer>
+      <p class="text-xs mt-1 opacity-75">Sistemas de Inteligencia Documental • Herramientas de soporte operativo</p>
+    </footer>
+  </div>
 
-  <!-- JavaScript - lista y selección dinámica -->
   <script>
+    // Array de herramientas
     const tools = [
       {
         id: 1,
@@ -123,11 +176,11 @@
         id: 2,
         title: "Eliminación masiva de archivos",
         tag: "Limpieza • Mantenimiento",
-        desc: "<p class='mb-4 text-slate-700'>Purgado seguro de carpetas con alto volumen de archivos temporales o duplicados (>10.000 ítems).</p>" +
+        desc: "<p class='mb-4 text-slate-700'>Purgado seguro de carpetas con alto volumen de archivos temporales o duplicados.</p>" +
               "<ul class='list-disc pl-5 mt-2 space-y-1.5 text-sm text-slate-600'>" +
-              "<li>Filtros por extensión, fecha, tamaño</li>" +
+              "<li>Filtros por extensión, fecha y tamaño</li>" +
               "<li>Modo dry-run (simulación)</li>" +
-              "<li>Registro de operaciones</li>" +
+              "<li>Registro completo de operaciones</li>" +
               "</ul>"
       },
       {
@@ -147,9 +200,9 @@
         tag: "Procesamiento batch • Corrección",
         desc: "<p class='mb-4 text-slate-700'>Corrección de orientación en lotes grandes de fotografías.</p>" +
               "<ul class='list-disc pl-5 mt-2 space-y-1.5 text-sm text-slate-600'>" +
-              "<li>90°/180°/270° manual o por EXIF</li>" +
+              "<li>90°/180°/270° manual o según EXIF</li>" +
               "<li>Filtrado por orientación actual</li>" +
-              "<li>Procesamiento por carpeta</li>" +
+              "<li>Procesamiento por carpeta completa</li>" +
               "</ul>"
       },
       {
@@ -158,7 +211,7 @@
         tag: "Georreferenciación • Verificación",
         desc: "<p class='mb-4 text-slate-700'>Localización rápida de punto de suministro en mapa interactivo.</p>" +
               "<ul class='list-disc pl-5 mt-2 space-y-1.5 text-sm text-slate-600'>" +
-              "<li>Búsqueda por código</li>" +
+              "<li>Búsqueda por código de suministro</li>" +
               "<li>Visualización + datos asociados</li>" +
               "<li>Exportación de coordenadas</li>" +
               "</ul>"
@@ -167,63 +220,85 @@
         id: 6,
         title: "Generador de panel fotográfico técnico",
         tag: "Reporte • Documentación",
-        desc: "<p class='mb-4 text-slate-700'>Creación estructurada de láminas fotográficas para informes (2×2, 2×4).</p>" +
+        desc: "<p class='mb-4 text-slate-700'>Creación estructurada de láminas fotográficas para informes (2×2, 2×4, etc).</p>" +
               "<ul class='list-disc pl-5 mt-2 space-y-1.5 text-sm text-slate-600'>" +
               "<li>Título, descripción y fecha por imagen</li>" +
               "<li>Plantillas predefinidas</li>" +
-              "<li>Exportación PDF / PNG alta resolución</li>" +
+              "<li>Exportación en PDF y PNG alta resolución</li>" +
               "</ul>"
       }
-      // Puedes agregar más herramientas aquí
     ];
 
-    const listContainer = document.getElementById('tools-list');
-    const detailContainer = document.getElementById('tool-detail');
+    // Función para ocultar el splash y mostrar el contenido
+    function hideSplash() {
+      const splash = document.getElementById('splash-screen');
+      const mainContent = document.getElementById('main-content');
 
-    tools.forEach((tool, index) => {
-      const item = document.createElement('div');
-      item.className = `tool-item px-5 py-4 cursor-default border-l-4 border-transparent ${index === 0 ? 'active' : ''}`;
-      item.innerHTML = `
-        <div class="flex items-start gap-4">
-          <div class="flex-shrink-0 w-10 h-10 bg-slate-100 text-slate-600 rounded flex items-center justify-center text-sm font-mono font-bold">
-            ${String(tool.id).padStart(2, '0')}
+      splash.style.opacity = '0';
+
+      setTimeout(() => {
+        splash.style.display = 'none';
+        mainContent.classList.remove('hidden');
+        mainContent.classList.add('flex');
+        initializeTools();   // Inicializar las herramientas
+      }, 1200);
+    }
+
+    // Inicializar herramientas
+    function initializeTools() {
+      const listContainer = document.getElementById('tools-list');
+      const detailContainer = document.getElementById('tool-detail');
+
+      tools.forEach((tool, index) => {
+        const item = document.createElement('div');
+        item.className = `tool-item px-6 py-5 cursor-pointer border-l-4 border-transparent ${index === 0 ? 'active' : ''}`;
+        
+        item.innerHTML = `
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-blue-100 text-blue-700 rounded-2xl flex items-center justify-center text-base font-bold font-mono">
+              ${String(tool.id).padStart(2, '0')}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-slate-800 leading-tight">${tool.title}</div>
+              <div class="mt-1.5 text-xs text-slate-500">${tool.tag}</div>
+            </div>
           </div>
-          <div class="flex-1 min-w-0">
-            <div class="font-medium text-slate-800 text-[15px] leading-tight">${tool.title}</div>
-            <div class="mt-1 text-xs text-slate-500">${tool.tag}</div>
-          </div>
-        </div>
-      `;
-      listContainer.appendChild(item);
+        `;
 
-      item.addEventListener('click', () => {
-        document.querySelectorAll('.tool-item').forEach(el => el.classList.remove('active'));
-        item.classList.add('active');
+        listContainer.appendChild(item);
 
-        detailContainer.classList.remove('loaded');
-        setTimeout(() => {
+        item.addEventListener('click', () => {
+          // Quitar active de todos
+          document.querySelectorAll('.tool-item').forEach(el => el.classList.remove('active'));
+          item.classList.add('active');
+
+          // Cargar detalle
           detailContainer.innerHTML = `
-            <h2 class="text-xl font-semibold text-slate-800 mb-5">${tool.title}</h2>
-            <div class="text-slate-700 prose prose-slate prose-sm max-w-none">
+            <h2 class="text-2xl font-semibold text-slate-800 mb-6">${tool.title}</h2>
+            <div class="text-slate-700 prose prose-slate max-w-none">
               ${tool.desc}
             </div>
-            <div class="mt-10 pt-6 border-t border-slate-200">
+            <div class="mt-12 pt-8 border-t border-slate-200">
               <a href="app${tool.id}/index.html" 
-                 class="inline-flex items-center px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
+                 class="inline-flex items-center px-8 py-4 bg-slate-900 hover:bg-black text-white font-medium rounded-2xl transition-all duration-200">
                 Ejecutar módulo →
               </a>
             </div>
           `;
-          detailContainer.classList.add('loaded');
-        }, 150);
+        });
       });
-    });
 
-    // Cargar la primera herramienta por defecto
-    if (tools.length > 0) {
-      listContainer.querySelector('.tool-item').click();
+      // Cargar la primera herramienta por defecto
+      if (tools.length > 0) {
+        listContainer.querySelector('.tool-item').click();
+      }
     }
-  </script>
 
+    // Iniciar el splash
+    setTimeout(hideSplash, 3800);
+
+    // Inicializar iconos de Lucide
+    lucide.createIcons();
+  </script>
 </body>
 </html>
