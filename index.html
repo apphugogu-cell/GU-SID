@@ -22,7 +22,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 1.2s ease;
+      transition: opacity 0.8s ease;
     }
 
     .logo-container {
@@ -38,7 +38,7 @@
       background: rgba(59, 130, 246, 0.28);
       filter: blur(35px);
       border-radius: 50%;
-      animation: pulse 3s infinite ease-in-out;
+      animation: pulse 2.5s infinite ease-in-out;
     }
 
     .logo-img {
@@ -96,13 +96,13 @@
         <div class="h-px w-16 bg-blue-500/50"></div>
       </div>
 
-      <div class="mt-20">
+      <div class="mt-16">
         <div class="flex items-center justify-center gap-3 text-blue-400 text-sm font-medium tracking-widest">
           <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
           INICIANDO SISTEMA SEGURO
         </div>
         <div class="w-72 h-1.5 bg-slate-800 rounded-full mx-auto mt-6 overflow-hidden">
-          <div class="loader-fill h-full bg-blue-500 rounded-full" style="animation: loading 3.8s ease-in-out forwards;"></div>
+          <div class="loader-fill h-full bg-blue-500 rounded-full" style="animation: loading 2.5s ease-in-out forwards;"></div>
         </div>
       </div>
     </div>
@@ -157,7 +157,7 @@
   </div>
 
   <script>
-    // Array de herramientas
+    // Array de herramientas (las 6 que tenías)
     const tools = [
       {
         id: 1,
@@ -229,7 +229,7 @@
       }
     ];
 
-    // Función para ocultar el splash y mostrar el contenido
+    // Función para ocultar el splash
     function hideSplash() {
       const splash = document.getElementById('splash-screen');
       const mainContent = document.getElementById('main-content');
@@ -240,11 +240,11 @@
         splash.style.display = 'none';
         mainContent.classList.remove('hidden');
         mainContent.classList.add('flex');
-        initializeTools();   // Inicializar las herramientas
-      }, 1200);
+        initializeTools();
+      }, 800);
     }
 
-    // Inicializar herramientas
+    // Inicializar las herramientas
     function initializeTools() {
       const listContainer = document.getElementById('tools-list');
       const detailContainer = document.getElementById('tool-detail');
@@ -268,11 +268,9 @@
         listContainer.appendChild(item);
 
         item.addEventListener('click', () => {
-          // Quitar active de todos
           document.querySelectorAll('.tool-item').forEach(el => el.classList.remove('active'));
           item.classList.add('active');
 
-          // Cargar detalle
           detailContainer.innerHTML = `
             <h2 class="text-2xl font-semibold text-slate-800 mb-6">${tool.title}</h2>
             <div class="text-slate-700 prose prose-slate max-w-none">
@@ -288,16 +286,16 @@
         });
       });
 
-      // Cargar la primera herramienta por defecto
+      // Cargar primera herramienta por defecto
       if (tools.length > 0) {
         listContainer.querySelector('.tool-item').click();
       }
     }
 
-    // Iniciar el splash
-    setTimeout(hideSplash, 3800);
+    // Iniciar splash con 2.5 segundos
+    setTimeout(hideSplash, 2500);
 
-    // Inicializar iconos de Lucide
+    // Inicializar iconos Lucide
     lucide.createIcons();
   </script>
 </body>
