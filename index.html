@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Grupo Uralmo - Panel Operativo | Compacto Pro</title>
+  <title>Grupo Uralmo - Menu App | Panel Operativo</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -26,20 +26,20 @@
     body { 
       font-family: 'Inter', sans-serif; 
       -webkit-font-smoothing: antialiased;
-      font-size: 14px;
     }
 
+    /* MARCO METÁLICO CROMADO PREMIUM */
     .chrome-frame {
       position: relative;
       padding: 6px;
       background: linear-gradient(135deg, #ffffff 0%, #dcdcdc 15%, #808080 35%, #f0f0f0 50%, #666666 65%, #a0a0a0 85%, #333333 100%);
-      border-radius: 24px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.9), inset 0 -1px 2px rgba(0,0,0,0.2);
+      border-radius: 32px;
+      box-shadow: 0 12px 25px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.9), inset 0 -1px 2px rgba(0,0,0,0.3);
       display: inline-block;
     }
 
     .chrome-frame img {
-      border-radius: 18px;
+      border-radius: 26px;
       border: 2px solid #000;
       display: block;
       width: 100%;
@@ -47,6 +47,7 @@
       object-fit: cover;
     }
 
+    /* SPLASH SCREEN */
     .splash-screen {
       position: fixed;
       inset: 0;
@@ -56,7 +57,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transition: all 0.5s ease;
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .logo-glow {
@@ -69,14 +70,15 @@
 
     @keyframes pulse-glow {
       0%, 100% { opacity: 0.4; transform: scale(1); }
-      50% { opacity: 0.7; transform: scale(1.05); }
+      50% { opacity: 0.8; transform: scale(1.05); }
     }
 
+    /* PANEL OPERATIVO */
     .tool-item {
-      padding: 8px 14px !important;
+      padding: 6px 12px !important;
       border-radius: 12px !important;
       margin-bottom: 4px;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       border-left: 4px solid transparent;
     }
 
@@ -88,50 +90,51 @@
     }
 
     .icon-box {
-      width: 30px;
-      height: 30px;
+      width: 32px;
+      height: 32px;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
+    /* TABS */
     .tab-btn {
       position: relative;
       padding: 12px 16px;
-      font-size: 10px;
-      font-weight: 900;
+      font-size: 11px;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.1em;
       color: #64748b;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
     }
 
     .tab-btn.active {
       color: var(--primary);
-      background: white;
     }
 
     .tab-btn.active::after {
       content: '';
       position: absolute;
       bottom: 0;
-      left: 0;
-      right: 0;
+      left: 16px;
+      right: 16px;
       height: 3px;
       background: var(--primary);
+      border-radius: 3px;
     }
 
     .detail-card {
-      animation: slide-up 0.4s ease-out forwards;
+      animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     @keyframes slide-up {
-      from { opacity: 0; transform: translateY(15px); }
+      from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
   </style>
 </head>
@@ -147,12 +150,12 @@
     </div>
     <div class="text-center space-y-4">
       <h1 class="text-5xl md:text-6xl font-black tracking-tighter text-white">GRUPO <span class="text-blue-500">URALMO</span></h1>
-      <p class="text-slate-400 font-bold tracking-[0.5em] uppercase text-sm">Sistemas de Inteligencia Documental</p>
+      <p class="text-slate-400 font-semibold tracking-[0.5em] uppercase text-sm">Sistemas de Inteligencia Documental</p>
       <div class="pt-12">
-        <div class="flex items-center justify-center gap-3 text-blue-400 text-xs font-black tracking-widest uppercase mb-4">
-          <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> CARGANDO SISTEMA
+        <div class="flex items-center justify-center gap-3 text-blue-400 text-xs font-bold tracking-widest uppercase mb-4">
+          <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> INICIANDO SISTEMA
         </div>
-        <div class="w-64 h-1.5 bg-slate-800 rounded-full mx-auto overflow-hidden">
+        <div class="w-72 h-1.5 bg-slate-800 rounded-full mx-auto overflow-hidden">
           <div id="loader-bar" class="h-full bg-blue-500 w-0 transition-all duration-[1500ms] ease-in-out"></div>
         </div>
       </div>
@@ -162,37 +165,35 @@
   <!-- ====================== CONTENIDO PRINCIPAL ====================== -->
   <div id="main-content" class="hidden flex-col min-h-screen opacity-0 transition-opacity duration-700">
 
-    <header class="w-full bg-slate-950 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
+    <header class="w-full bg-slate-950 border-b border-slate-800 sticky top-0 z-40 shadow-2xl">
       <div class="container mx-auto px-6 py-2 flex items-center justify-between">
         <div class="flex items-center gap-8">
-          <div class="chrome-frame !p-[3px] !rounded-xl shadow-xl">
-            <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" 
-                 alt="Logo" 
-                 class="!w-20 !h-20 !rounded-xl">
-          </div>
-          <div class="flex flex-col">
-            <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" 
-                 alt="Grupo Uralmo" 
-                 class="h-20 w-auto object-contain">
+          <div class="flex items-center gap-6">
+            <div class="chrome-frame !p-[1px] !rounded-xl shadow-none">
+              <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" 
+                   alt="Logo" 
+                   class="!w-12 !h-12 !rounded-xl">
+            </div>
+            <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" alt="Grupo Uralmo" class="h-16 w-auto object-contain">
           </div>
         </div>
         
-        <div class="hidden lg:flex items-center gap-6 text-slate-400 text-[10px] font-black uppercase tracking-widest">
-          <div class="flex items-center gap-2 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800">
+        <div class="hidden md:flex items-center gap-8 text-slate-400 text-[11px] font-bold uppercase tracking-widest">
+          <div class="flex items-center gap-2.5 bg-slate-900 px-4 py-2 rounded-full border border-slate-800">
             <i data-lucide="map-pin" class="w-4 h-4 text-blue-500"></i> Trujillo, La Libertad
           </div>
-          <div id="current-date" class="font-mono opacity-80 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800 text-blue-400"></div>
+          <div id="current-date" class="font-mono opacity-70 bg-slate-900 px-4 py-2 rounded-full border border-slate-800"></div>
         </div>
       </div>
     </header>
 
-    <main class="flex-1 container mx-auto px-4 lg:px-8 py-4 overflow-hidden">
-      <div class="flex flex-col lg:flex-row gap-6 h-full max-w-[1400px] mx-auto">
+    <main class="flex-1 container mx-auto px-4 lg:px-8 py-6 overflow-hidden">
+      <div class="flex flex-col lg:flex-row gap-8 h-full max-w-7xl mx-auto">
 
         <!-- SIDEBAR -->
-        <aside class="w-full lg:w-[300px] flex flex-col gap-4">
-          <div class="bg-white rounded-[1.5rem] shadow-xl border border-slate-200 flex flex-col overflow-hidden h-full">
-            <div class="flex border-b border-slate-100 bg-slate-50">
+        <aside class="w-full lg:w-[320px] flex flex-col gap-6">
+          <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 flex flex-col overflow-hidden h-full">
+            <div class="flex border-b border-slate-100 bg-slate-50/50">
               <button onclick="switchTab('IMG')" id="tab-IMG" class="tab-btn active flex-1">IMÁGENES</button>
               <button onclick="switchTab('SISTEMA')" id="tab-SISTEMA" class="tab-btn flex-1">SISTEMA</button>
             </div>
@@ -205,7 +206,7 @@
 
         <!-- DETALLE -->
         <section class="flex-1 flex flex-col">
-          <div id="tool-detail" class="bg-white rounded-[2rem] shadow-xl border border-slate-200 p-8 lg:p-10 h-full min-h-[450px]">
+          <div id="tool-detail" class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-200 p-10 lg:p-14 h-full min-h-[500px]">
             <!-- JS Inyecta aquí -->
           </div>
         </section>
@@ -213,12 +214,12 @@
       </div>
     </main>
 
-    <footer class="bg-white border-t border-slate-200 py-2 px-10">
-      <div class="container mx-auto flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-widest">
-        <p>© 2026 Grupo Uralmo - Inteligencia Documental</p>
+    <footer class="bg-white border-t border-slate-200 py-3 px-10">
+      <div class="container mx-auto flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+        <p>© 2026 Grupo Uralmo - Inteligencia Documental Avanzada</p>
         <div class="flex gap-8">
-          <span class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> Activo</span>
-          <span class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-blue-500"></i> Seguro</span>
+          <span class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> Sistema Operativo</span>
+          <span class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-blue-500"></i> Encriptación AES-256</span>
         </div>
       </div>
     </footer>
@@ -232,8 +233,8 @@
         title: "Renombrado Masivo Fotográfico",
         tag: "Procesamiento • Med2",
         icon: "camera",
-        desc: "Estandarización de nombres de archivos mediante patrones inteligentes. Ideal para organizar levantamientos de medidores y auditorías de campo.",
-        features: ["Patrones dinámicos: Prefijo + Fecha", "Limpieza de duplicados por Hash", "Corrección de orientación EXIF", "Previsualización en tiempo real"]
+        desc: "Estandarización de nombres de archivos mediante patrones inteligentes. Ideal para organizar levantamientos de medidores y auditorías de campo de alta precisión.",
+        features: ["Patrones dinámicos: Prefijo + Correlativo + Fecha", "Detección y limpieza de duplicados por Hash", "Corrección automática de orientación EXIF", "Previsualización de cambios en tiempo real"]
       },
       {
         id: 2,
@@ -241,8 +242,8 @@
         title: "Purgado Masivo de Archivos",
         tag: "Mantenimiento • Limpieza",
         icon: "trash-2",
-        desc: "Herramienta de limpieza profunda para directorios con alto volumen de datos. Elimina archivos temporales o residuales de forma segura.",
-        features: ["Filtros por extensión y peso", "Modo Simulación (Dry-run)", "Reporte detallado de eliminación", "Soporte para rutas de red"]
+        desc: "Herramienta de limpieza profunda para directorios con alto volumen de datos. Elimina archivos temporales o residuales de forma segura y eficiente.",
+        features: ["Filtros avanzados por extensión y peso", "Modo Simulación (Dry-run) sin riesgo", "Reporte detallado de archivos eliminados", "Soporte para rutas de red y locales"]
       },
       {
         id: 3,
@@ -250,8 +251,8 @@
         title: "Recorte Inteligente de Escaneos",
         tag: "Digitalización • OCR",
         icon: "crop",
-        desc: "Algoritmo de detección de bordes para extraer automáticamente el área útil de documentos escaneados.",
-        features: ["Auto-detección de márgenes", "Corrección de perspectiva", "Optimización de peso", "Procesamiento paralelo"]
+        desc: "Algoritmo de detección de bordes para extraer automáticamente el área útil de documentos escaneados como planos o reportes técnicos.",
+        features: ["Auto-detección de márgenes y bordes", "Corrección de perspectiva (Deskew)", "Optimización de peso para carga en nube", "Procesamiento paralelo de alto rendimiento"]
       },
       {
         id: 4,
@@ -259,8 +260,8 @@
         title: "Rotación Batch de Imágenes",
         tag: "Post-procesamiento",
         icon: "rotate-cw",
-        desc: "Corrige la orientación de miles de imágenes simultáneamente sin pérdida de calidad.",
-        features: ["Rotación ortogonal (90°, 180°)", "Filtrado por metadatos", "Preservación de fechas", "Selección por carpetas"]
+        desc: "Corrige la orientación de miles de imágenes simultáneamente sin pérdida de calidad (Lossless rotation) para flujos de trabajo masivos.",
+        features: ["Rotación ortogonal (90°, 180°, 270°)", "Filtrado por metadatos de orientación", "Preservación de fechas de creación", "Interfaz de selección por carpetas"]
       },
       {
         id: 5,
@@ -268,8 +269,8 @@
         title: "Consulta Geográfica de Suministro",
         tag: "GIS • Verificación",
         icon: "map",
-        desc: "Visualización inmediata de la ubicación de suministros eléctricos sobre cartografía digital actualizada.",
-        features: ["Búsqueda por código", "Capa de catastro integrada", "Exportación UTM/WGS84", "Historial de consultas"]
+        desc: "Visualización inmediata de la ubicación de suministros eléctricos sobre cartografía digital actualizada con capas de catastro.",
+        features: ["Búsqueda instantánea por código", "Capa de catastro integrada", "Exportación de coordenadas UTM/WGS84", "Historial de consultas recientes"]
       },
       {
         id: 6,
@@ -277,8 +278,8 @@
         title: "Generador de Paneles Técnicos",
         tag: "Documentación • PDF",
         icon: "file-text",
-        desc: "Automatiza la creación de informes fotográficos estructurados para sustentos técnicos y auditorías.",
-        features: ["Plantillas configurables", "Marcas de agua y fechas", "Generación directa en PDF", "Editor de pies de foto"]
+        desc: "Automatiza la creación de informes fotográficos estructurados para sustentos técnicos, auditorías y reportes de campo.",
+        features: ["Plantillas configurables (2x2, 2x4, 3x3)", "Incrustación de marcas de agua y fechas", "Generación directa en PDF de alta calidad", "Editor de pies de foto masivo"]
       }
     ];
 
@@ -292,7 +293,7 @@
       setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         splash.style.opacity = '0';
-        splash.style.transform = 'scale(1.05)';
+        splash.style.transform = 'scale(1.1)';
         
         setTimeout(() => {
           splash.style.display = 'none';
@@ -303,7 +304,7 @@
             main.classList.remove('opacity-0');
             renderTools();
           }, 50);
-        }, 500);
+        }, 600);
       }, 1600);
     }
 
@@ -325,11 +326,11 @@
         const item = document.createElement('div');
         item.className = `tool-item group flex items-center gap-4 cursor-pointer ${activeToolId === tool.id ? 'active' : ''}`;
         item.innerHTML = `
-          <div class="icon-box ${activeToolId === tool.id ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600'} transition-all">
+          <div class="icon-box ${activeToolId === tool.id ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600'} transition-all">
             <i data-lucide="${tool.icon}" class="w-4 h-4"></i>
           </div>
           <div class="flex-1 min-w-0">
-            <h3 class="text-[11px] font-black text-slate-800 truncate uppercase tracking-tight">${tool.title}</h3>
+            <h3 class="text-[11px] font-extrabold text-slate-800 truncate uppercase tracking-tight">${tool.title}</h3>
             <p class="text-[9px] text-slate-400 font-bold mt-0.5 uppercase tracking-wider">${tool.tag}</p>
           </div>
         `;
@@ -349,55 +350,53 @@
       const detailContainer = document.getElementById('tool-detail');
       detailContainer.innerHTML = `
         <div class="detail-card flex flex-col h-full">
-          <!-- CABECERA DE DETALLE CON BOTÓN ARRIBA -->
-          <div class="flex items-start justify-between mb-8">
+          <div class="flex items-center justify-between mb-12">
             <div class="flex items-center gap-6">
-              <div class="w-14 h-14 bg-blue-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl shadow-blue-500/30">
-                <i data-lucide="${tool.icon}" class="w-7 h-7"></i>
+              <div class="w-16 h-16 bg-blue-600 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-blue-500/40">
+                <i data-lucide="${tool.icon}" class="w-8 h-8"></i>
               </div>
               <div>
-                <div class="flex items-center gap-4">
-                  <span class="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] block">${tool.tag}</span>
-                </div>
-                <h2 class="text-2xl font-black text-slate-900 tracking-tighter mt-1">${tool.title}</h2>
+                <span class="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] mb-2 block">${tool.tag}</span>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tighter">${tool.title}</h2>
               </div>
             </div>
-            
-            <!-- BOTÓN MOVIDO ARRIBA -->
-            <button class="group inline-flex items-center gap-3 px-8 py-3 bg-slate-950 hover:bg-blue-600 text-white text-[10px] font-black rounded-xl transition-all duration-500 shadow-xl hover:shadow-blue-500/30 uppercase tracking-widest">
-              Iniciar Módulo 
-              <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-            </button>
+            <div class="px-5 py-2 bg-slate-50 rounded-2xl text-[11px] font-black text-slate-400 uppercase tracking-widest border border-slate-100">MÓDULO 00${tool.id}</div>
           </div>
           
-          <div class="grid lg:grid-cols-5 gap-10 flex-1">
-            <div class="lg:col-span-3 space-y-8">
+          <div class="grid lg:grid-cols-5 gap-14 flex-1">
+            <div class="lg:col-span-3 space-y-10">
               <div>
-                <h4 class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-6">Resumen Operativo</h4>
-                <p class="text-slate-600 text-lg leading-relaxed font-bold">${tool.desc}</p>
+                <h4 class="text-[11px] font-black text-slate-300 uppercase tracking-[0.2em] mb-6">Resumen Operativo</h4>
+                <p class="text-slate-600 text-xl leading-relaxed font-semibold">${tool.desc}</p>
               </div>
               <div class="flex gap-4">
-                <span class="px-4 py-1.5 bg-green-50 text-green-600 text-[9px] font-black rounded-lg border border-green-100 uppercase tracking-widest">Estable</span>
-                <span class="px-4 py-1.5 bg-blue-50 text-blue-600 text-[9px] font-black rounded-lg border border-blue-100 uppercase tracking-widest">v2.4.0</span>
-                <span class="px-4 py-1.5 bg-slate-50 text-slate-400 text-[9px] font-black rounded-lg border border-slate-100 uppercase tracking-widest">ID: 00${tool.id}</span>
+                <span class="px-4 py-1.5 bg-green-50 text-green-600 text-[10px] font-black rounded-lg border border-green-100 uppercase tracking-widest">Estado: Estable</span>
+                <span class="px-4 py-1.5 bg-blue-50 text-blue-600 text-[10px] font-black rounded-lg border border-blue-100 uppercase tracking-widest">Versión 2.4.0</span>
               </div>
             </div>
             
             <div class="lg:col-span-2">
-              <div class="bg-slate-50 rounded-[2rem] p-6 border border-slate-100 shadow-inner">
-                <h4 class="text-[10px] font-black text-slate-800 uppercase tracking-[0.15em] mb-6 flex items-center gap-3">
-                  <i data-lucide="zap" class="w-4 h-4 text-blue-600"></i> Capacidades
+              <div class="bg-slate-50 rounded-[2rem] p-8 border border-slate-100 shadow-inner">
+                <h4 class="text-[11px] font-black text-slate-800 uppercase tracking-[0.15em] mb-8 flex items-center gap-3">
+                  <i data-lucide="zap" class="w-4 h-4 text-blue-600"></i> Funcionalidades Clave
                 </h4>
-                <ul class="space-y-4">
+                <ul class="space-y-5">
                   ${tool.features.map(f => `
-                    <li class="flex items-start gap-3 text-slate-600 text-[12px] font-bold leading-snug">
-                      <i data-lucide="check-circle" class="w-4 h-4 text-blue-500 flex-shrink-0"></i> 
+                    <li class="flex items-start gap-4 text-slate-600 text-[13px] font-bold leading-snug">
+                      <i data-lucide="check-circle" class="w-5 h-5 text-blue-500 flex-shrink-0"></i> 
                       ${f}
                     </li>
                   `).join('')}
                 </ul>
               </div>
             </div>
+          </div>
+          
+          <div class="mt-12 pt-10 border-t border-slate-100">
+            <button class="group inline-flex items-center gap-5 px-12 py-5 bg-slate-950 hover:bg-blue-600 text-white text-sm font-black rounded-2xl transition-all duration-500 shadow-2xl hover:shadow-blue-500/40 uppercase tracking-widest">
+              Ejecutar Módulo de Sistema 
+              <i data-lucide="chevron-right" class="w-5 h-5 group-hover:translate-x-2 transition-transform"></i>
+            </button>
           </div>
         </div>
       `;
