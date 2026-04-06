@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Grupo Uralmo - Panel Operativo v3.0 | Escala 110%</title>
+  <title>Grupo Uralmo - Panel Operativo | Compacto Pro</title>
   
-  <!-- Tailwind CSS via CDN -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Fonts: Inter -->
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   
-  <!-- Lucide Icons via CDN -->
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -26,22 +26,21 @@
     body { 
       font-family: 'Inter', sans-serif; 
       -webkit-font-smoothing: antialiased;
-      font-size: 15px; /* Aumentado a 110% (de 13.5px a 15px) */
+      font-size: 14px;
     }
 
-    /* MARCO CROMADO ESCALADO */
     .chrome-frame {
       position: relative;
       padding: 6px;
       background: linear-gradient(135deg, #ffffff 0%, #dcdcdc 15%, #808080 35%, #f0f0f0 50%, #666666 65%, #a0a0a0 85%, #333333 100%);
       border-radius: 24px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.9);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.9), inset 0 -1px 2px rgba(0,0,0,0.2);
       display: inline-block;
     }
 
     .chrome-frame img {
       border-radius: 18px;
-      border: 2.5px solid #000;
+      border: 2px solid #000;
       display: block;
       width: 100%;
       height: 100%;
@@ -62,9 +61,9 @@
 
     .logo-glow {
       position: absolute;
-      inset: -30px;
+      inset: -25px;
       background: radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, transparent 70%);
-      filter: blur(30px);
+      filter: blur(25px);
       animation: pulse-glow 2s infinite ease-in-out;
     }
 
@@ -73,9 +72,8 @@
       50% { opacity: 0.7; transform: scale(1.05); }
     }
 
-    /* ITEMS DE LISTA ESCALADOS */
     .tool-item {
-      padding: 8px 16px !important;
+      padding: 8px 14px !important;
       border-radius: 12px !important;
       margin-bottom: 4px;
       transition: all 0.2s ease;
@@ -84,28 +82,27 @@
 
     .tool-item.active {
       background: white;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       border-left: 4px solid var(--primary);
       transform: translateX(4px);
     }
 
     .icon-box {
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    /* TABS ESCALADOS */
     .tab-btn {
       position: relative;
-      padding: 12px 18px;
-      font-size: 10.5px;
+      padding: 12px 16px;
+      font-size: 10px;
       font-weight: 900;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
       color: #64748b;
       transition: all 0.2s ease;
     }
@@ -134,7 +131,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
   </style>
 </head>
@@ -168,14 +165,11 @@
     <header class="w-full bg-slate-950 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
       <div class="container mx-auto px-6 py-2 flex items-center justify-between">
         <div class="flex items-center gap-8">
-          <!-- LOGO ESCALADO -->
           <div class="chrome-frame !p-[3px] !rounded-xl shadow-xl">
             <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" 
                  alt="Logo" 
                  class="!w-20 !h-20 !rounded-xl">
           </div>
-          
-          <!-- MEMBRETE ESCALADO -->
           <div class="flex flex-col">
             <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" 
                  alt="Grupo Uralmo" 
@@ -184,18 +178,18 @@
         </div>
         
         <div class="hidden lg:flex items-center gap-6 text-slate-400 text-[10px] font-black uppercase tracking-widest">
-          <div class="flex items-center gap-2.5 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800">
+          <div class="flex items-center gap-2 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800">
             <i data-lucide="map-pin" class="w-4 h-4 text-blue-500"></i> Trujillo, La Libertad
           </div>
-          <div id="current-date" class="font-mono opacity-90 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800 text-blue-400"></div>
+          <div id="current-date" class="font-mono opacity-80 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800 text-blue-400"></div>
         </div>
       </div>
     </header>
 
     <main class="flex-1 container mx-auto px-4 lg:px-8 py-4 overflow-hidden">
-      <div class="flex flex-col lg:flex-row gap-6 h-full max-w-[1450px] mx-auto">
+      <div class="flex flex-col lg:flex-row gap-6 h-full max-w-[1400px] mx-auto">
 
-        <!-- SIDEBAR ESCALADO -->
+        <!-- SIDEBAR -->
         <aside class="w-full lg:w-[300px] flex flex-col gap-4">
           <div class="bg-white rounded-[1.5rem] shadow-xl border border-slate-200 flex flex-col overflow-hidden h-full">
             <div class="flex border-b border-slate-100 bg-slate-50">
@@ -203,13 +197,13 @@
               <button onclick="switchTab('SISTEMA')" id="tab-SISTEMA" class="tab-btn flex-1">SISTEMA</button>
             </div>
             
-            <div id="tools-list" class="flex-1 overflow-y-auto p-3 space-y-1.5 max-h-[60vh] lg:max-h-[calc(100vh-250px)]">
+            <div id="tools-list" class="flex-1 overflow-y-auto p-3 space-y-1 max-h-[60vh] lg:max-h-[calc(100vh-250px)]">
               <!-- JS Inyecta aquí -->
             </div>
           </div>
         </aside>
 
-        <!-- DETALLE ESCALADO -->
+        <!-- DETALLE -->
         <section class="flex-1 flex flex-col">
           <div id="tool-detail" class="bg-white rounded-[2rem] shadow-xl border border-slate-200 p-8 lg:p-10 h-full min-h-[450px]">
             <!-- JS Inyecta aquí -->
@@ -220,7 +214,7 @@
     </main>
 
     <footer class="bg-white border-t border-slate-200 py-2 px-10">
-      <div class="container mx-auto flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+      <div class="container mx-auto flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-widest">
         <p>© 2026 Grupo Uralmo - Inteligencia Documental</p>
         <div class="flex gap-8">
           <span class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> Activo</span>
@@ -335,7 +329,7 @@
             <i data-lucide="${tool.icon}" class="w-4 h-4"></i>
           </div>
           <div class="flex-1 min-w-0">
-            <h3 class="text-[12px] font-black text-slate-800 truncate uppercase tracking-tight">${tool.title}</h3>
+            <h3 class="text-[11px] font-black text-slate-800 truncate uppercase tracking-tight">${tool.title}</h3>
             <p class="text-[9px] text-slate-400 font-bold mt-0.5 uppercase tracking-wider">${tool.tag}</p>
           </div>
         `;
@@ -355,19 +349,22 @@
       const detailContainer = document.getElementById('tool-detail');
       detailContainer.innerHTML = `
         <div class="detail-card flex flex-col h-full">
-          <!-- CABECERA CON BOTÓN ARRIBA -->
+          <!-- CABECERA DE DETALLE CON BOTÓN ARRIBA -->
           <div class="flex items-start justify-between mb-8">
             <div class="flex items-center gap-6">
               <div class="w-14 h-14 bg-blue-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl shadow-blue-500/30">
                 <i data-lucide="${tool.icon}" class="w-7 h-7"></i>
               </div>
               <div>
-                <span class="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] block">${tool.tag}</span>
+                <div class="flex items-center gap-4">
+                  <span class="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] block">${tool.tag}</span>
+                </div>
                 <h2 class="text-2xl font-black text-slate-900 tracking-tighter mt-1">${tool.title}</h2>
               </div>
             </div>
             
-            <button class="group inline-flex items-center gap-3 px-8 py-3.5 bg-slate-950 hover:bg-blue-600 text-white text-[10px] font-black rounded-xl transition-all duration-500 shadow-xl hover:shadow-blue-500/30 uppercase tracking-widest">
+            <!-- BOTÓN MOVIDO ARRIBA -->
+            <button class="group inline-flex items-center gap-3 px-8 py-3 bg-slate-950 hover:bg-blue-600 text-white text-[10px] font-black rounded-xl transition-all duration-500 shadow-xl hover:shadow-blue-500/30 uppercase tracking-widest">
               Iniciar Módulo 
               <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
             </button>
@@ -376,10 +373,10 @@
           <div class="grid lg:grid-cols-5 gap-10 flex-1">
             <div class="lg:col-span-3 space-y-8">
               <div>
-                <h4 class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-4">Resumen Operativo</h4>
+                <h4 class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-6">Resumen Operativo</h4>
                 <p class="text-slate-600 text-lg leading-relaxed font-bold">${tool.desc}</p>
               </div>
-              <div class="flex gap-3">
+              <div class="flex gap-4">
                 <span class="px-4 py-1.5 bg-green-50 text-green-600 text-[9px] font-black rounded-lg border border-green-100 uppercase tracking-widest">Estable</span>
                 <span class="px-4 py-1.5 bg-blue-50 text-blue-600 text-[9px] font-black rounded-lg border border-blue-100 uppercase tracking-widest">v2.4.0</span>
                 <span class="px-4 py-1.5 bg-slate-50 text-slate-400 text-[9px] font-black rounded-lg border border-slate-100 uppercase tracking-widest">ID: 00${tool.id}</span>
@@ -393,7 +390,7 @@
                 </h4>
                 <ul class="space-y-4">
                   ${tool.features.map(f => `
-                    <li class="flex items-start gap-3 text-slate-600 text-[13px] font-bold leading-snug">
+                    <li class="flex items-start gap-3 text-slate-600 text-[12px] font-bold leading-snug">
                       <i data-lucide="check-circle" class="w-4 h-4 text-blue-500 flex-shrink-0"></i> 
                       ${f}
                     </li>
