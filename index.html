@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Grupo Uralmo - Panel Operativo | Compacto Pro</title>
+  <title>Grupo Uralmo - Medidores 2 | Panel Operativo v3.5</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -26,27 +26,28 @@
     body { 
       font-family: 'Inter', sans-serif; 
       -webkit-font-smoothing: antialiased;
-      font-size: 14px;
     }
 
+    /* MARCO METÁLICO CROMADO PREMIUM - ESCALADO */
     .chrome-frame {
       position: relative;
-      padding: 6px;
+      padding: 7px; /* +110% */
       background: linear-gradient(135deg, #ffffff 0%, #dcdcdc 15%, #808080 35%, #f0f0f0 50%, #666666 65%, #a0a0a0 85%, #333333 100%);
-      border-radius: 24px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.9), inset 0 -1px 2px rgba(0,0,0,0.2);
+      border-radius: 36px; /* +110% */
+      box-shadow: 0 15px 30px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.9);
       display: inline-block;
     }
 
     .chrome-frame img {
-      border-radius: 18px;
-      border: 2px solid #000;
+      border-radius: 28px; /* +110% */
+      border: 2.5px solid #000;
       display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
 
+    /* SPLASH SCREEN ESCALADO */
     .splash-screen {
       position: fixed;
       inset: 0;
@@ -56,82 +57,91 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transition: all 0.5s ease;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 18px; /* +110% */
+    }
+
+    .logo-container {
+      position: relative;
+      width: 160px; /* +110% */
+      height: 160px; /* +110% */
+      margin-bottom: 2rem;
     }
 
     .logo-glow {
       position: absolute;
-      inset: -25px;
+      inset: -30px;
       background: radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, transparent 70%);
-      filter: blur(25px);
+      filter: blur(30px);
       animation: pulse-glow 2s infinite ease-in-out;
     }
 
+    /* PANEL OPERATIVO ESCALADO */
+    #main-content { font-size: 14.5px; } /* +110% de 13px */
+
     @keyframes pulse-glow {
       0%, 100% { opacity: 0.4; transform: scale(1); }
-      50% { opacity: 0.7; transform: scale(1.05); }
+      50% { opacity: 0.8; transform: scale(1.05); }
     }
 
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* BOTONES ESCALADOS */
     .tool-item {
-      padding: 8px 14px !important;
-      border-radius: 12px !important;
+      padding: 6px 14px !important; /* +110% */
+      border-radius: 10px !important;
       margin-bottom: 4px;
-      transition: all 0.2s ease;
-      border-left: 4px solid transparent;
+      min-height: 42px; /* +110% */
     }
 
     .tool-item.active {
       background: white;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      border-left: 4px solid var(--primary);
-      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border-left: 5px solid var(--primary);
+      transform: translateX(3px);
     }
 
     .icon-box {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 28px !important; /* +110% */
+      height: 28px !important; /* +110% */
+      border-radius: 7px !important;
     }
 
+    .icon-box i { width: 16px !important; height: 16px !important; }
+
+    /* TABS ESCALADOS */
     .tab-btn {
       position: relative;
-      padding: 12px 16px;
-      font-size: 10px;
-      font-weight: 900;
+      padding: 10px 20px; /* +110% */
+      font-size: 11.5px; /* +110% */
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
       color: #64748b;
       transition: all 0.2s ease;
     }
 
     .tab-btn.active {
       color: var(--primary);
-      background: white;
     }
 
     .tab-btn.active::after {
       content: '';
       position: absolute;
       bottom: 0;
-      left: 0;
-      right: 0;
+      left: 20px;
+      right: 20px;
       height: 3px;
       background: var(--primary);
+      border-radius: 2px;
     }
 
-    .detail-card {
-      animation: slide-up 0.4s ease-out forwards;
-    }
+    .detail-card { animation: slide-up 0.3s ease-out forwards; }
 
-    @keyframes slide-up {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
   </style>
 </head>
@@ -139,61 +149,57 @@
 
   <!-- ====================== SPLASH SCREEN ====================== -->
   <div id="splash-screen" class="splash-screen">
-    <div class="relative w-40 h-40 mb-8">
+    <div class="logo-container">
       <div class="logo-glow"></div>
       <div class="chrome-frame w-full h-full">
         <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" alt="Logo Grupo Uralmo">
       </div>
     </div>
-    <div class="text-center space-y-4">
-      <h1 class="text-5xl md:text-6xl font-black tracking-tighter text-white">GRUPO <span class="text-blue-500">URALMO</span></h1>
-      <p class="text-slate-400 font-bold tracking-[0.5em] uppercase text-sm">Sistemas de Inteligencia Documental</p>
-      <div class="pt-12">
-        <div class="flex items-center justify-center gap-3 text-blue-400 text-xs font-black tracking-widest uppercase mb-4">
-          <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> CARGANDO SISTEMA
+    <div class="text-center space-y-8">
+      <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" alt="Grupo Uralmo" class="h-24 md:h-28 w-auto mx-auto object-contain">
+      
+      <div class="pt-10">
+        <div class="flex items-center justify-center gap-4 text-blue-400 text-sm font-bold tracking-widest uppercase mb-5">
+          <i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i> INICIANDO SISTEMA
         </div>
-        <div class="w-64 h-1.5 bg-slate-800 rounded-full mx-auto overflow-hidden">
-          <div id="loader-bar" class="h-full bg-blue-500 w-0 transition-all duration-[1500ms] ease-in-out"></div>
+        <div class="w-80 h-1.5 bg-slate-800 rounded-full mx-auto overflow-hidden">
+          <div id="loader-bar" class="h-full bg-blue-500 w-0 transition-all duration-[1100ms] ease-in-out"></div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- ====================== CONTENIDO PRINCIPAL ====================== -->
-  <div id="main-content" class="hidden flex-col min-h-screen opacity-0 transition-opacity duration-700">
+  <div id="main-content" class="hidden flex-col min-h-screen opacity-0 transition-opacity duration-500">
 
     <header class="w-full bg-slate-950 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
-      <div class="container mx-auto px-6 py-2 flex items-center justify-between">
-        <div class="flex items-center gap-8">
-          <div class="chrome-frame !p-[3px] !rounded-xl shadow-xl">
-            <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" 
-                 alt="Logo" 
-                 class="!w-20 !h-20 !rounded-xl">
-          </div>
-          <div class="flex flex-col">
-            <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" 
-                 alt="Grupo Uralmo" 
-                 class="h-20 w-auto object-contain">
+      <div class="container mx-auto px-8 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-8">
+            <div class="chrome-frame !p-[4px] !rounded-xl shadow-none">
+              <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" alt="Logo 1" class="!w-12 !h-12 !rounded-xl">
+            </div>
+            
+            <div class="flex items-center">
+              <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" alt="Grupo Uralmo" class="h-16 w-auto object-contain">
+            </div>
           </div>
         </div>
         
-        <div class="hidden lg:flex items-center gap-6 text-slate-400 text-[10px] font-black uppercase tracking-widest">
-          <div class="flex items-center gap-2 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800">
-            <i data-lucide="map-pin" class="w-4 h-4 text-blue-500"></i> Trujillo, La Libertad
-          </div>
-          <div id="current-date" class="font-mono opacity-80 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800 text-blue-400"></div>
+        <div class="hidden md:flex items-center gap-8 text-slate-400 text-[12px] font-semibold uppercase tracking-wider">
+          <div class="flex items-center gap-2.5"><i data-lucide="map-pin" class="w-4.5 h-4.5"></i> Laredo, La Libertad</div>
+          <div id="current-date" class="font-mono opacity-80"></div>
         </div>
       </div>
     </header>
 
-    <main class="flex-1 container mx-auto px-4 lg:px-8 py-4 overflow-hidden">
-      <div class="flex flex-col lg:flex-row gap-6 h-full max-w-[1400px] mx-auto">
+    <main class="flex-1 container mx-auto px-6 lg:px-10 py-6 overflow-hidden">
+      <div class="flex flex-col lg:flex-row gap-8 h-full max-w-7xl mx-auto">
 
-        <!-- SIDEBAR -->
-        <aside class="w-full lg:w-[300px] flex flex-col gap-4">
-          <div class="bg-white rounded-[1.5rem] shadow-xl border border-slate-200 flex flex-col overflow-hidden h-full">
-            <div class="flex border-b border-slate-100 bg-slate-50">
-              <button onclick="switchTab('IMG')" id="tab-IMG" class="tab-btn active flex-1">IMÁGENES</button>
+        <aside class="w-full lg:w-[340px] flex flex-col gap-5">
+          <div class="bg-white rounded-3xl shadow-md border border-slate-200 flex flex-col overflow-hidden">
+            <div class="flex border-b border-slate-100 bg-slate-50/50">
+              <button onclick="switchTab('IMG')" id="tab-IMG" class="tab-btn active flex-1">IMG</button>
               <button onclick="switchTab('SISTEMA')" id="tab-SISTEMA" class="tab-btn flex-1">SISTEMA</button>
             </div>
             
@@ -203,9 +209,8 @@
           </div>
         </aside>
 
-        <!-- DETALLE -->
         <section class="flex-1 flex flex-col">
-          <div id="tool-detail" class="bg-white rounded-[2rem] shadow-xl border border-slate-200 p-8 lg:p-10 h-full min-h-[450px]">
+          <div id="tool-detail" class="bg-white rounded-[2.5rem] shadow-md border border-slate-200 p-10 lg:p-12 h-full min-h-[500px]">
             <!-- JS Inyecta aquí -->
           </div>
         </section>
@@ -213,12 +218,12 @@
       </div>
     </main>
 
-    <footer class="bg-white border-t border-slate-200 py-2 px-10">
-      <div class="container mx-auto flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-widest">
+    <footer class="bg-white border-t border-slate-200 py-4 px-10">
+      <div class="container mx-auto flex justify-between items-center text-[11px] font-bold text-slate-400 uppercase tracking-widest">
         <p>© 2026 Grupo Uralmo - Inteligencia Documental</p>
         <div class="flex gap-8">
           <span class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> Activo</span>
-          <span class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-blue-500"></i> Seguro</span>
+          <span class="flex items-center gap-2"><i data-lucide="lock" class="w-4 h-4 text-blue-500"></i> SSL</span>
         </div>
       </div>
     </footer>
@@ -233,7 +238,7 @@
         tag: "Procesamiento • Med2",
         icon: "camera",
         desc: "Estandarización de nombres de archivos mediante patrones inteligentes. Ideal para organizar levantamientos de medidores y auditorías de campo.",
-        features: ["Patrones dinámicos: Prefijo + Fecha", "Limpieza de duplicados por Hash", "Corrección de orientación EXIF", "Previsualización en tiempo real"]
+        features: ["Patrones dinámicos: Prefijo + Correlativo + Fecha", "Detección y limpieza de duplicados por Hash", "Corrección automática de orientación EXIF", "Previsualización de cambios antes de aplicar"]
       },
       {
         id: 2,
@@ -242,16 +247,7 @@
         tag: "Mantenimiento • Limpieza",
         icon: "trash-2",
         desc: "Herramienta de limpieza profunda para directorios con alto volumen de datos. Elimina archivos temporales o residuales de forma segura.",
-        features: ["Filtros por extensión y peso", "Modo Simulación (Dry-run)", "Reporte detallado de eliminación", "Soporte para rutas de red"]
-      },
-      {
-        id: 3,
-        tab: "IMG",
-        title: "Recorte Inteligente de Escaneos",
-        tag: "Digitalización • OCR",
-        icon: "crop",
-        desc: "Algoritmo de detección de bordes para extraer automáticamente el área útil de documentos escaneados.",
-        features: ["Auto-detección de márgenes", "Corrección de perspectiva", "Optimización de peso", "Procesamiento paralelo"]
+        features: ["Filtros avanzados por extensión y peso", "Modo Simulación (Dry-run) sin riesgo", "Reporte detallado de archivos eliminados", "Soporte para rutas de red y locales"]
       },
       {
         id: 4,
@@ -259,8 +255,17 @@
         title: "Rotación Batch de Imágenes",
         tag: "Post-procesamiento",
         icon: "rotate-cw",
-        desc: "Corrige la orientación de miles de imágenes simultáneamente sin pérdida de calidad.",
-        features: ["Rotación ortogonal (90°, 180°)", "Filtrado por metadatos", "Preservación de fechas", "Selección por carpetas"]
+        desc: "Corrige la orientación de miles de imágenes simultáneamente sin pérdida de calidad (Lossless rotation).",
+        features: ["Rotación ortogonal (90°, 180°, 270°)", "Filtrado por metadatos de orientación", "Preservación de fechas de creación", "Interfaz de selección por carpetas"]
+      },
+      {
+        id: 3,
+        tab: "IMG",
+        title: "Recorte Inteligente de Escaneos",
+        tag: "Digitalización • OCR",
+        icon: "crop",
+        desc: "Algoritmo de detección de bordes para extraer automáticamente el área útil de documentos escaneados como planos o reportes A4.",
+        features: ["Auto-detección de márgenes y bordes", "Corrección de perspectiva (Deskew)", "Optimización de peso para carga en nube", "Procesamiento paralelo de alto rendimiento"]
       },
       {
         id: 5,
@@ -269,7 +274,7 @@
         tag: "GIS • Verificación",
         icon: "map",
         desc: "Visualización inmediata de la ubicación de suministros eléctricos sobre cartografía digital actualizada.",
-        features: ["Búsqueda por código", "Capa de catastro integrada", "Exportación UTM/WGS84", "Historial de consultas"]
+        features: ["Búsqueda instantánea por código", "Capa de catastro integrada", "Exportación de coordenadas UTM/WGS84", "Historial de consultas recientes"]
       },
       {
         id: 6,
@@ -278,33 +283,28 @@
         tag: "Documentación • PDF",
         icon: "file-text",
         desc: "Automatiza la creación de informes fotográficos estructurados para sustentos técnicos y auditorías.",
-        features: ["Plantillas configurables", "Marcas de agua y fechas", "Generación directa en PDF", "Editor de pies de foto"]
+        features: ["Plantillas configurables (2x2, 2x4, 3x3)", "Incrustación de marcas de agua y fechas", "Generación directa en PDF de alta calidad", "Editor de pies de foto masivo"]
       }
     ];
 
     let activeTab = "IMG";
     let activeToolId = 1;
 
-    function init() {
+    function hideSplash() {
       const loaderBar = document.getElementById('loader-bar');
       loaderBar.style.width = '100%';
-      
       setTimeout(() => {
-        const splash = document.getElementById('splash-screen');
-        splash.style.opacity = '0';
-        splash.style.transform = 'scale(1.05)';
-        
+        document.getElementById('splash-screen').style.opacity = '0';
+        document.getElementById('splash-screen').style.transform = 'scale(1.05)';
         setTimeout(() => {
-          splash.style.display = 'none';
-          const main = document.getElementById('main-content');
-          main.classList.remove('hidden');
+          document.getElementById('splash-screen').style.display = 'none';
+          document.getElementById('main-content').classList.remove('hidden');
           setTimeout(() => {
-            main.classList.add('flex');
-            main.classList.remove('opacity-0');
+            document.getElementById('main-content').classList.remove('opacity-0');
             renderTools();
           }, 50);
-        }, 500);
-      }, 1600);
+        }, 400);
+      }, 1100);
     }
 
     function switchTab(tabName) {
@@ -320,26 +320,25 @@
       const listContainer = document.getElementById('tools-list');
       listContainer.innerHTML = "";
       const filteredTools = tools.filter(t => t.tab === activeTab);
-      
       filteredTools.forEach((tool) => {
         const item = document.createElement('div');
-        item.className = `tool-item group flex items-center gap-4 cursor-pointer ${activeToolId === tool.id ? 'active' : ''}`;
+        item.className = `tool-item group flex items-center gap-4 border border-transparent transition-all cursor-pointer ${activeToolId === tool.id ? 'active' : ''}`;
         item.innerHTML = `
-          <div class="icon-box ${activeToolId === tool.id ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600'} transition-all">
-            <i data-lucide="${tool.icon}" class="w-4 h-4"></i>
+          <div class="icon-box bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 flex items-center justify-center transition-colors flex-shrink-0">
+            <i data-lucide="${tool.icon}"></i>
           </div>
           <div class="flex-1 min-w-0">
-            <h3 class="text-[11px] font-black text-slate-800 truncate uppercase tracking-tight">${tool.title}</h3>
-            <p class="text-[9px] text-slate-400 font-bold mt-0.5 uppercase tracking-wider">${tool.tag}</p>
+            <h3 class="text-[12.5px] font-bold text-slate-800 truncate uppercase tracking-tight leading-tight">${tool.title}</h3>
+            <p class="text-[11px] text-slate-400 font-medium mt-0.5">${tool.tag}</p>
           </div>
         `;
         listContainer.appendChild(item);
         item.addEventListener('click', () => {
           activeToolId = tool.id;
           renderTools();
+          showDetail(tool);
         });
       });
-      
       const currentTool = tools.find(t => t.id === activeToolId);
       if (currentTool) showDetail(currentTool);
       lucide.createIcons();
@@ -349,55 +348,38 @@
       const detailContainer = document.getElementById('tool-detail');
       detailContainer.innerHTML = `
         <div class="detail-card flex flex-col h-full">
-          <!-- CABECERA DE DETALLE CON BOTÓN ARRIBA -->
-          <div class="flex items-start justify-between mb-8">
+          <div class="flex items-center justify-between mb-10">
             <div class="flex items-center gap-6">
-              <div class="w-14 h-14 bg-blue-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl shadow-blue-500/30">
-                <i data-lucide="${tool.icon}" class="w-7 h-7"></i>
-              </div>
+              <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-200"><i data-lucide="${tool.icon}" class="w-8 h-8"></i></div>
               <div>
-                <div class="flex items-center gap-4">
-                  <span class="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] block">${tool.tag}</span>
-                </div>
-                <h2 class="text-2xl font-black text-slate-900 tracking-tighter mt-1">${tool.title}</h2>
+                <span class="text-[11px] font-black text-blue-600 uppercase tracking-[0.25em] mb-1.5 block">${tool.tag}</span>
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">${tool.title}</h2>
               </div>
             </div>
-            
-            <!-- BOTÓN MOVIDO ARRIBA -->
-            <button class="group inline-flex items-center gap-3 px-8 py-3 bg-slate-950 hover:bg-blue-600 text-white text-[10px] font-black rounded-xl transition-all duration-500 shadow-xl hover:shadow-blue-500/30 uppercase tracking-widest">
-              Iniciar Módulo 
-              <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-            </button>
+            <div class="px-5 py-2.5 bg-slate-100 rounded-xl text-[11px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200">ID: 00${tool.id}</div>
           </div>
-          
-          <div class="grid lg:grid-cols-5 gap-10 flex-1">
-            <div class="lg:col-span-3 space-y-8">
+          <div class="grid lg:grid-cols-5 gap-12 flex-1">
+            <div class="lg:col-span-3 space-y-10">
               <div>
-                <h4 class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-6">Resumen Operativo</h4>
-                <p class="text-slate-600 text-lg leading-relaxed font-bold">${tool.desc}</p>
+                <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-5">Descripción del Sistema</h4>
+                <p class="text-slate-600 text-xl leading-relaxed font-medium">${tool.desc}</p>
               </div>
               <div class="flex gap-4">
-                <span class="px-4 py-1.5 bg-green-50 text-green-600 text-[9px] font-black rounded-lg border border-green-100 uppercase tracking-widest">Estable</span>
-                <span class="px-4 py-1.5 bg-blue-50 text-blue-600 text-[9px] font-black rounded-lg border border-blue-100 uppercase tracking-widest">v2.4.0</span>
-                <span class="px-4 py-1.5 bg-slate-50 text-slate-400 text-[9px] font-black rounded-lg border border-slate-100 uppercase tracking-widest">ID: 00${tool.id}</span>
+                <span class="px-4 py-1.5 bg-green-50 text-green-600 text-[11px] font-bold rounded-lg border border-green-100">ESTABLE</span>
+                <span class="px-4 py-1.5 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-100">V. 2.4.0</span>
               </div>
             </div>
-            
             <div class="lg:col-span-2">
-              <div class="bg-slate-50 rounded-[2rem] p-6 border border-slate-100 shadow-inner">
-                <h4 class="text-[10px] font-black text-slate-800 uppercase tracking-[0.15em] mb-6 flex items-center gap-3">
-                  <i data-lucide="zap" class="w-4 h-4 text-blue-600"></i> Capacidades
-                </h4>
-                <ul class="space-y-4">
-                  ${tool.features.map(f => `
-                    <li class="flex items-start gap-3 text-slate-600 text-[12px] font-bold leading-snug">
-                      <i data-lucide="check-circle" class="w-4 h-4 text-blue-500 flex-shrink-0"></i> 
-                      ${f}
-                    </li>
-                  `).join('')}
+              <div class="bg-slate-50 rounded-3xl p-8 border border-slate-100 shadow-sm">
+                <h4 class="text-[11px] font-bold text-slate-800 uppercase tracking-widest mb-8 flex items-center gap-2.5"><i data-lucide="list-checks" class="w-5 h-5 text-blue-600"></i> Capacidades</h4>
+                <ul class="space-y-5">
+                  ${tool.features.map(f => `<li class="flex items-start gap-4 text-slate-600 text-[13.5px] font-medium"><i data-lucide="check" class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"></i> ${f}</li>`).join('')}
                 </ul>
               </div>
             </div>
+          </div>
+          <div class="mt-12 pt-10 border-t border-slate-100">
+            <a href="app${tool.id}/index.html" class="group inline-flex items-center gap-5 px-12 py-5 bg-slate-950 hover:bg-blue-600 text-white text-base font-bold rounded-2xl transition-all duration-300 shadow-2xl hover:shadow-blue-500/30">INICIAR MÓDULO OPERATIVO <i data-lucide="arrow-right" class="w-6 h-6 group-hover:translate-x-1.5 transition-transform"></i></a>
           </div>
         </div>
       `;
@@ -406,8 +388,8 @@
 
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', options);
-    
-    window.onload = init;
+    setTimeout(hideSplash, 100);
+    lucide.createIcons();
   </script>
 </body>
 </html>
