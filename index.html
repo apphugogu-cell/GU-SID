@@ -1,401 +1,484 @@
 <!DOCTYPE html>
-<html lang="es" class="bg-slate-50 scroll-smooth">
+<html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Grupo Uralmo - Medidores 2 | Panel Operativo v3.6</title>
-  
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grupo Uralmo - Inteligencia Documental</title>
+    
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & Framer Motion -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    
+    <!-- Babel para JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-  <style>
-    :root {
-      --primary: #2563eb;
-      --primary-dark: #1e40af;
-      --accent: #3b82f6;
-    }
+    <style type="text/tailwindcss">
+        @layer base {
+            body {
+                font-family: 'Inter', sans-serif;
+                font-size: 15px;
+                @apply bg-slate-50 text-slate-900;
+            }
+        }
 
-    body { 
-      font-family: 'Inter', sans-serif; 
-      -webkit-font-smoothing: antialiased;
-    }
+        @layer components {
+            /* MARCO CROMADO ESCALADO */
+            .chrome-frame {
+                position: relative;
+                padding: 6px;
+                background: linear-gradient(135deg, #ffffff 0%, #dcdcdc 15%, #808080 35%, #f0f0f0 50%, #666666 65%, #a0a0a0 85%, #333333 100%);
+                border-radius: 24px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.9);
+                display: inline-block;
+            }
 
-    /* MARCO METÁLICO CROMADO PREMIUM - ESCALADO */
-    .chrome-frame {
-      position: relative;
-      padding: 7px;
-      background: linear-gradient(135deg, #ffffff 0%, #dcdcdc 15%, #808080 35%, #f0f0f0 50%, #666666 65%, #a0a0a0 85%, #333333 100%);
-      border-radius: 36px;
-      box-shadow: 0 15px 30px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.9);
-      display: inline-block;
-    }
+            .chrome-frame img {
+                border-radius: 18px;
+                border: 2.5px solid #000;
+                display: block;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
 
-    .chrome-frame img {
-      border-radius: 28px;
-      border: 2.5px solid #000;
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+            /* ITEMS DE LISTA ESCALADOS */
+            .tool-item {
+                padding: 8px 16px !important;
+                border-radius: 12px !important;
+                margin-bottom: 4px;
+                transition: all 0.2s ease;
+                border-left: 4px solid transparent;
+                cursor: pointer;
+                @apply flex items-center gap-4;
+            }
 
-    /* SPLASH SCREEN ESCALADO */
-    .splash-screen {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      font-size: 18px;
-    }
+            .tool-item:hover {
+                @apply bg-blue-50/50;
+            }
 
-    .logo-container {
-      position: relative;
-      width: 160px;
-      height: 160px;
-      margin-bottom: 2rem;
-    }
+            .tool-item.active {
+                background: white;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                border-left: 4px solid #2563eb;
+                transform: translateX(4px);
+            }
 
-    .logo-glow {
-      position: absolute;
-      inset: -30px;
-      background: radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, transparent 70%);
-      filter: blur(30px);
-      animation: pulse-glow 2s infinite ease-in-out;
-    }
+            .icon-box {
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                @apply transition-all;
+            }
 
-    /* PANEL OPERATIVO ESCALADO */
-    #main-content { font-size: 14.5px; }
+            /* TABS ESCALADOS */
+            .tab-btn {
+                position: relative;
+                padding: 12px 18px;
+                font-size: 10.5px;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 0.12em;
+                color: #64748b;
+                transition: all 0.2s ease;
+                @apply flex-1 text-center;
+            }
 
-    @keyframes pulse-glow {
-      0%, 100% { opacity: 0.4; transform: scale(1); }
-      50% { opacity: 0.8; transform: scale(1.05); }
-    }
+            .tab-btn.active {
+                color: #2563eb;
+                background: white;
+            }
 
-    @keyframes slide-up {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+            .tab-btn.active::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: #2563eb;
+            }
 
-    /* BOTONES ESCALADOS */
-    .tool-item {
-      padding: 6px 14px !important;
-      border-radius: 10px !important;
-      margin-bottom: 4px;
-      min-height: 42px;
-    }
+            .logo-glow {
+                position: absolute;
+                inset: -20px;
+                background: radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, transparent 70%);
+                filter: blur(20px);
+                animation: pulse-glow 2s infinite ease-in-out;
+            }
+        }
 
-    .tool-item.active {
-      background: white;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      border-left: 5px solid var(--primary);
-      transform: translateX(3px);
-    }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
 
-    .icon-box {
-      width: 28px !important;
-      height: 28px !important;
-      border-radius: 7px !important;
-    }
-
-    .icon-box i { width: 16px !important; height: 16px !important; }
-
-    /* TABS ESCALADOS */
-    .tab-btn {
-      position: relative;
-      padding: 10px 20px;
-      font-size: 11.5px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: #64748b;
-      transition: all 0.2s ease;
-    }
-
-    .tab-btn.active {
-      color: var(--primary);
-    }
-
-    .tab-btn.active::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 20px;
-      right: 20px;
-      height: 3px;
-      background: var(--primary);
-      border-radius: 2px;
-    }
-
-    .detail-card { animation: slide-up 0.3s ease-out forwards; }
-
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-  </style>
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
 </head>
-<body class="min-h-screen bg-slate-50 flex flex-col overflow-hidden">
+<body>
+    <div id="root"></div>
 
-  <!-- ====================== SPLASH SCREEN ====================== -->
-  <div id="splash-screen" class="splash-screen">
-    <div class="logo-container">
-      <div class="logo-glow"></div>
-      <div class="chrome-frame w-full h-full">
-        <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" alt="Logo Grupo Uralmo">
-      </div>
-    </div>
-    <div class="text-center space-y-8">
-      <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" alt="Grupo Uralmo" class="h-24 md:h-28 w-auto mx-auto object-contain">
-      
-      <div class="pt-10">
-        <div class="flex items-center justify-center gap-4 text-blue-400 text-sm font-bold tracking-widest uppercase mb-5">
-          <i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i> INICIANDO SISTEMA
-        </div>
-        <div class="w-80 h-1.5 bg-slate-800 rounded-full mx-auto overflow-hidden">
-          <div id="loader-bar" class="h-full bg-blue-500 w-0 transition-all duration-[1100ms] ease-in-out"></div>
-        </div>
-      </div>
-    </div>
-  </div>
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+        const { motion, AnimatePresence } = window.Motion;
 
-  <!-- ====================== CONTENIDO PRINCIPAL ====================== -->
-  <div id="main-content" class="hidden flex-col min-h-screen opacity-0 transition-opacity duration-500">
+        // --- Iconos Lucide ---
+        const Icon = ({ name, className }) => {
+            const [icon, setIcon] = useState(null);
+            useEffect(() => {
+                if (window.lucide) {
+                    const iconElement = window.lucide.icons[name];
+                    if (iconElement) setIcon(iconElement);
+                }
+            }, [name]);
 
-    <header class="w-full bg-slate-950 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
-      <div class="container mx-auto px-8 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-6">
-          <div class="flex items-center gap-8">
-            <div class="chrome-frame !p-[4px] !rounded-xl shadow-none">
-              <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" alt="Logo 1" class="!w-12 !h-12 !rounded-xl">
-            </div>
+            if (!icon) return <div className={className} />;
             
-            <div class="flex items-center">
-              <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" alt="Grupo Uralmo" class="h-16 w-auto object-contain">
-            </div>
-          </div>
-        </div>
-        
-        <div class="hidden md:flex items-center gap-8 text-slate-400 text-[12px] font-semibold uppercase tracking-wider">
-          <div class="flex items-center gap-2.5"><i data-lucide="map-pin" class="w-4.5 h-4.5"></i> Laredo, La Libertad</div>
-          <div id="current-date" class="font-mono opacity-80"></div>
-        </div>
-      </div>
-    </header>
+            return (
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={className}
+                    dangerouslySetInnerHTML={{ __html: icon.contents }}
+                />
+            );
+        };
 
-    <main class="flex-1 container mx-auto px-6 lg:px-10 py-6 overflow-hidden">
-      <div class="flex flex-col lg:flex-row gap-8 h-full max-w-7xl mx-auto">
+        const TOOLS = [
+            {
+                id: 1,
+                tab: "IMG",
+                title: "Renombrado Masivo Fotográfico",
+                tag: "Procesamiento • Med2",
+                icon: "Camera",
+                desc: "Estandarización de nombres de archivos mediante patrones inteligentes. Ideal para organizar levantamientos de medidores y auditorías de campo.",
+                features: ["Patrones dinámicos: Prefijo + Fecha", "Limpieza de duplicados por Hash", "Corrección de orientación EXIF", "Previsualización en tiempo real"]
+            },
+            {
+                id: 2,
+                tab: "IMG",
+                title: "Purgado Masivo de Archivos",
+                tag: "Mantenimiento • Limpieza",
+                icon: "Trash2",
+                desc: "Herramienta de limpieza profunda para directorios con alto volumen de datos. Elimina archivos temporales o residuales de forma segura.",
+                features: ["Filtros por extensión y peso", "Modo Simulación (Dry-run)", "Reporte detallado de eliminación", "Soporte para rutas de red"]
+            },
+            {
+                id: 3,
+                tab: "IMG",
+                title: "Recorte Inteligente de Escaneos",
+                tag: "Digitalización • OCR",
+                icon: "Crop",
+                desc: "Algoritmo de detección de bordes para extraer automáticamente el área útil de documentos escaneados.",
+                features: ["Auto-detección de márgenes", "Corrección de perspectiva", "Optimización de peso", "Procesamiento paralelo"]
+            },
+            {
+                id: 4,
+                tab: "IMG",
+                title: "Rotación Batch de Imágenes",
+                tag: "Post-procesamiento",
+                icon: "RotateCw",
+                desc: "Corrige la orientación de miles de imágenes simultáneamente sin pérdida de calidad.",
+                features: ["Rotación ortogonal (90°, 180°)", "Filtrado por metadatos", "Preservación de fechas", "Selección por carpetas"]
+            },
+            {
+                id: 5,
+                tab: "SISTEMA",
+                title: "Consulta Geográfica de Suministro",
+                tag: "GIS • Verificación",
+                icon: "Map",
+                desc: "Visualización inmediata de la ubicación de suministros eléctricos sobre cartografía digital actualizada.",
+                features: ["Búsqueda por código", "Capa de catastro integrada", "Exportación UTM/WGS84", "Historial de consultas"]
+            },
+            {
+                id: 6,
+                tab: "SISTEMA",
+                title: "Generador de Paneles Técnicos",
+                tag: "Documentación • PDF",
+                icon: "FileText",
+                desc: "Automatiza la creación de informes fotográficos estructurados para sustentos técnicos y auditorías.",
+                features: ["Plantillas configurables", "Marcas de agua y fechas", "Generación directa en PDF", "Editor de pies de foto"]
+            }
+        ];
 
-        <aside class="w-full lg:w-[340px] flex flex-col gap-5">
-          <div class="bg-white rounded-3xl shadow-md border border-slate-200 flex flex-col overflow-hidden">
-            <div class="flex border-b border-slate-100 bg-slate-50/50">
-              <button onclick="switchTab('IMG')" id="tab-IMG" class="tab-btn active flex-1">IMG</button>
-              <button onclick="switchTab('SISTEMA')" id="tab-SISTEMA" class="tab-btn flex-1">SISTEMA</button>
-            </div>
-            
-            <div id="tools-list" class="flex-1 overflow-y-auto p-3 space-y-1 max-h-[60vh] lg:max-h-[calc(100vh-250px)]">
-              <!-- JS Inyecta aquí -->
-            </div>
-          </div>
-        </aside>
+        const SplashScreen = ({ onComplete }) => {
+            const [progress, setProgress] = useState(0);
 
-        <section class="flex-1 flex flex-col">
-          <div id="tool-detail" class="bg-white rounded-[2.5rem] shadow-md border border-slate-200 p-10 lg:p-12 h-full min-h-[500px]">
-            <!-- JS Inyecta aquí -->
-          </div>
-        </section>
+            useEffect(() => {
+                const timer = setTimeout(() => {
+                    setProgress(100);
+                    setTimeout(onComplete, 1600);
+                }, 100);
+                return () => clearTimeout(timer);
+            }, [onComplete]);
 
-      </div>
-    </main>
+            return (
+                <motion.div 
+                    initial={{ opacity: 1 }}
+                    exit={{ opacity: 0, scale: 1.05 }}
+                    transition={{ duration: 0.5 }}
+                    className="fixed inset-0 bg-[#020617] z-[1000] flex flex-col items-center justify-center"
+                >
+                    <div className="relative w-40 h-40 mb-8">
+                        <div className="logo-glow" />
+                        <div className="chrome-frame w-full h-full">
+                            <img 
+                                src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" 
+                                alt="Logo" 
+                            />
+                        </div>
+                    </div>
+                    <div className="text-center space-y-4">
+                        <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-white">
+                            GRUPO <span className="text-blue-500">URALMO</span>
+                        </h1>
+                        <p className="text-slate-400 font-bold tracking-[0.5em] uppercase text-sm">
+                            Sistemas de Inteligencia Documental
+                        </p>
+                        <div className="pt-12">
+                            <div className="flex items-center justify-center gap-3 text-blue-400 text-xs font-black tracking-widest uppercase mb-4">
+                                <Icon name="Loader2" className="w-5 h-5 animate-spin" /> CARGANDO SISTEMA
+                            </div>
+                            <div className="w-64 h-1.5 bg-slate-800 rounded-full mx-auto overflow-hidden">
+                                <motion.div 
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progress}%` }}
+                                    transition={{ duration: 1.5, ease: "easeInOut" }}
+                                    className="h-full bg-blue-500"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        };
 
-    <footer class="bg-white border-t border-slate-200 py-4 px-10">
-      <div class="container mx-auto flex justify-between items-center text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-        <p>© 2026 Grupo Uralmo - Inteligencia Documental</p>
-        <div class="flex gap-8">
-          <span class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> Activo</span>
-          <span class="flex items-center gap-2"><i data-lucide="lock" class="w-4 h-4 text-blue-500"></i> SSL</span>
-        </div>
-      </div>
-    </footer>
-  </div>
+        function App() {
+            const [showSplash, setShowSplash] = useState(true);
+            const [activeTab, setActiveTab] = useState("IMG");
+            const [activeToolId, setActiveToolId] = useState(1);
+            const [currentDate, setCurrentDate] = useState("");
 
-  <script>
-    const tools = [
-      {
-        id: 1,
-        tab: "IMG",
-        title: "Renombrado Masivo Fotográfico",
-        tag: "Procesamiento • Med2",
-        icon: "camera",
-        desc: "Estandarización de nombres de archivos mediante patrones inteligentes. Ideal para organizar levantamientos de medidores y auditorías de campo.",
-        features: ["Patrones dinámicos: Prefijo + Correlativo + Fecha", "Detección y limpieza de duplicados por Hash", "Corrección automática de orientación EXIF", "Previsualización de cambios antes de aplicar"]
-      },
-      {
-        id: 2,
-        tab: "IMG",
-        title: "Purgado Masivo de Archivos",
-        tag: "Mantenimiento • Limpieza",
-        icon: "trash-2",
-        desc: "Herramienta de limpieza profunda para directorios con alto volumen de datos. Elimina archivos temporales o residuales de forma segura.",
-        features: ["Filtros avanzados por extensión y peso", "Modo Simulación (Dry-run) sin riesgo", "Reporte detallado de archivos eliminados", "Soporte para rutas de red y locales"]
-      },
-      {
-        id: 4,
-        tab: "IMG",
-        title: "Rotación Batch de Imágenes",
-        tag: "Post-procesamiento",
-        icon: "rotate-cw",
-        desc: "Corrige la orientación de miles de imágenes simultáneamente sin pérdida de calidad (Lossless rotation).",
-        features: ["Rotación ortogonal (90°, 180°, 270°)", "Filtrado por metadatos de orientación", "Preservación de fechas de creación", "Interfaz de selección por carpetas"]
-      },
-      {
-        id: 3,
-        tab: "IMG",
-        title: "Recorte Inteligente de Escaneos",
-        tag: "Digitalización • OCR",
-        icon: "crop",
-        desc: "Algoritmo de detección de bordes para extraer automáticamente el área útil de documentos escaneados como planos o reportes A4.",
-        features: ["Auto-detección de márgenes y bordes", "Corrección de perspectiva (Deskew)", "Optimización de peso para carga en nube", "Procesamiento paralelo de alto rendimiento"]
-      },
-      {
-        id: 5,
-        tab: "SISTEMA",
-        title: "Consulta Geográfica de Suministro",
-        tag: "GIS • Verificación",
-        icon: "map",
-        desc: "Visualización inmediata de la ubicación de suministros eléctricos sobre cartografía digital actualizada.",
-        features: ["Búsqueda instantánea por código", "Capa de catastro integrada", "Exportación de coordenadas UTM/WGS84", "Historial de consultas recientes"]
-      },
-      {
-        id: 6,
-        tab: "SISTEMA",
-        title: "Generador de Paneles Técnicos",
-        tag: "Documentación • PDF",
-        icon: "file-text",
-        desc: "Automatiza la creación de informes fotográficos estructurados para sustentos técnicos y auditorías.",
-        features: ["Plantillas configurables (2x2, 2x4, 3x3)", "Incrustación de marcas de agua y fechas", "Generación directa en PDF de alta calidad", "Editor de pies de foto masivo"]
-      }
-    ];
+            useEffect(() => {
+                const now = new Date();
+                setCurrentDate(now.toLocaleDateString('es-ES', { 
+                    day: '2-digit', month: 'short', year: 'numeric' 
+                }).toUpperCase());
+            }, []);
 
-    let activeTab = "IMG";
-    let activeToolId = 1;
+            const filteredTools = useMemo(() => TOOLS.filter(t => t.tab === activeTab), [activeTab]);
+            const activeTool = useMemo(() => TOOLS.find(t => t.id === activeToolId) || TOOLS[0], [activeToolId]);
 
-    function hideSplash() {
-      const loaderBar = document.getElementById('loader-bar');
-      loaderBar.style.width = '100%';
-      setTimeout(() => {
-        document.getElementById('splash-screen').style.opacity = '0';
-        document.getElementById('splash-screen').style.transform = 'scale(1.05)';
-        setTimeout(() => {
-          document.getElementById('splash-screen').style.display = 'none';
-          document.getElementById('main-content').classList.remove('hidden');
-          setTimeout(() => {
-            document.getElementById('main-content').classList.remove('opacity-0');
-            renderTools();
-          }, 50);
-        }, 400);
-      }, 1100);
-    }
+            const handleTabChange = (tab) => {
+                setActiveTab(tab);
+                const firstInTab = TOOLS.find(t => t.tab === tab);
+                if (firstInTab) setActiveToolId(firstInTab.id);
+            };
 
-    function switchTab(tabName) {
-      activeTab = tabName;
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(`tab-${tabName}`).classList.add('active');
-      const firstTool = tools.find(t => t.tab === tabName);
-      if (firstTool) activeToolId = firstTool.id;
-      renderTools();
-    }
+            return (
+                <div className="min-h-screen bg-slate-50 flex flex-col overflow-hidden">
+                    <AnimatePresence>
+                        {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+                    </AnimatePresence>
 
-    function renderTools() {
-      const listContainer = document.getElementById('tools-list');
-      listContainer.innerHTML = "";
-      const filteredTools = tools.filter(t => t.tab === activeTab);
-      filteredTools.forEach((tool) => {
-        const item = document.createElement('div');
-        item.className = `tool-item group flex items-center gap-4 border border-transparent transition-all cursor-pointer ${activeToolId === tool.id ? 'active' : ''}`;
-        item.innerHTML = `
-          <div class="icon-box bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 flex items-center justify-center transition-colors flex-shrink-0">
-            <i data-lucide="${tool.icon}"></i>
-          </div>
-          <div class="flex-1 min-w-0">
-            <h3 class="text-[12.5px] font-bold text-slate-800 truncate uppercase tracking-tight leading-tight">${tool.title}</h3>
-            <p class="text-[11px] text-slate-400 font-medium mt-0.5">${tool.tag}</p>
-          </div>
-        `;
-        listContainer.appendChild(item);
-        item.addEventListener('click', () => {
-          activeToolId = tool.id;
-          renderTools();
-          showDetail(tool);
-        });
-      });
-      const currentTool = tools.find(t => t.id === activeToolId);
-      if (currentTool) showDetail(currentTool);
-      lucide.createIcons();
-    }
+                    {!showSplash && (
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="flex flex-col h-screen"
+                        >
+                            <header className="w-full bg-slate-950 border-b border-slate-800 sticky top-0 z-40 shadow-lg">
+                                <div className="container mx-auto px-6 py-2 flex items-center justify-between">
+                                    <div className="flex items-center gap-8">
+                                        <div className="chrome-frame !p-[3px] !rounded-xl shadow-xl">
+                                            <img 
+                                                src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" 
+                                                alt="Logo" 
+                                                className="!w-20 !h-20 !rounded-xl"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <img 
+                                                src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" 
+                                                alt="Grupo Uralmo" 
+                                                className="h-20 w-auto object-contain"
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="hidden lg:flex items-center gap-6 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                                        <div className="flex items-center gap-2.5 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800">
+                                            <Icon name="MapPin" className="w-4 h-4 text-blue-500" /> Trujillo, La Libertad
+                                        </div>
+                                        <div className="font-mono opacity-90 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800 text-blue-400">
+                                            {currentDate}
+                                        </div>
+                                    </div>
+                                </div>
+                            </header>
 
-    function showDetail(tool) {
-      const detailContainer = document.getElementById('tool-detail');
-      detailContainer.innerHTML = `
-        <div class="detail-card flex flex-col h-full">
-          <!-- CABECERA CON BOTÓN ARRIBA -->
-          <div class="flex items-start justify-between mb-10">
-            <div class="flex items-center gap-6">
-              <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-200"><i data-lucide="${tool.icon}" class="w-8 h-8"></i></div>
-              <div>
-                <span class="text-[11px] font-black text-blue-600 uppercase tracking-[0.25em] mb-1.5 block">${tool.tag}</span>
-                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">${tool.title}</h2>
-              </div>
-            </div>
-            
-            <div class="flex flex-col items-end gap-3">
-              <div class="px-5 py-2.5 bg-slate-100 rounded-xl text-[11px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200">ID: 00${tool.id}</div>
-              <a href="app${tool.id}/index.html" class="group inline-flex items-center gap-5 px-10 py-4 bg-slate-950 hover:bg-blue-600 text-white text-[11px] font-black rounded-2xl transition-all duration-300 shadow-2xl hover:shadow-blue-500/30 uppercase tracking-widest">
-                INICIAR MÓDULO OPERATIVO 
-                <i data-lucide="arrow-right" class="w-6 h-6 group-hover:translate-x-1.5 transition-transform"></i>
-              </a>
-            </div>
-          </div>
+                            <main className="flex-1 container mx-auto px-4 lg:px-8 py-4 overflow-hidden">
+                                <div className="flex flex-col lg:flex-row gap-6 h-full max-w-[1450px] mx-auto">
+                                    <aside className="w-full lg:w-[300px] flex flex-col gap-4">
+                                        <div className="bg-white rounded-[1.5rem] shadow-xl border border-slate-200 flex flex-col overflow-hidden h-full">
+                                            <div className="flex border-b border-slate-100 bg-slate-50">
+                                                <button 
+                                                    onClick={() => handleTabChange("IMG")}
+                                                    className={`tab-btn ${activeTab === "IMG" ? "active" : ""}`}
+                                                >
+                                                    IMÁGENES
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleTabChange("SISTEMA")}
+                                                    className={`tab-btn ${activeTab === "SISTEMA" ? "active" : ""}`}
+                                                >
+                                                    SISTEMA
+                                                </button>
+                                            </div>
+                                            
+                                            <div className="flex-1 overflow-y-auto p-3 space-y-1.5 max-h-[60vh] lg:max-h-[calc(100vh-250px)]">
+                                                {filteredTools.map((tool) => (
+                                                    <div 
+                                                        key={tool.id}
+                                                        onClick={() => setActiveToolId(tool.id)}
+                                                        className={`tool-item group ${activeToolId === tool.id ? "active" : ""}`}
+                                                    >
+                                                        <div className={`icon-box ${activeToolId === tool.id ? "bg-blue-600 text-white shadow-md" : "bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600"}`}>
+                                                            <Icon name={tool.icon} className="w-4 h-4" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="text-[12px] font-black text-slate-800 truncate uppercase tracking-tight">
+                                                                {tool.title}
+                                                            </h3>
+                                                            <p className="text-[9px] text-slate-400 font-bold mt-0.5 uppercase tracking-wider">
+                                                                {tool.tag}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </aside>
 
-          <div class="grid lg:grid-cols-5 gap-12 flex-1">
-            <div class="lg:col-span-3 space-y-10">
-              <div>
-                <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-5">Descripción del Sistema</h4>
-                <p class="text-slate-600 text-xl leading-relaxed font-medium">${tool.desc}</p>
-              </div>
-              <div class="flex gap-4">
-                <span class="px-4 py-1.5 bg-green-50 text-green-600 text-[11px] font-bold rounded-lg border border-green-100">ESTABLE</span>
-                <span class="px-4 py-1.5 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-100">V. 2.4.0</span>
-              </div>
-            </div>
-            <div class="lg:col-span-2">
-              <div class="bg-slate-50 rounded-3xl p-8 border border-slate-100 shadow-sm">
-                <h4 class="text-[11px] font-bold text-slate-800 uppercase tracking-widest mb-8 flex items-center gap-2.5"><i data-lucide="list-checks" class="w-5 h-5 text-blue-600"></i> Capacidades</h4>
-                <ul class="space-y-5">
-                  ${tool.features.map(f => `<li class="flex items-start gap-4 text-slate-600 text-[13.5px] font-medium"><i data-lucide="check" class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"></i> ${f}</li>`).join('')}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-      lucide.createIcons();
-    }
+                                    <section className="flex-1 flex flex-col">
+                                        <motion.div 
+                                            key={activeToolId}
+                                            initial={{ opacity: 0, y: 15 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.4 }}
+                                            className="bg-white rounded-[2rem] shadow-xl border border-slate-200 p-8 lg:p-10 h-full min-h-[450px]"
+                                        >
+                                            <div className="flex flex-col h-full">
+                                                <div className="flex items-start justify-between mb-8">
+                                                    <div className="flex items-center gap-6">
+                                                        <div className="w-14 h-14 bg-blue-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl shadow-blue-500/30">
+                                                            <Icon name={activeTool.icon} className="w-7 h-7" />
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] block">
+                                                                {activeTool.tag}
+                                                            </span>
+                                                            <h2 className="text-2xl font-black text-slate-900 tracking-tighter mt-1">
+                                                                {activeTool.title}
+                                                            </h2>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="flex flex-col items-end gap-3">
+                                                        <div className="px-4 py-1.5 bg-slate-100 rounded-xl text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200">
+                                                            ID: 00{activeTool.id}
+                                                        </div>
+                                                        <button className="group inline-flex items-center gap-3 px-8 py-3.5 bg-slate-950 hover:bg-blue-600 text-white text-[10px] font-black rounded-xl transition-all duration-500 shadow-xl hover:shadow-blue-500/30 uppercase tracking-widest">
+                                                            INICIAR MÓDULO OPERATIVO 
+                                                            <Icon name="ChevronRight" className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                                        </button>
+                                                    </div>
+                                                </div>
 
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', options);
-    setTimeout(hideSplash, 100);
-    lucide.createIcons();
-  </script>
+                                                <div className="grid lg:grid-cols-5 gap-10 flex-1">
+                                                    <div className="lg:col-span-3 space-y-8">
+                                                        <div>
+                                                            <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-4">
+                                                                Resumen Operativo
+                                                            </h4>
+                                                            <p className="text-slate-600 text-lg leading-relaxed font-bold">
+                                                                {activeTool.desc}
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex gap-3">
+                                                            <span className="px-4 py-1.5 bg-green-50 text-green-600 text-[9px] font-black rounded-lg border border-green-100 uppercase tracking-widest">
+                                                                Estable
+                                                            </span>
+                                                            <span className="px-4 py-1.5 bg-blue-50 text-blue-600 text-[9px] font-black rounded-lg border border-blue-100 uppercase tracking-widest">
+                                                                v. 2.4.0
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="lg:col-span-2">
+                                                        <div className="bg-slate-50 rounded-[2rem] p-6 border border-slate-100 shadow-inner">
+                                                            <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-[0.15em] mb-6 flex items-center gap-3">
+                                                                <Icon name="Zap" className="w-4 h-4 text-blue-600" /> Capacidades
+                                                            </h4>
+                                                            <ul className="space-y-4">
+                                                                {activeTool.features.map((feature, idx) => (
+                                                                    <li key={idx} className="flex items-start gap-3 text-slate-600 text-[13px] font-bold leading-snug">
+                                                                        <Icon name="CheckCircle" className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                                                                        {feature}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    </section>
+                                </div>
+                            </main>
+
+                            <footer className="bg-white border-t border-slate-200 py-1.5 px-8">
+                                <div className="container mx-auto flex justify-between items-center text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                                    <p>© 2026 Grupo Uralmo - Inteligencia Documental</p>
+                                    <div className="flex gap-6">
+                                        <span className="flex items-center gap-1.5">
+                                            <Icon name="CheckCircle2" className="w-3 h-3 text-green-500" /> Activo
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                            <Icon name="ShieldCheck" className="w-3 h-3 text-blue-500" /> Seguro
+                                        </span>
+                                    </div>
+                                </div>
+                            </footer>
+                        </motion.div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
