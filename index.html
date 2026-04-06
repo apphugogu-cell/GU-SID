@@ -4,31 +4,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Grupo Uralmo - Medidores 2 | Panel Operativo v3.6</title>
-  
+ 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
+ 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  
+ 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-
+  
   <style>
     :root {
       --primary: #2563eb;
       --primary-dark: #1e40af;
       --accent: #3b82f6;
     }
-
-    body { 
-      font-family: 'Inter', sans-serif; 
+    body {
+      font-family: 'Inter', sans-serif;
       -webkit-font-smoothing: antialiased;
     }
-
-    /* MARCO METÁLICO CROMADO PREMIUM - ESCALADO */
+    /* MARCO METÁLICO CROMADO PREMIUM */
     .chrome-frame {
       position: relative;
       padding: 7px;
@@ -37,7 +35,6 @@
       box-shadow: 0 15px 30px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.9);
       display: inline-block;
     }
-
     .chrome-frame img {
       border-radius: 28px;
       border: 2.5px solid #000;
@@ -46,8 +43,7 @@
       height: 100%;
       object-fit: cover;
     }
-
-    /* SPLASH SCREEN ESCALADO */
+    /* SPLASH SCREEN */
     .splash-screen {
       position: fixed;
       inset: 0;
@@ -60,14 +56,12 @@
       transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       font-size: 18px;
     }
-
     .logo-container {
       position: relative;
       width: 160px;
       height: 160px;
       margin-bottom: 2rem;
     }
-
     .logo-glow {
       position: absolute;
       inset: -30px;
@@ -75,44 +69,33 @@
       filter: blur(30px);
       animation: pulse-glow 2s infinite ease-in-out;
     }
-
-    /* PANEL OPERATIVO ESCALADO */
     #main-content { font-size: 14.5px; }
-
     @keyframes pulse-glow {
       0%, 100% { opacity: 0.4; transform: scale(1); }
       50% { opacity: 0.8; transform: scale(1.05); }
     }
-
     @keyframes slide-up {
       from { opacity: 0; transform: translateY(12px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
-    /* BOTONES ESCALADOS */
     .tool-item {
       padding: 6px 14px !important;
       border-radius: 10px !important;
       margin-bottom: 4px;
       min-height: 42px;
     }
-
     .tool-item.active {
       background: white;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       border-left: 5px solid var(--primary);
       transform: translateX(3px);
     }
-
     .icon-box {
       width: 28px !important;
       height: 28px !important;
       border-radius: 7px !important;
     }
-
     .icon-box i { width: 16px !important; height: 16px !important; }
-
-    /* TABS ESCALADOS */
     .tab-btn {
       position: relative;
       padding: 10px 20px;
@@ -123,11 +106,9 @@
       color: #64748b;
       transition: all 0.2s ease;
     }
-
     .tab-btn.active {
       color: var(--primary);
     }
-
     .tab-btn.active::after {
       content: '';
       position: absolute;
@@ -138,9 +119,7 @@
       background: var(--primary);
       border-radius: 2px;
     }
-
     .detail-card { animation: slide-up 0.3s ease-out forwards; }
-
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
   </style>
@@ -157,7 +136,7 @@
     </div>
     <div class="text-center space-y-8">
       <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" alt="Grupo Uralmo" class="h-24 md:h-28 w-auto mx-auto object-contain">
-      
+     
       <div class="pt-10">
         <div class="flex items-center justify-center gap-4 text-blue-400 text-sm font-bold tracking-widest uppercase mb-5">
           <i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i> INICIANDO SISTEMA
@@ -171,7 +150,6 @@
 
   <!-- ====================== CONTENIDO PRINCIPAL ====================== -->
   <div id="main-content" class="hidden flex-col min-h-screen opacity-0 transition-opacity duration-500">
-
     <header class="w-full bg-slate-950 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
       <div class="container mx-auto px-8 py-3 flex items-center justify-between">
         <div class="flex items-center gap-6">
@@ -179,13 +157,13 @@
             <div class="chrome-frame !p-[4px] !rounded-xl shadow-none">
               <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" alt="Logo 1" class="!w-12 !h-12 !rounded-xl">
             </div>
-            
+           
             <div class="flex items-center">
               <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" alt="Grupo Uralmo" class="h-16 w-auto object-contain">
             </div>
           </div>
         </div>
-        
+       
         <div class="hidden md:flex items-center gap-8 text-slate-400 text-[12px] font-semibold uppercase tracking-wider">
           <div class="flex items-center gap-2.5"><i data-lucide="map-pin" class="w-4.5 h-4.5"></i> Laredo, La Libertad</div>
           <div id="current-date" class="font-mono opacity-80"></div>
@@ -195,14 +173,13 @@
 
     <main class="flex-1 container mx-auto px-6 lg:px-10 py-6 overflow-hidden">
       <div class="flex flex-col lg:flex-row gap-8 h-full max-w-7xl mx-auto">
-
         <aside class="w-full lg:w-[340px] flex flex-col gap-5">
           <div class="bg-white rounded-3xl shadow-md border border-slate-200 flex flex-col overflow-hidden">
             <div class="flex border-b border-slate-100 bg-slate-50/50">
               <button onclick="switchTab('IMG')" id="tab-IMG" class="tab-btn active flex-1">IMG</button>
               <button onclick="switchTab('SISTEMA')" id="tab-SISTEMA" class="tab-btn flex-1">SISTEMA</button>
             </div>
-            
+           
             <div id="tools-list" class="flex-1 overflow-y-auto p-3 space-y-1 max-h-[60vh] lg:max-h-[calc(100vh-250px)]">
               <!-- JS Inyecta aquí -->
             </div>
@@ -214,7 +191,6 @@
             <!-- JS Inyecta aquí -->
           </div>
         </section>
-
       </div>
     </main>
 
@@ -250,6 +226,15 @@
         features: ["Filtros avanzados por extensión y peso", "Modo Simulación (Dry-run) sin riesgo", "Reporte detallado de archivos eliminados", "Soporte para rutas de red y locales"]
       },
       {
+        id: 3,
+        tab: "IMG",
+        title: "Recorte Inteligente de Escaneos",
+        tag: "Digitalización • OCR",
+        icon: "crop",
+        desc: "Algoritmo de detección de bordes para extraer automáticamente el área útil de documentos escaneados como planos o reportes A4.",
+        features: ["Auto-detección de márgenes y bordes", "Corrección de perspectiva (Deskew)", "Optimización de peso para carga en nube", "Procesamiento paralelo de alto rendimiento"]
+      },
+      {
         id: 4,
         tab: "IMG",
         title: "Rotación Batch de Imágenes",
@@ -259,13 +244,20 @@
         features: ["Rotación ortogonal (90°, 180°, 270°)", "Filtrado por metadatos de orientación", "Preservación de fechas de creación", "Interfaz de selección por carpetas"]
       },
       {
-        id: 3,
+        id: 7,
         tab: "IMG",
-        title: "Recorte Inteligente de Escaneos",
-        tag: "Digitalización • OCR",
-        icon: "crop",
-        desc: "Algoritmo de detección de bordes para extraer automáticamente el área útil de documentos escaneados como planos o reportes A4.",
-        features: ["Auto-detección de márgenes y bordes", "Corrección de perspectiva (Deskew)", "Optimización de peso para carga en nube", "Procesamiento paralelo de alto rendimiento"]
+        title: "Orden de PDF e IMG",
+        tag: "Organización • Híbrido",
+        icon: "file-image",
+        desc: "Organiza, combina y ordena archivos PDF e imágenes en una sola estructura lógica. Perfecto para generar expedientes técnicos completos combinando fotos, planos y reportes.",
+        features: [
+          "Ordenamiento inteligente por nombre, fecha o código",
+          "Conversión automática de imágenes a PDF",
+          "Combinación de múltiples PDFs e imágenes en un solo archivo",
+          "Numeración secuencial personalizada",
+          "Vista previa del orden final antes de procesar",
+          "Soporte para arrastrar y soltar (Drag & Drop)"
+        ]
       },
       {
         id: 5,
@@ -311,18 +303,23 @@
       activeTab = tabName;
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById(`tab-${tabName}`).classList.add('active');
+      
       const firstTool = tools.find(t => t.tab === tabName);
       if (firstTool) activeToolId = firstTool.id;
+      
       renderTools();
     }
 
     function renderTools() {
       const listContainer = document.getElementById('tools-list');
       listContainer.innerHTML = "";
+
       const filteredTools = tools.filter(t => t.tab === activeTab);
+
       filteredTools.forEach((tool) => {
         const item = document.createElement('div');
         item.className = `tool-item group flex items-center gap-4 border border-transparent transition-all cursor-pointer ${activeToolId === tool.id ? 'active' : ''}`;
+        
         item.innerHTML = `
           <div class="icon-box bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 flex items-center justify-center transition-colors flex-shrink-0">
             <i data-lucide="${tool.icon}"></i>
@@ -332,15 +329,19 @@
             <p class="text-[11px] text-slate-400 font-medium mt-0.5">${tool.tag}</p>
           </div>
         `;
+
         listContainer.appendChild(item);
+
         item.addEventListener('click', () => {
           activeToolId = tool.id;
           renderTools();
           showDetail(tool);
         });
       });
+
       const currentTool = tools.find(t => t.id === activeToolId);
       if (currentTool) showDetail(currentTool);
+
       lucide.createIcons();
     }
 
@@ -348,20 +349,24 @@
       const detailContainer = document.getElementById('tool-detail');
       detailContainer.innerHTML = `
         <div class="detail-card flex flex-col h-full">
-          <!-- CABECERA CON BOTÓN ARRIBA -->
           <div class="flex items-start justify-between mb-10">
             <div class="flex items-center gap-6">
-              <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-200"><i data-lucide="${tool.icon}" class="w-8 h-8"></i></div>
+              <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-200">
+                <i data-lucide="${tool.icon}" class="w-8 h-8"></i>
+              </div>
               <div>
                 <span class="text-[11px] font-black text-blue-600 uppercase tracking-[0.25em] mb-1.5 block">${tool.tag}</span>
                 <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">${tool.title}</h2>
               </div>
             </div>
-            
+           
             <div class="flex flex-col items-end gap-3">
-              <div class="px-5 py-2.5 bg-slate-100 rounded-xl text-[11px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200">ID: 00${tool.id}</div>
-              <a href="app${tool.id}/index.html" class="group inline-flex items-center gap-5 px-10 py-4 bg-slate-950 hover:bg-blue-600 text-white text-[11px] font-black rounded-2xl transition-all duration-300 shadow-2xl hover:shadow-blue-500/30 uppercase tracking-widest">
-                INICIAR MÓDULO OPERATIVO 
+              <div class="px-5 py-2.5 bg-slate-100 rounded-xl text-[11px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200">
+                ID: 00${tool.id}
+              </div>
+              <a href="app${tool.id}/index.html" 
+                 class="group inline-flex items-center gap-5 px-10 py-4 bg-slate-950 hover:bg-blue-600 text-white text-[11px] font-black rounded-2xl transition-all duration-300 shadow-2xl hover:shadow-blue-500/30 uppercase tracking-widest">
+                INICIAR MÓDULO OPERATIVO
                 <i data-lucide="arrow-right" class="w-6 h-6 group-hover:translate-x-1.5 transition-transform"></i>
               </a>
             </div>
@@ -380,9 +385,17 @@
             </div>
             <div class="lg:col-span-2">
               <div class="bg-slate-50 rounded-3xl p-8 border border-slate-100 shadow-sm">
-                <h4 class="text-[11px] font-bold text-slate-800 uppercase tracking-widest mb-8 flex items-center gap-2.5"><i data-lucide="list-checks" class="w-5 h-5 text-blue-600"></i> Capacidades</h4>
+                <h4 class="text-[11px] font-bold text-slate-800 uppercase tracking-widest mb-8 flex items-center gap-2.5">
+                  <i data-lucide="list-checks" class="w-5 h-5 text-blue-600"></i> 
+                  Capacidades
+                </h4>
                 <ul class="space-y-5">
-                  ${tool.features.map(f => `<li class="flex items-start gap-4 text-slate-600 text-[13.5px] font-medium"><i data-lucide="check" class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"></i> ${f}</li>`).join('')}
+                  ${tool.features.map(f => `
+                    <li class="flex items-start gap-4 text-slate-600 text-[13.5px] font-medium">
+                      <i data-lucide="check" class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"></i> 
+                      ${f}
+                    </li>
+                  `).join('')}
                 </ul>
               </div>
             </div>
@@ -392,8 +405,11 @@
       lucide.createIcons();
     }
 
+    // Fecha actual
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', options);
+
+    // Iniciar la aplicación
     setTimeout(hideSplash, 100);
     lucide.createIcons();
   </script>
