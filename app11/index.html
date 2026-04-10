@@ -1,81 +1,315 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplicativo en Construcción</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: white;
-            text-align: center;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VERIFICADOR DE CARPETAS - CONTROL DE CALIDAD v2.1</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-        .container {
-            max-width: 600px;
-            padding: 40px;
-        }
-
-        h1 {
-            font-size: 3.5rem;
-            margin-bottom: 20px;
-            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .subtitle {
-            font-size: 1.5rem;
-            margin-bottom: 40px;
-            opacity: 0.9;
-        }
-
-        .construction-icon {
-            font-size: 6rem;
-            margin-bottom: 30px;
-            animation: shake 1.5s infinite;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: rotate(-5deg); }
-            50% { transform: rotate(5deg); }
-        }
-
-        .message {
-            font-size: 1.3rem;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-
-        footer {
-            margin-top: 50px;
-            font-size: 1rem;
-            opacity: 0.7;
-        }
-    </style>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+    }
+    
+    .chrome-frame {
+      position: relative;
+      padding: 6px;
+      background: linear-gradient(135deg, #ffffff 0%, #dcdcdc 15%, #808080 35%, #f0f0f0 50%, #666666 65%, #a0a0a0 85%, #333333 100%);
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.8);
+    }
+    
+    .chrome-frame img {
+      border-radius: 14px;
+      border: 2px solid #000;
+    }
+  </style>
 </head>
-<body>
-    <div class="container">
-        <div class="construction-icon">🚧</div>
+<body class="min-h-screen">
+
+  <!-- HEADER -->
+  <header class="bg-slate-950 border-b border-slate-800 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-6">
+        <div class="chrome-frame !p-1.5">
+          <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" 
+               alt="Logo" class="w-12 h-12">
+        </div>
+        <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" 
+             alt="Grupo Uralmo" class="h-14 w-auto object-contain">
+      </div>
+      <div class="text-slate-400 text-sm font-medium">
+        Laredo, La Libertad • Verificador de Carpetas v2.1
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto px-8 py-10">
+    
+    <!-- Configuración -->
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl p-8 mb-10">
+      <h3 class="text-xl font-semibold mb-6 flex items-center gap-3 text-orange-400">
+        <i data-lucide="settings" class="w-6 h-6"></i>
+        Configuración de Búsqueda Personalizada
+      </h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <label class="block text-sm text-slate-400 mb-2">Nombre de la carpeta de Fotos</label>
+          <input type="text" id="carpetaFotos" value="fotos" 
+                 class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-3 text-white focus:border-orange-500">
+        </div>
+        <div>
+          <label class="block text-sm text-slate-400 mb-2">Extensión del PDF</label>
+          <input type="text" id="extPDF" value=".pdf" 
+                 class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-3 text-white focus:border-orange-500">
+        </div>
+        <div>
+          <label class="block text-sm text-slate-400 mb-2">Nombre o Extensión Adicional (opcional)</label>
+          <input type="text" id="archivoExtra" placeholder="Ej: memoria, .dwg, plano" 
+                 class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-3 text-white focus:border-orange-500">
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón principal -->
+    <div class="text-center mb-12">
+      <input type="file" id="folderInput" webkitdirectory directory multiple class="hidden">
+      <button onclick="document.getElementById('folderInput').click()" 
+              class="inline-flex items-center gap-4 bg-orange-600 hover:bg-orange-500 text-white font-semibold text-xl px-16 py-7 rounded-3xl shadow-2xl transition-all">
+        <i data-lucide="folder-open" class="w-9 h-9"></i>
+        SELECCIONAR CARPETA PRINCIPAL
+      </button>
+    </div>
+
+    <!-- Resultados -->
+    <div id="result" class="hidden"></div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    let problemas = [];
+    let archivosSueltosCount = 0;
+    let totalArchivos = 0;
+
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+
+    const folderInput = document.getElementById('folderInput');
+    const resultDiv = document.getElementById('result');
+
+    folderInput.addEventListener('change', async (event) => {
+      const files = event.target.files;
+      if (!files.length) return;
+
+      totalArchivos = files.length;
+
+      // Advertencia para grandes volúmenes
+      if (totalArchivos > 5000) {
+        if (!confirm(`⚠️ Se detectaron ${totalArchivos} archivos.\n\nEsto puede tardar varios segundos. ¿Desea continuar?`)) {
+          return;
+        }
+      }
+
+      const carpetaFotos = document.getElementById('carpetaFotos').value.trim().toLowerCase() || 'fotos';
+      const extPDF = document.getElementById('extPDF').value.trim().toLowerCase() || '.pdf';
+      const extra = document.getElementById('archivoExtra').value.trim().toLowerCase();
+
+      resultDiv.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 text-slate-400">
+          <div class="w-10 h-10 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p class="mt-6 text-lg">Analizando ${totalArchivos} archivos...</p>
+          <div class="w-96 h-2 bg-slate-700 rounded-full mt-8 overflow-hidden">
+            <div id="progress-bar" class="h-full bg-orange-500 w-0 transition-all duration-300"></div>
+          </div>
+          <p id="progress-text" class="mt-3 text-sm font-mono">0%</p>
+        </div>
+      `;
+      resultDiv.classList.remove('hidden');
+
+      const carpetas = {};
+      archivosSueltosCount = 0;
+      let procesados = 0;
+
+      for (let file of files) {
+        procesados++;
         
-        <h1>Aplicativo en Construcción</h1>
-        
-        <p class="subtitle">Estamos trabajando para mejorar tu experiencia</p>
-        
-        <div class="message">
-            Gracias por tu paciencia.<br>
-            Muy pronto estará disponible.
+        // Actualizar progreso cada 200 archivos para mejor rendimiento
+        if (procesados % 200 === 0 || procesados === totalArchivos) {
+          const porcentaje = Math.round((procesados / totalArchivos) * 100);
+          document.getElementById('progress-bar').style.width = porcentaje + '%';
+          document.getElementById('progress-text').textContent = porcentaje + '%';
+        }
+
+        const path = file.webkitRelativePath || file.name;
+        const parts = path.split('/');
+
+        if (parts.length < 2) {
+          if (file.name.toLowerCase().endsWith('.pdf')) archivosSueltosCount++;
+          continue;
+        }
+
+        const nombreCarpeta = parts[1];
+        if (nombreCarpeta.toLowerCase().endsWith('.pdf') || nombreCarpeta.includes('.')) continue;
+
+        if (!carpetas[nombreCarpeta]) {
+          carpetas[nombreCarpeta] = {
+            nombre: nombreCarpeta,
+            tienePDF: false,
+            nombrePDF: '',
+            tieneFotos: false,
+            tieneImagenes: false,
+            tieneExtra: false,
+            nombreExtra: ''
+          };
+        }
+
+        const nombreArchivo = file.name.toLowerCase();
+        const fullName = file.name;
+
+        // PDF
+        if (nombreArchivo.endsWith(extPDF)) {
+          carpetas[nombreCarpeta].tienePDF = true;
+          carpetas[nombreCarpeta].nombrePDF = fullName;
+        }
+
+        // Carpeta Fotos + verificación real de imágenes
+        if (parts.length >= 3 && parts[2].toLowerCase() === carpetaFotos) {
+          carpetas[nombreCarpeta].tieneFotos = true;
+          
+          const ext = '.' + nombreArchivo.split('.').pop();
+          if (imageExtensions.includes(ext)) {
+            carpetas[nombreCarpeta].tieneImagenes = true;
+          }
+        }
+
+        // Archivo Extra
+        if (extra && (nombreArchivo.includes(extra) || nombreArchivo.endsWith(extra))) {
+          carpetas[nombreCarpeta].tieneExtra = true;
+          carpetas[nombreCarpeta].nombreExtra = fullName;
+        }
+      }
+
+      // Procesar resultados
+      problemas = [];
+      let completas = 0;
+
+      Object.values(carpetas).forEach(c => {
+        const estaCompleta = c.tienePDF && 
+                            (c.tieneFotos && c.tieneImagenes) && 
+                            (extra === '' || c.tieneExtra);
+
+        if (estaCompleta) completas++;
+        else problemas.push(c);
+      });
+
+      // Generar HTML del resultado
+      let html = `
+        <div class="flex justify-between items-center mb-8">
+          <h2 class="text-2xl font-semibold">Resultado del Análisis</h2>
+          ${problemas.length > 0 ? `
+            <button onclick="descargarExcel()" 
+                    class="flex items-center gap-3 bg-emerald-600 hover:bg-emerald-500 px-8 py-4 rounded-2xl font-medium">
+              <i data-lucide="download"></i> Descargar Excel
+            </button>
+          ` : ''}
         </div>
 
-        <footer>
-            © 2026 - Todos los derechos reservados
-        </footer>
-    </div>
+        <div class="grid grid-cols-3 gap-6 mb-10">
+          <div class="bg-slate-950 border border-slate-700 rounded-2xl p-6 text-center">
+            <p class="text-slate-400">Total de Subcarpetas</p>
+            <p class="text-5xl font-bold text-white">${Object.keys(carpetas).length}</p>
+          </div>
+          <div class="bg-emerald-950 border border-emerald-600 rounded-2xl p-6 text-center">
+            <p class="text-emerald-400">Completas</p>
+            <p class="text-5xl font-bold text-emerald-400">${completas}</p>
+          </div>
+          <div class="bg-red-950 border border-red-600 rounded-2xl p-6 text-center">
+            <p class="text-red-400">Incompletas</p>
+            <p class="text-5xl font-bold text-red-400">${problemas.length}</p>
+          </div>
+        </div>
+      `;
+
+      if (archivosSueltosCount > 0) {
+        html += `
+          <div class="bg-amber-900 border border-amber-600 rounded-2xl p-6 mb-8 flex items-center gap-4">
+            <i data-lucide="alert-triangle" class="w-8 h-8 text-amber-400"></i>
+            <div>
+              <p class="text-amber-300">Se encontraron <strong>${archivosSueltosCount}</strong> archivos .pdf sueltos en la carpeta principal.</p>
+            </div>
+          </div>
+        `;
+      }
+
+      if (problemas.length > 0) {
+        html += `<h3 class="text-lg font-semibold text-red-400 mb-4">Carpetas incompletas:</h3>`;
+        html += `<div class="overflow-x-auto"><table class="w-full border-collapse text-sm">`;
+        html += `<thead><tr class="bg-slate-800">
+                  <th class="py-5 px-6 text-left">Carpeta</th>
+                  <th class="py-5 px-6 text-left">PDF</th>
+                  <th class="py-5 px-6 text-left">Fotos (con imágenes)</th>
+                  <th class="py-5 px-6 text-left">Extra</th>
+                </tr></thead><tbody>`;
+
+        problemas.forEach(item => {
+          html += `
+            <tr class="border-b border-slate-700 hover:bg-slate-800">
+              <td class="py-5 px-6 font-medium">${item.nombre}</td>
+              <td class="py-5 px-6">
+                ${item.tienePDF ? `✅ <span class="text-xs text-slate-400">${item.nombrePDF}</span>` : '❌'}
+              </td>
+              <td class="py-5 px-6">
+                ${item.tieneFotos && item.tieneImagenes ? `✅ <span class="text-xs text-slate-400">contiene imágenes</span>` : 
+                  item.tieneFotos ? `⚠️ <span class="text-xs text-amber-400">carpeta vacía</span>` : '❌'}
+              </td>
+              <td class="py-5 px-6">
+                ${item.tieneExtra ? `✅ <span class="text-xs text-slate-400">${item.nombreExtra}</span>` : '❌'}
+              </td>
+            </tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+      } else {
+        html += `
+          <div class="bg-emerald-950 border border-emerald-600 rounded-3xl p-16 text-center">
+            <div class="text-6xl mb-6">✅</div>
+            <h3 class="text-3xl font-bold text-emerald-400">¡Todas las subcarpetas están completas!</h3>
+          </div>
+        `;
+      }
+
+      resultDiv.innerHTML = html;
+      lucide.createIcons();
+    });
+
+    window.descargarExcel = function() {
+      if (problemas.length === 0) {
+        alert("No hay carpetas incompletas para exportar.");
+        return;
+      }
+
+      const data = problemas.map(item => ({
+        "Carpeta": item.nombre,
+        "Tiene PDF": item.tienePDF ? "Sí" : "No",
+        "Nombre PDF": item.nombrePDF || "-",
+        "Carpeta Fotos": item.tieneFotos ? "Sí" : "No",
+        "Tiene Imágenes": item.tieneImagenes ? "Sí" : "No",
+        "Tiene Archivo Extra": item.tieneExtra ? "Sí" : "No",
+        "Nombre Extra": item.nombreExtra || "-"
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Incompletas");
+      XLSX.writeFile(wb, `Reporte_Incompletas_${new Date().toISOString().slice(0,10)}.xlsx`);
+    };
+  </script>
 </body>
 </html>
