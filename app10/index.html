@@ -4,8 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📄 Excel → Buscar PDFs en Carpeta → Descargar ZIP</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         
@@ -29,7 +35,22 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
-        
+
+        /* ==================== ESTILO DEL MEMBRETE ==================== */
+        .chrome-frame {
+            position: relative;
+            padding: 7px;
+            background: linear-gradient(135deg, #ffffff 0%, #dcdcdc 15%, #808080 35%, #f0f0f0 50%, #666666 65%, #a0a0a0 85%, #333333 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.8);
+            display: inline-block;
+        }
+        .chrome-frame img {
+            border-radius: 14px;
+            border: 2.5px solid #000;
+        }
+        /* ======================================================== */
+
         header {
             background: var(--primary);
             color: white;
@@ -149,11 +170,37 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>📄 Excel → PDFs → ZIP</h1>
-            <p class="subtitle">Carga tu Excel con nombres de PDFs → Selecciona la carpeta → Descarga todos los PDFs en un solo archivo</p>
-        </header>
         
+        <!-- ==================== MEMBRETE PROFESIONAL ==================== -->
+        <header class="bg-slate-950 border-b border-slate-800 py-5">
+            <div class="max-w-7xl mx-auto px-8 flex items-center justify-between">
+                <div class="flex items-center gap-6">
+                    <div class="chrome-frame">
+                        <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" 
+                             alt="Logo" class="w-12 h-12">
+                    </div>
+                    <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" 
+                         alt="Grupo Uralmo" class="h-14 w-auto object-contain">
+                </div>
+
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-white tracking-tight">Excel → PDFs → ZIP</div>
+                    <div class="text-emerald-400 text-sm font-medium mt-1">
+                        Buscador Inteligente de Documentos
+                    </div>
+                </div>
+
+                <div class="text-slate-400 text-sm flex items-center gap-4">
+                    <div class="flex items-center gap-1">
+                        <i data-lucide="map-pin" class="w-4 h-4"></i>
+                        Laredo, La Libertad
+                    </div>
+                    <div class="font-mono text-xs opacity-75">v1.1</div>
+                </div>
+            </div>
+        </header>
+        <!-- ======================================================== -->
+
         <div class="main">
             
             <!-- PASO 1: Cargar Excel -->
@@ -205,10 +252,10 @@
     </div>
 
     <script>
-        let excelNames = [];        // nombres limpios (sin .pdf)
-        let selectedFiles = [];     // todos los archivos .pdf de la carpeta
+        // (El script original se mantiene exactamente igual)
+        let excelNames = [];        
+        let selectedFiles = [];     
 
-        // ====================== PASO 1: CARGAR EXCEL ======================
         document.getElementById('excelInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -224,15 +271,12 @@
                     const sheetName = workbook.SheetNames[0];
                     const sheet = workbook.Sheets[sheetName];
                     
-                    // Convertimos a array de arrays (primera fila = encabezado)
                     const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                     
                     excelNames = [];
-                    // Empezamos desde la fila 1 (saltamos encabezado)
                     for (let i = 1; i < json.length; i++) {
                         if (json[i] && json[i][0] !== undefined && json[i][0] !== null) {
                             let name = json[i][0].toString().trim();
-                            // Quitamos .pdf si existe
                             if (name.toLowerCase().endsWith('.pdf')) {
                                 name = name.slice(0, -4);
                             }
@@ -240,7 +284,6 @@
                         }
                     }
 
-                    // Mostrar lista
                     const listEl = document.getElementById('pdfList');
                     listEl.innerHTML = '';
                     excelNames.forEach(name => {
@@ -255,7 +298,6 @@
                             <strong>${excelNames.length} nombres de PDFs</strong> listos para buscar
                         </div>`;
                     
-                    // Activamos botón si ya tenemos carpeta
                     checkIfReady();
 
                 } catch (err) {
@@ -265,7 +307,6 @@
             reader.readAsArrayBuffer(file);
         });
 
-        // ====================== PASO 2: SELECCIONAR CARPETA ======================
         document.getElementById('folderInput').addEventListener('change', function(e) {
             selectedFiles = Array.from(e.target.files).filter(file => 
                 file.name.toLowerCase().endsWith('.pdf')
@@ -284,7 +325,6 @@
             checkIfReady();
         });
 
-        // ====================== VERIFICAR SI ESTÁ TODO LISTO ======================
         function checkIfReady() {
             const btn = document.getElementById('processBtn');
             if (excelNames.length > 0 && selectedFiles.length > 0) {
@@ -292,7 +332,6 @@
             }
         }
 
-        // ====================== PROCESAR Y DESCARGAR ======================
         async function procesarTodo() {
             const btn = document.getElementById('processBtn');
             const statusEl = document.getElementById('status');
@@ -306,7 +345,6 @@
             const zip = new JSZip();
             let encontrados = 0;
             
-            // Creamos un Set para búsqueda rápida (case insensitive)
             const nameSet = new Set(excelNames.map(n => n.toLowerCase()));
 
             for (let file of selectedFiles) {
@@ -316,7 +354,6 @@
                 }
                 
                 if (nameSet.has(baseName)) {
-                    // Añadimos al ZIP manteniendo el nombre original del archivo
                     zip.file(file.name, file);
                     encontrados++;
                 }
@@ -329,7 +366,6 @@
                 return;
             }
 
-            // Generar ZIP
             try {
                 const zipBlob = await zip.generateAsync({ 
                     type: "blob",
@@ -337,7 +373,6 @@
                     compressionOptions: { level: 6 }
                 });
 
-                // Descargar
                 const url = URL.createObjectURL(zipBlob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -347,7 +382,6 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
 
-                // Mensaje final
                 statusEl.innerHTML = `
                     <div class="success">
                         🎉 ¡Descarga completada!<br>
@@ -364,13 +398,11 @@
                 statusEl.innerHTML = `<div class="error">❌ Error al crear el ZIP: ${err.message}</div>`;
             }
 
-            // Restaurar botón
             btn.disabled = false;
             btn.innerHTML = '🔍 Buscar PDFs y Descargar ZIP';
         }
 
-        // Mensaje inicial
-        console.log('%c✅ Herramienta Excel → PDFs lista. ¡Disfrútala!', 'color:#00aaff; font-size:16px;');
+        lucide.createIcons();
     </script>
 </body>
 </html>
