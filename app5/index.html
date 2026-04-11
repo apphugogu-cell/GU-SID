@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/jspdf-autotable@3.5.23/dist/jspdf.plugin.autotable.js"></script>
-    <!-- Leaflet.draw se movió al final después de Leaflet.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
@@ -40,7 +40,7 @@
             box-shadow: 0 0 25px rgba(0,0,0,0.1); 
             border-right: 1px solid #e2e8f0; 
             box-sizing: border-box;
-            zoom: 0.8; /* Selective scale for sidebar */
+            zoom: 0.8; 
         }
         .leaflet-sidebar-header { 
             background: var(--primary); 
@@ -82,7 +82,7 @@
             position: fixed; top: 20px; right: 20px; width: 340px; background: white;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); z-index: 2000; border-radius: 20px; 
             display: none; flex-direction: column; border: 1px solid #e2e8f0; overflow: hidden;
-            zoom: 0.8; /* Selective scale for info panel */
+            zoom: 0.8; 
         }
         #info-header { padding: 12px 15px; background: #f8fafc; cursor: move; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
         #info-content { padding: 20px; max-height: 500px; overflow-y: auto; }
@@ -104,14 +104,19 @@
         .stats-grid { display: grid; grid-template-cols: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
         .stat-card { padding: 15px; border-radius: 15px; border: 1px solid #f1f5f9; text-align: center; }
 
-        #leyenda {
-            position: absolute; bottom: 30px; right: 20px; background: white; padding: 15px; border-radius: 15px;
+        #leyenda, #leyenda-frente, #leyenda-archivos {
+            position: absolute; right: 55px; background: white; padding: 15px; border-radius: 15px;
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-size: 15px; z-index: 1000;
             transition: all 0.3s ease;
-            zoom: 0.8; /* Selective scale for legend */
+            zoom: 0.8; 
+            width: 220px;
         }
-        #leyenda.hidden-legend {
-            transform: translateX(calc(100% + 40px));
+        #leyenda { top: 10px; }
+        #leyenda-frente { top: 350px; max-height: 300px; overflow-y: auto; }
+        #leyenda-archivos { top: 350px; max-height: 300px; overflow-y: auto; }
+        
+        #leyenda.hidden-legend, #leyenda-frente.hidden-legend, #leyenda-archivos.hidden-legend {
+            transform: translateX(calc(100% + 60px));
         }
         .leyenda-item { 
             display: flex; align-items: center; margin: 6px 0; cursor: pointer; 
@@ -121,20 +126,43 @@
         .leyenda-item.inactive { opacity: 0.4; text-decoration: line-through; }
         .leyenda-color { width: 12px; height: 12px; border-radius: 4px; margin-right: 10px; }
 
-        #toggle-leyenda {
-            position: absolute; bottom: 30px; right: 20px; z-index: 1001;
-            width: 40px; height: 40px; border-radius: 10px; background: white;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex;
-            align-items: center; justify-content: center; cursor: pointer;
-            transition: all 0.3s ease;
-            zoom: 0.8; /* Selective scale for legend toggle */
+        .map-control-column {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+            margin-right: 10px;
         }
-        #toggle-leyenda:hover { background: #f8fafc; }
+        .map-control-btn {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #1e293b;
+            font-size: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        .map-control-btn:hover {
+            background: #f8fafc;
+            color: #1d4ed8;
+            transform: scale(1.05);
+        }
+        .map-control-btn.active {
+            color: #1d4ed8;
+            background: #eff6ff;
+            border-color: #3b82f6;
+        }
 
         #matrix-status {
             position: fixed; bottom: 10px; left: 10px; background: #1e293b; color: #38bdf8;
             padding: 5px 12px; font-size: 14px; font-weight: bold; z-index: 2000; border-radius: 8px;
-            zoom: 0.8; /* Selective scale for status bar */
+            zoom: 0.8; 
         }
         .btn-location {
             background: white;
@@ -161,12 +189,13 @@
     <div id="map"></div>
 
     <div id="sidebar" class="leaflet-sidebar collapsed">
-        <div class="leaflet-sidebar-tabs">
-            <ul role="tablist">
-                <li><a href="#home" role="tab"><i class="fa fa-home"></i></a></li>
-                <li><a href="#menu" role="tab"><i class="fa fa-bars"></i></a></li>
-            </ul>
-        </div>
+            <div class="leaflet-sidebar-tabs">
+                <ul role="tablist">
+                    <li><a href="#home" role="tab"><i class="fa fa-home"></i></a></li>
+                    <li><a href="#menu" role="tab"><i class="fa fa-bars"></i></a></li>
+                </ul>
+                <div style="position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 10px; font-weight: bold; color: #94a3b8;">v2.7</div>
+            </div>
         <div class="leaflet-sidebar-content">
             <div class="leaflet-sidebar-pane active" id="home">
                 <h1 class="leaflet-sidebar-header">Gestión de Suministros <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
@@ -236,6 +265,19 @@
             </div>
             <div class="modal-body">
                 <div class="stats-grid" id="stats-container"></div>
+                
+                <!-- Nueva sección de Gráficos -->
+                <div style="display: grid; grid-template-cols: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div style="background: #f8fafc; padding: 15px; border-radius: 15px; border: 1px solid #e2e8f0;">
+                        <h3 style="margin:0 0 10px 0; font-size: 14px; color: #64748b; text-align: center;">DISTRIBUCIÓN POR ACTIVIDAD</h3>
+                        <canvas id="chartActividades" height="200"></canvas>
+                    </div>
+                    <div style="background: #f8fafc; padding: 15px; border-radius: 15px; border: 1px solid #e2e8f0;">
+                        <h3 style="margin:0 0 10px 0; font-size: 14px; color: #64748b; text-align: center;">TOP 5 DISTRITOS</h3>
+                        <canvas id="chartDistritos" height="200"></canvas>
+                    </div>
+                </div>
+
                 <div style="overflow-x: auto;">
                     <table class="report-table">
                         <thead><tr><th>Suministro</th><th>Actividad</th><th>Distrito</th><th>Usuario</th></tr></thead>
@@ -281,26 +323,53 @@
         </div>
     </div>
 
-    <div id="toggle-leyenda" onclick="toggleLeyendaCompleta()">
-        <i class="fa fa-list-ul" style="color: #1d4ed8;"></i>
-    </div>
+    <!-- El botón de leyenda ahora se genera dinámicamente en JS -->
 
     <div id="leyenda">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <strong style="font-size: 16px;">Capas / Actividades</strong>
             <i class="fa fa-chevron-right" onclick="toggleLeyendaCompleta()" style="cursor: pointer; color: #94a3b8; font-size: 13px;"></i>
         </div>
-        <div class="leyenda-item" onclick="toggleCapa('A1', this)"><div class="leyenda-color" style="background:#d32f2f;"></div>A1</div>
-        <div class="leyenda-item" onclick="toggleCapa('A2', this)"><div class="leyenda-color" style="background:#ffeb3b;"></div>A2</div>
-        <div class="leyenda-item" onclick="toggleCapa('A3', this)"><div class="leyenda-color" style="background:#4caf50;"></div>A3</div>
-        <div class="leyenda-item" onclick="toggleCapa('IMPOSIBILIDAD', this)"><div class="leyenda-color" style="background:#212121;"></div>Imposibilidad</div>
-        <div class="leyenda-item" onclick="toggleCapa('PROYECTO', this)"><div class="leyenda-color" style="background:#4682b4;"></div>Proyecto</div>
-        <div class="leyenda-item" onclick="toggleCapa('VERENCAMPO', this)"><div class="leyenda-color" style="background:#ff9800;"></div>Ver en Campo</div>
-        <div class="leyenda-item" onclick="toggleCapa('REUBICACION', this)"><div class="leyenda-color" style="background:#9c27b0;"></div>Reubicación</div>
+        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+            <button onclick="toggleTodasCapas()" style="width: 100%; height: 24px; font-size: 10px; padding: 0 5px; background: #3b82f6; border-radius: 6px; color: white; border: none; cursor: pointer;">Alternar Todas las Capas</button>
+        </div>
+        <div class="leyenda-item" data-tipo="A1" onclick="toggleCapa('A1', this)"><div class="leyenda-color" style="background:#d32f2f;"></div>A1</div>
+        <div class="leyenda-item" data-tipo="A2" onclick="toggleCapa('A2', this)"><div class="leyenda-color" style="background:#ffeb3b;"></div>A2</div>
+        <div class="leyenda-item" data-tipo="A3" onclick="toggleCapa('A3', this)"><div class="leyenda-color" style="background:#4caf50;"></div>A3</div>
+        <div class="leyenda-item" data-tipo="IMPOSIBILIDAD" onclick="toggleCapa('IMPOSIBILIDAD', this)"><div class="leyenda-color" style="background:#212121;"></div>Imposibilidad</div>
+        <div class="leyenda-item" data-tipo="PROYECTO" onclick="toggleCapa('PROYECTO', this)"><div class="leyenda-color" style="background:#4682b4;"></div>Proyecto</div>
+        <div class="leyenda-item" data-tipo="VERENCAMPO" onclick="toggleCapa('VERENCAMPO', this)"><div class="leyenda-color" style="background:#ff9800;"></div>Ver en Campo</div>
+        <div class="leyenda-item" data-tipo="REUBICACION" onclick="toggleCapa('REUBICACION', this)"><div class="leyenda-color" style="background:#9c27b0;"></div>Reubicación</div>
         <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 8px 0;">
-        <div class="leyenda-item" onclick="toggleCapa('MATRIZ', this)">
+        <div class="leyenda-item" data-tipo="MATRIZ" onclick="toggleCapa('MATRIZ', this)">
             <div class="leyenda-color" style="background:#93c5fd; border: 1px solid #3b82f6; border-radius: 50%;"></div>
             Matriz Maestra
+        </div>
+    </div>
+
+    <div id="leyenda-frente" class="hidden-legend">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="font-size: 16px;">Frentes</strong>
+            <i class="fa fa-chevron-right" onclick="toggleLeyendaFrente()" style="cursor: pointer; color: #94a3b8; font-size: 13px;"></i>
+        </div>
+        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+            <button onclick="toggleTodosFrentes()" style="width: 100%; height: 24px; font-size: 10px; padding: 0 5px; background: #3b82f6; border-radius: 6px; color: white; border: none; cursor: pointer;">Alternar Todos los Frentes</button>
+        </div>
+        <div id="frentes-list">
+            <p style="font-size: 12px; color: #94a3b8;">Cargue un Excel para ver frentes...</p>
+        </div>
+    </div>
+
+    <div id="leyenda-archivos" class="hidden-legend">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="font-size: 16px;">Archivos Excel</strong>
+            <i class="fa fa-chevron-right" onclick="toggleLeyendaArchivos()" style="cursor: pointer; color: #94a3b8; font-size: 13px;"></i>
+        </div>
+        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+            <button onclick="toggleTodosArchivos()" style="width: 100%; height: 24px; font-size: 10px; padding: 0 5px; background: #3b82f6; border-radius: 6px; color: white; border: none; cursor: pointer;">Alternar Todos los Archivos</button>
+        </div>
+        <div id="archivos-list">
+            <p style="font-size: 12px; color: #94a3b8;">Cargue un Excel para ver archivos...</p>
         </div>
     </div>
 
@@ -311,25 +380,40 @@
 
     <script>
         var map = L.map('map', { zoomControl: false }).setView([-7.8, -78.5], 9);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        // CAMBIO DE TILELAYER PARA EVITAR ERROR 403 EN LOCAL
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CartoDB'
+        }).addTo(map);
 
-        // Crear pane para Matriz Maestra (debajo de otros marcadores)
         map.createPane('matrizPane');
         map.getPane('matrizPane').style.zIndex = 350;
 
-        // Botón de ubicación personalizada
-        const locationControl = L.control({ position: 'bottomright' });
-        locationControl.onAdd = function() {
-            const div = L.DomUtil.create('div', 'leaflet-bar');
+        const customControls = L.control({ position: 'topright' });
+        customControls.onAdd = function() {
+            const div = L.DomUtil.create('div', 'map-control-column');
             div.innerHTML = `
-                <button id="btn-location" class="btn-location" onclick="toggleLocation()" title="Activar Ubicación Real">
+                <div class="map-control-btn" onclick="toggleLocation()" title="Mi Ubicación">
                     <i class="fa fa-location-arrow"></i>
-                </button>
+                </div>
+                <div class="map-control-btn" onclick="map.zoomIn()" title="Aumentar Zoom">
+                    <i class="fa fa-plus"></i>
+                </div>
+                <div class="map-control-btn" onclick="map.zoomOut()" title="Disminuir Zoom">
+                    <i class="fa fa-minus"></i>
+                </div>
+                <div id="btn-toggle-frentes" class="map-control-btn" onclick="toggleLeyendaFrente()" title="Filtrar Frentes">
+                    <i class="fa fa-hard-hat"></i>
+                </div>
+                <div id="btn-toggle-archivos" class="map-control-btn" onclick="toggleLeyendaArchivos()" title="Filtrar Archivos Excel">
+                    <i class="fa fa-file-excel"></i>
+                </div>
+                <div id="btn-toggle-leyenda" class="map-control-btn active" onclick="toggleLeyendaCompleta()" title="Mostrar/Ocultar Leyenda">
+                    <i class="fa fa-list-ul"></i>
+                </div>
             `;
             return div;
         };
-        locationControl.addTo(map);
+        customControls.addTo(map);
 
         var sidebar = L.control.sidebar({ container: 'sidebar', position: 'left' }).addTo(map);
         var clusterGroup = L.markerClusterGroup({ disableClusteringAtZoom: 16 }).addTo(map);
@@ -345,7 +429,6 @@
         function toggleLocation() {
             const btn = document.getElementById('btn-location');
             if (watchId !== null) {
-                // Detener seguimiento
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
                 if (userLocationMarker) map.removeLayer(userLocationMarker);
@@ -353,7 +436,6 @@
                 userLocationMarker = null;
                 userLocationCircle = null;
                 btn.classList.remove('active');
-                btn.title = "Activar Ubicación Real";
                 return;
             }
 
@@ -363,8 +445,6 @@
             }
 
             btn.classList.add('active');
-            btn.title = "Desactivar Ubicación Real";
-
             watchId = navigator.geolocation.watchPosition((pos) => {
                 const lat = pos.coords.latitude;
                 const lng = pos.coords.longitude;
@@ -388,13 +468,8 @@
                 }
             }, (err) => {
                 console.error("Error de geolocalización:", err);
-                alert("No se pudo obtener tu ubicación. Asegúrate de dar permisos.");
-                toggleLocation(); // Reset
-            }, {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            });
+                toggleLocation();
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
         var matrizUbicaciones = new Map();
@@ -403,6 +478,22 @@
         var selectedMarkers = [];
         var modoClic = false;
         var modoArea = false;
+        var activeMarker = null; // Para resaltar el punto consultado
+        var chartAct = null;
+        var chartDist = null;
+        var frentesVisibles = {};
+        var listaFrentes = new Set();
+        var frenteColors = {};
+        const palette = ['#e11d48', '#d97706', '#059669', '#2563eb', '#7c3aed', '#db2777', '#4b5563', '#06b6d4', '#84cc16', '#f97316'];
+
+        function getFrenteColor(frente) {
+            if (!frente) return '#000';
+            const f = frente.toString().trim().toUpperCase();
+            if (!frenteColors[f]) {
+                frenteColors[f] = palette[Object.keys(frenteColors).length % palette.length];
+            }
+            return frenteColors[f];
+        }
         var highlightCircle = null;
         var drawnItems = new L.FeatureGroup().addTo(map);
         var drawControl = new L.Control.Draw({
@@ -437,12 +528,9 @@
 
         function seleccionarEnArea(layer) {
             const polygonGeoJSON = layer.toGeoJSON();
-            
-            // Marcadores de Excel
-            const visibleMarkers = allMarkers.filter(m => clusterGroup.hasLayer(m));
-            // Marcadores de Matriz
-            const visibleMatrix = matrixMarkers.filter(m => matrixClusterGroup.hasLayer(m));
-            
+            // Usamos getLayers() para obtener todos los puntos que están en el grupo de clusters (los visibles/filtrados)
+            const visibleMarkers = clusterGroup.getLayers();
+            const visibleMatrix = matrixClusterGroup.getLayers();
             const combined = [...visibleMarkers, ...visibleMatrix];
             
             combined.forEach(m => {
@@ -450,7 +538,7 @@
                 if (turf.booleanPointInPolygon(pt, polygonGeoJSON)) {
                     if (selectedMarkers.indexOf(m) === -1) {
                         selectedMarkers.push(m);
-                        m.setStyle({ weight: 5, color: '#22c55e' });
+                        restaurarEstilo(m);
                     }
                 }
             });
@@ -458,8 +546,11 @@
         }
 
         var capasVisibles = { A1: true, A2: true, A3: true, IMPOSIBILIDAD: true, PROYECTO: true, VERENCAMPO: true, REUBICACION: true, MATRIZ: false };
+        var frentesVisibles = {};
+        var archivosVisibles = {};
+        var listaFrentes = new Set();
+        var listaArchivos = new Set();
 
-        // --- OPTIMIZACIÓN: CACHÉ DE MATRIZ CON INDEXEDDB ---
         const DB_NAME = "MatrizDB";
         const STORE_NAME = "matriz";
 
@@ -493,14 +584,6 @@
             });
         }
 
-        async function borrarCache() {
-            const db = await openDB();
-            const tx = db.transaction(STORE_NAME, "readwrite");
-            tx.objectStore(STORE_NAME).delete("maestra");
-            location.reload();
-        }
-
-        // --- CARGA AUTOMÁTICA DE MATRIZ ---
         async function cargarMatriz(forceRefresh = false) {
             const url = "https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/refs/heads/main/app5/matriz_maestra.json";
             const statusEl = document.getElementById('matrix-status');
@@ -513,18 +596,12 @@
                 }
 
                 if (!json) {
-                    console.log("Iniciando descarga de Matriz Maestra desde GitHub...");
                     statusEl.innerText = "⌛ Descargando Matriz (GitHub)...";
                     const res = await fetch(url);
-                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
                     json = await res.json();
                     await saveToCache(json);
-                    console.log("Matriz guardada en caché local.");
-                } else {
-                    console.log("Matriz cargada desde caché local (IndexedDB).");
                 }
                 
-                console.log("Procesando " + json.length + " registros...");
                 json.forEach((r) => {
                     let s = (r.SUMINISTRO || r.codigo || r.id || '').toString().trim().toUpperCase();
                     if(s) {
@@ -532,29 +609,16 @@
                         const lat = parseFloat(r.LATITUD || r.lat || 0);
                         const lng = parseFloat(r.LONGITUD || r.lng || 0);
                         if (lat && lng) {
-                            let mm = L.circleMarker([lat, lng], { 
-                                radius: 6, 
-                                fillColor: '#93c5fd', 
-                                color: '#3b82f6', 
-                                weight: 1, 
-                                fillOpacity: 0.7,
-                                pane: 'matrizPane'
-                            });
+                            let mm = L.circleMarker([lat, lng], { radius: 6, fillColor: '#93c5fd', color: '#3b82f6', weight: 1, fillOpacity: 0.7, pane: 'matrizPane' });
                             mm.properties = { ...r, SUMINISTRO: s, tipoFiltro: 'MATRIZ', color: '#3b82f6' };
-                            mm.on('click', function() { 
-                                if (modoClic) toggleSeleccion(mm);
-                                else mostrarInfo(mm.properties); 
-                            });
+                            mm.on('click', function() { handleMarkerClick(mm); });
                             matrixMarkers.push(mm);
                         }
                     }
                 });
-                
                 statusEl.innerHTML = `✓ Matriz Lista: ${matrizUbicaciones.size} registros <span onclick="cargarMatriz(true)" style="cursor:pointer; text-decoration:underline; margin-left:10px; font-size:10px;">[Actualizar]</span>`;
                 statusEl.style.color = "#4ade80";
-                
             } catch(e) { 
-                console.error("Error cargando la matriz:", e);
                 statusEl.innerText = "⚠ Error al cargar Matriz";
                 statusEl.style.color = "#ef4444";
             }
@@ -577,26 +641,200 @@
             }
         }
 
+        let todasCapasActivas = true;
+        function toggleTodasCapas() {
+            todasCapasActivas = !todasCapasActivas;
+            const items = document.querySelectorAll('#leyenda .leyenda-item');
+            items.forEach(el => {
+                const tipo = el.getAttribute('data-tipo');
+                // Excluimos MATRIZ de la acción masiva
+                if (tipo && tipo !== 'MATRIZ') {
+                    capasVisibles[tipo] = todasCapasActivas;
+                    el.classList.toggle('inactive', !todasCapasActivas);
+                }
+            });
+            actualizarFiltrosGlobales();
+        }
+
+        let todosFrentesActivos = true;
+        function toggleTodosFrentes() {
+            todosFrentesActivos = !todosFrentesActivos;
+            listaFrentes.forEach(f => {
+                frentesVisibles[f] = todosFrentesActivos;
+            });
+            const items = document.querySelectorAll('#frentes-list .leyenda-item');
+            items.forEach(el => {
+                el.classList.toggle('inactive', !todosFrentesActivos);
+            });
+            actualizarFiltrosGlobales();
+        }
+
+        let todosArchivosActivos = true;
+        function toggleTodosArchivos() {
+            todosArchivosActivos = !todosArchivosActivos;
+            listaArchivos.forEach(a => {
+                archivosVisibles[a] = todosArchivosActivos;
+            });
+            const items = document.querySelectorAll('#archivos-list .leyenda-item');
+            items.forEach(el => {
+                el.classList.toggle('inactive', !todosArchivosActivos);
+            });
+            actualizarFiltrosGlobales();
+        }
+
+        function toggleArchivo(archivo, element) {
+            archivosVisibles[archivo] = !archivosVisibles[archivo];
+            if (element) element.classList.toggle('inactive', !archivosVisibles[archivo]);
+            actualizarFiltrosGlobales();
+        }
+
         function toggleLeyendaCompleta() {
             const leyenda = document.getElementById('leyenda');
-            const toggle = document.getElementById('toggle-leyenda');
-            leyenda.classList.toggle('hidden-legend');
-            toggle.style.opacity = leyenda.classList.contains('hidden-legend') ? '1' : '0';
-            toggle.style.pointerEvents = leyenda.classList.contains('hidden-legend') ? 'auto' : 'none';
+            const btn = document.getElementById('btn-toggle-leyenda');
+            const leyendaFrente = document.getElementById('leyenda-frente');
+            const btnFrente = document.getElementById('btn-toggle-frentes');
+            const leyendaArchivos = document.getElementById('leyenda-archivos');
+            const btnArchivos = document.getElementById('btn-toggle-archivos');
+            
+            const estaAbierta = !leyenda.classList.contains('hidden-legend');
+
+            if (!estaAbierta) {
+                // Al activar Leyenda Principal, ocultamos las otras
+                if (leyendaFrente) leyendaFrente.classList.add('hidden-legend');
+                if (btnFrente) btnFrente.classList.remove('active');
+                if (leyendaArchivos) leyendaArchivos.classList.add('hidden-legend');
+                if (btnArchivos) btnArchivos.classList.remove('active');
+
+                leyenda.classList.remove('hidden-legend');
+                if (btn) btn.classList.add('active');
+            } else {
+                leyenda.classList.add('hidden-legend');
+                if (btn) btn.classList.remove('active');
+            }
+            actualizarEstilosMapa();
+        }
+
+        function toggleLeyendaFrente() {
+            const leyenda = document.getElementById('leyenda-frente');
+            const btn = document.getElementById('btn-toggle-frentes');
+            const leyendaPrincipal = document.getElementById('leyenda');
+            const btnPrincipal = document.getElementById('btn-toggle-leyenda');
+            const leyendaArchivos = document.getElementById('leyenda-archivos');
+            const btnArchivos = document.getElementById('btn-toggle-archivos');
+
+            const estaAbierta = !leyenda.classList.contains('hidden-legend');
+
+            if (!estaAbierta) {
+                // Al activar Frente, ocultamos las otras leyendas
+                leyendaPrincipal.classList.add('hidden-legend');
+                if (btnPrincipal) btnPrincipal.classList.remove('active');
+                if (leyendaArchivos) leyendaArchivos.classList.add('hidden-legend');
+                if (btnArchivos) btnArchivos.classList.remove('active');
+                
+                leyenda.classList.remove('hidden-legend');
+                if (btn) btn.classList.add('active');
+            } else {
+                leyenda.classList.add('hidden-legend');
+                if (btn) btn.classList.remove('active');
+            }
+            actualizarEstilosMapa();
+        }
+
+        function toggleLeyendaArchivos() {
+            const leyenda = document.getElementById('leyenda-archivos');
+            const btn = document.getElementById('btn-toggle-archivos');
+            const leyendaPrincipal = document.getElementById('leyenda');
+            const btnPrincipal = document.getElementById('btn-toggle-leyenda');
+            const leyendaFrente = document.getElementById('leyenda-frente');
+            const btnFrente = document.getElementById('btn-toggle-frentes');
+
+            const estaAbierta = !leyenda.classList.contains('hidden-legend');
+
+            if (!estaAbierta) {
+                // Al activar Archivos, ocultamos las otras leyendas
+                leyendaPrincipal.classList.add('hidden-legend');
+                if (btnPrincipal) btnPrincipal.classList.remove('active');
+                if (leyendaFrente) leyendaFrente.classList.add('hidden-legend');
+                if (btnFrente) btnFrente.classList.remove('active');
+                
+                leyenda.classList.remove('hidden-legend');
+                if (btn) btn.classList.add('active');
+            } else {
+                leyenda.classList.add('hidden-legend');
+                if (btn) btn.classList.remove('active');
+            }
+            actualizarEstilosMapa();
+        }
+
+        function actualizarEstilosMapa() {
+            allMarkers.forEach(m => restaurarEstilo(m));
+            matrixMarkers.forEach(m => restaurarEstilo(m));
+        }
+
+        function toggleFrente(frente, element) {
+            frentesVisibles[frente] = !frentesVisibles[frente];
+            if (element) element.classList.toggle('inactive', !frentesVisibles[frente]);
+            actualizarFiltrosGlobales();
+        }
+
+        function actualizarLeyendaFrentes() {
+            const container = document.getElementById('frentes-list');
+            if (listaFrentes.size === 0) {
+                container.innerHTML = '<p style="font-size: 12px; color: #94a3b8;">Cargue un Excel para ver frentes...</p>';
+                return;
+            }
+            let html = "";
+            Array.from(listaFrentes).sort().forEach(f => {
+                if (frentesVisibles[f] === undefined) frentesVisibles[f] = true;
+                const inactiveClass = frentesVisibles[f] ? '' : 'inactive';
+                const color = getFrenteColor(f);
+                html += `<div class="leyenda-item ${inactiveClass}" onclick="toggleFrente('${f}', this)">
+                            <div class="leyenda-color" style="border: 2px solid ${color}; background: white;"></div>${f}
+                         </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function actualizarLeyendaArchivos() {
+            const container = document.getElementById('archivos-list');
+            if (listaArchivos.size === 0) {
+                container.innerHTML = '<p style="font-size: 12px; color: #94a3b8;">Cargue un Excel para ver archivos...</p>';
+                return;
+            }
+            let html = "";
+            Array.from(listaArchivos).sort().forEach(a => {
+                if (archivosVisibles[a] === undefined) archivosVisibles[a] = true;
+                const inactiveClass = archivosVisibles[a] ? '' : 'inactive';
+                html += `<div class="leyenda-item ${inactiveClass}" onclick="toggleArchivo('${a}', this)">
+                            <div class="leyenda-color" style="background: #94a3b8;"></div><span style="font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a}</span>
+                         </div>`;
+            });
+            container.innerHTML = html;
         }
 
         function actualizarFiltrosGlobales() {
             clusterGroup.clearLayers();
             const distritoActivo = document.getElementById('distritoFilter').value.toUpperCase();
-            
             allMarkers.forEach(m => {
                 const p = m.properties;
                 const distM = (p.DISTRITO || "").toString().toUpperCase().trim();
-                const cumpleDistrito = !distritoActivo || distM === distritoActivo;
-                const cumpleCapa = capasVisibles[p.tipoFiltro];
+                const frenteM = (p.FRENTE || "").toString().toUpperCase().trim();
+                const archivoM = p.fileName;
                 
-                if (cumpleDistrito && cumpleCapa) {
+                const cumpleDistrito = !distritoActivo || distM === distritoActivo;
+                const cumpleArchivo = archivosVisibles[archivoM] !== false;
+                
+                // Lógica aditiva: visible si su actividad está activa O si su estado especial (R/C) está activo
+                const cumpleCapaBase = capasVisibles[p.tipoFiltro];
+                const cumpleReubicacion = p.isReubicacion && capasVisibles['REUBICACION'];
+                const cumpleVerCampo = p.isVerCampo && capasVisibles['VERENCAMPO'];
+                
+                const cumpleCapa = cumpleCapaBase || cumpleReubicacion || cumpleVerCampo;
+                const cumpleFrente = !frenteM || frentesVisibles[frenteM] !== false;
+                
+                if (cumpleDistrito && cumpleArchivo && cumpleCapa && cumpleFrente) {
                     clusterGroup.addLayer(m);
+                    restaurarEstilo(m); // Actualizar estilo (letras R/C) al filtrar
                 }
             });
         }
@@ -604,66 +842,55 @@
         window.onload = function() {
             cargarMatriz();
             makeDraggable(document.getElementById("info-panel"), document.getElementById("info-header"));
-            // Inicialmente el botón de toggle está oculto porque la leyenda está visible
-            document.getElementById('toggle-leyenda').style.opacity = '0';
-            document.getElementById('toggle-leyenda').style.pointerEvents = 'none';
         };
 
-        // --- PROCESAR EXCEL ---
         document.getElementById('excelFile').onchange = function(e) {
             Array.from(e.target.files).forEach(file => {
+                const fileName = file.name;
+                listaArchivos.add(fileName);
+                archivosVisibles[fileName] = true;
+
                 const reader = new FileReader();
                 reader.onload = function(ev) {
                     const data = new Uint8Array(ev.target.result);
                     const wb = XLSX.read(data, {type: 'array'});
                     const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval: ""});
-                    
                     json.forEach(row => {
                         let s = "";
                         for (let k in row) if (k.toUpperCase().trim() === "SUMINISTRO") s = row[k].toString().trim().toUpperCase();
-
                         if (s && matrizUbicaciones.has(s)) {
                             const dataMatriz = matrizUbicaciones.get(s);
                             const lat = parseFloat(dataMatriz.LATITUD || dataMatriz.lat || 0);
                             const lng = parseFloat(dataMatriz.LONGITUD || dataMatriz.lng || 0);
-
                             if (lat && lng) {
-                                let tipo = (row.ACTIVIDAD || 'PROYECTO').toString().toUpperCase().trim();
-                                
-                                // Buscar columnas específicas
-                                let verCampo = false;
-                                let reubicacion = false;
+                                let tipo = 'PROYECTO';
+                                let verCampo = false, reubicacion = false;
                                 for (let k in row) {
                                     const key = k.toUpperCase().trim();
                                     const val = row[k].toString().toUpperCase().trim();
+                                    if (key === "ACTIVIDAD") tipo = val;
                                     if (key === "VER EN CAMPO" && val === "SI") verCampo = true;
                                     if (key === "REUBICACION" && val === "SI") reubicacion = true;
                                 }
+                                
+                                let color = { A1:'#d32f2f', A2:'#ffeb3b', A3:'#4caf50', IMPOSIBILIDAD:'#212121', PROYECTO:'#4682b4', VERENCAMPO:'#ff9800', REUBICACION:'#9c27b0' }[tipo] || '#4682b4';
+                                
+                                let frente = (row.FRENTE || "").toString().trim().toUpperCase();
+                                if (frente) listaFrentes.add(frente);
 
-                                if (reubicacion) tipo = 'REUBICACION';
-                                else if (verCampo || JSON.stringify(row).toLowerCase().includes('campo')) tipo = 'VERENCAMPO';
+                                let m = L.marker([lat, lng]);
+                                m.properties = { ...dataMatriz, ...row, tipoFiltro: tipo, color: color, SUMINISTRO: s, isReubicacion: reubicacion, isVerCampo: verCampo, fileName: fileName };
+                                restaurarEstilo(m);
                                 
-                                let color = { 
-                                    A1:'#d32f2f', A2:'#ffeb3b', A3:'#4caf50', 
-                                    IMPOSIBILIDAD:'#212121', PROYECTO:'#4682b4', 
-                                    VERENCAMPO:'#ff9800', REUBICACION:'#9c27b0' 
-                                }[tipo] || '#4682b4';
-                                
-                                let m = L.circleMarker([lat, lng], { radius: 6, fillColor: color, color: '#000', weight: 1, fillOpacity: 0.85 });
-                                
-                                // COMBINACIÓN DE DATOS: Prioridad al Excel, luego a la Matriz
-                                m.properties = { ...dataMatriz, ...row, tipoFiltro: tipo, color: color, SUMINISTRO: s };
-                                
-                                m.on('click', function() {
-                                    if (modoClic) toggleSeleccion(m);
-                                    else mostrarInfo(m.properties);
-                                });
+                                m.on('click', function() { handleMarkerClick(m); });
                                 allMarkers.push(m);
                                 clusterGroup.addLayer(m);
                             }
                         }
                     });
                     actualizarDistritos();
+                    actualizarLeyendaFrentes();
+                    actualizarLeyendaArchivos();
                     document.getElementById('btnConteo').disabled = false;
                     document.getElementById('btnReporte').disabled = false;
                 };
@@ -671,17 +898,111 @@
             });
         };
 
-        // --- LÓGICA DE SELECCIÓN ---
+        function handleMarkerClick(m) {
+            if (modoClic) {
+                toggleSeleccion(m);
+            } else {
+                // Quitar resaltado anterior
+                if (activeMarker && activeMarker !== m) {
+                    const oldMarker = activeMarker;
+                    activeMarker = null;
+                    restaurarEstilo(oldMarker);
+                }
+                
+                // Aplicar resaltado al nuevo
+                activeMarker = m;
+                restaurarEstilo(m);
+                
+                if (m.bringToFront) m.bringToFront();
+                else if (m.setZIndexOffset) m.setZIndexOffset(1000);
+                
+                mostrarInfo(m.properties);
+            }
+        }
+
+        function restaurarEstilo(m) {
+            if (!m) return;
+            const p = m.properties;
+            
+            const leyendaPrincipalVisible = !document.getElementById('leyenda').classList.contains('hidden-legend');
+            const leyendaFrenteVisible = !document.getElementById('leyenda-frente').classList.contains('hidden-legend');
+
+            let borderColor = '#000';
+            let borderWeight = 1;
+            let fillColor = p.color; 
+
+            if (p.tipoFiltro === 'MATRIZ') {
+                borderColor = '#3b82f6';
+                fillColor = '#93c5fd';
+            } else {
+                const frente = (p.FRENTE || "").toString().trim().toUpperCase();
+                const colorFrente = getFrenteColor(frente);
+
+                if (leyendaFrenteVisible && !leyendaPrincipalVisible) {
+                    fillColor = colorFrente;
+                    borderColor = '#000';
+                    borderWeight = 1;
+                } else if (leyendaFrenteVisible && leyendaPrincipalVisible) {
+                    fillColor = p.color;
+                    borderColor = colorFrente;
+                    borderWeight = 3;
+                } else {
+                    fillColor = p.color;
+                    borderColor = '#000';
+                    borderWeight = 1;
+                }
+            }
+            
+            const isSelected = selectedMarkers.indexOf(m) !== -1;
+            const isActive = activeMarker === m;
+
+            if (m instanceof L.Marker && !(m instanceof L.CircleMarker)) {
+                let letra = "";
+                if (p.isReubicacion && capasVisibles['REUBICACION'] !== false) letra = "R";
+                else if (p.isVerCampo && capasVisibles['VERENCAMPO'] !== false) letra = "C";
+
+                let finalBorderColor = borderColor;
+                let finalBorderWeight = borderWeight;
+                let size = 14;
+                
+                if (isActive) {
+                    finalBorderColor = '#ff0000';
+                    finalBorderWeight = 4;
+                    size = 18;
+                } else if (isSelected) {
+                    finalBorderColor = '#22c55e';
+                    finalBorderWeight = 5;
+                }
+                
+                const letraColor = (fillColor === '#ffeb3b') ? '#000' : '#fff';
+                
+                m.setIcon(L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background:${fillColor}; border:${finalBorderWeight}px solid ${finalBorderColor}; width:${size}px; height:${size}px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:${size*0.6}px; font-weight:bold; color:${letraColor}; box-shadow:0 2px 4px rgba(0,0,0,0.3);">${letra}</div>`,
+                    iconSize: [size, size],
+                    iconAnchor: [size/2, size/2]
+                }));
+                if (!isActive && m.setZIndexOffset) m.setZIndexOffset(0);
+            } else {
+                // CircleMarkers (Matriz)
+                if (isSelected) {
+                    m.setStyle({ weight: 5, color: '#22c55e', fillColor: fillColor, radius: 6 });
+                } else if (isActive) {
+                    m.setStyle({ weight: 4, color: '#ff0000', fillColor: fillColor, radius: 8 });
+                } else {
+                    m.setStyle({ weight: borderWeight, color: borderColor, fillColor: fillColor, radius: 6 });
+                }
+            }
+        }
+
         function toggleSeleccion(m) {
             const idx = selectedMarkers.indexOf(m);
             if (idx === -1) {
                 selectedMarkers.push(m);
-                m.setStyle({ weight: 5, color: '#22c55e' });
+                restaurarEstilo(m);
             } else {
                 selectedMarkers.splice(idx, 1);
-                // Restaurar color original
-                const originalColor = m.properties.tipoFiltro === 'MATRIZ' ? '#3b82f6' : '#000';
-                m.setStyle({ weight: 1, color: originalColor });
+                restaurarEstilo(m);
             }
             actualizarUISeleccion();
         }
@@ -693,269 +1014,209 @@
         }
 
         function limpiarSeleccion() {
-            selectedMarkers.forEach(m => {
-                const originalColor = m.properties.tipoFiltro === 'MATRIZ' ? '#3b82f6' : '#000';
-                m.setStyle({ weight: 1, color: originalColor });
-            });
+            const temp = [...selectedMarkers];
             selectedMarkers = [];
+            temp.forEach(m => {
+                restaurarEstilo(m);
+            });
             drawnItems.clearLayers();
             actualizarUISeleccion();
         }
 
         function exportarSeleccionExcel() {
             if (selectedMarkers.length === 0) return;
-            
-            // Filtrar datos para excluir ubicación
             const data = selectedMarkers.map(m => {
                 const p = { ...m.properties };
-                const excluir = ["LATITUD", "LONGITUD", "LAT", "LNG", "color", "tipoFiltro"];
-                excluir.forEach(key => {
-                    delete p[key];
-                    // También borrar variantes en minúsculas
-                    delete p[key.toLowerCase()];
-                });
+                ["LATITUD", "LONGITUD", "LAT", "LNG", "color", "tipoFiltro"].forEach(key => delete p[key]);
                 return p;
             });
-
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Seleccion");
-            XLSX.writeFile(wb, "Suministros_Seleccionados_Area.xlsx");
+            XLSX.writeFile(wb, "Suministros_Seleccionados.xlsx");
         }
 
-        // --- INTERFAZ INFO PANEL ---
         function mostrarInfo(p) {
-            const lat = p.LATITUD || p.lat;
-            const lng = p.LONGITUD || p.lng;
-            
-            let h = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
+            const lat = p.LATITUD || p.lat, lng = p.LONGITUD || p.lng;
+            let h = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
                     <h2 style="margin:0; color:#1d4ed8; font-size: 22px; font-weight: 800;">Suministro: ${p.SUMINISTRO}</h2>
-                    ${(lat && lng) ? `
-                        <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" 
-                           target="_blank" 
-                           title="Ver en Google Maps"
-                           style="background:#ea4335; color:white; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-                           <i class="fa fa-map-marker-alt"></i>
-                        </a>
-                    ` : ''}
-                </div>
-            `;
-            
-            const camposPrincipales = ["USUARIO", "MEDIDOR", "CATEGORIA", "REUBICACION", "DIRECCION", "DISTRITO", "LOCALIDAD", "ACTIVIDAD", "OBSERVACION"];
-            const excluir = ["SUMINISTRO", "COLOR", "TIPOFILTRO", "LATITUD", "LONGITUD", "LAT", "LNG"];
-
-            const renderRow = (label, value) => `
-                <div style="margin-bottom: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 6px;">
-                    <div style="font-size: 13px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">${label}</div>
-                    <div style="font-size: 17px; color: #1e293b; font-weight: 600;">${value}</div>
-                </div>
-            `;
-
-            camposPrincipales.forEach(campo => {
-                for (let k in p) {
-                    if (k.toUpperCase().trim() === campo && p[k] !== "") {
-                        h += renderRow(k, p[k]);
-                        excluir.push(k.toUpperCase().trim());
-                        break;
-                    }
-                }
+                    ${(lat && lng) ? `<a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="background:#ea4335; color:white; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none;"><i class="fa fa-map-marker-alt"></i></a>` : ''}
+                </div>`;
+            const campos = ["USUARIO", "MEDIDOR", "CATEGORIA", "REUBICACION", "DIRECCION", "DISTRITO", "LOCALIDAD", "ACTIVIDAD", "OBSERVACION"];
+            campos.forEach(campo => {
+                if (p[campo]) h += `<div style="margin-bottom: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 6px;"><div style="font-size: 13px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">${campo}</div><div style="font-size: 17px; color: #1e293b; font-weight: 600;">${p[campo]}</div></div>`;
             });
-
-            for (let k in p) {
-                const keyUpper = k.toUpperCase().trim();
-                if (typeof p[k] !== 'object' && !excluir.includes(keyUpper) && p[k] !== "") {
-                    h += renderRow(k, p[k]);
-                }
-            }
-
             document.getElementById('info-content').innerHTML = h;
             document.getElementById('info-panel').style.display = 'flex';
         }
 
-        function cerrarPanelInfo() { document.getElementById('info-panel').style.display = 'none'; }
+        function cerrarPanelInfo() { 
+            document.getElementById('info-panel').style.display = 'none'; 
+            if (activeMarker) {
+                const oldMarker = activeMarker;
+                activeMarker = null;
+                restaurarEstilo(oldMarker);
+            }
+        }
 
         function toggleModoClic() { 
             modoClic = !modoClic; 
             document.getElementById('btnSeleccionar').classList.toggle('danger', modoClic);
             document.getElementById('btnSeleccionar').innerHTML = modoClic ? '<i class="fa fa-times"></i> CANCELAR SELECCIÓN' : '<i class="fa fa-mouse-pointer"></i> MODO SELECCIÓN';
             map.getContainer().style.cursor = modoClic ? 'crosshair' : '';
+            if (modoClic && activeMarker) {
+                const oldMarker = activeMarker;
+                activeMarker = null;
+                restaurarEstilo(oldMarker);
+            }
+        }
+
+        function toggleHeatmap() {
+            modoHeatmap = !modoHeatmap;
+            const btn = document.getElementById('btnHeatmap');
+            if (modoHeatmap) {
+                const points = allMarkers.map(m => [m.getLatLng().lat, m.getLatLng().lng, 0.5]);
+                heatLayer = L.heatLayer(points, { radius: 25, blur: 15, maxZoom: 17 }).addTo(map);
+                btn.innerHTML = '<i class="fa fa-fire"></i> MAPA DE CALOR (ON)';
+                btn.style.background = "#ea580c !important";
+                map.removeLayer(clusterGroup);
+            } else {
+                if (heatLayer) map.removeLayer(heatLayer);
+                btn.innerHTML = '<i class="fa fa-fire"></i> MAPA DE CALOR (OFF)';
+                btn.style.background = "#f97316 !important";
+                map.addLayer(clusterGroup);
+            }
         }
 
         function abrirReporte() {
             const visibleMarkers = allMarkers.filter(m => clusterGroup.hasLayer(m));
             const stats = { A1:0, A2:0, A3:0, IMPOSIBILIDAD:0, PROYECTO:0, VERENCAMPO:0, REUBICACION:0 };
+            const distStats = {};
             let tableHtml = "";
+            
             visibleMarkers.forEach(m => {
                 const p = m.properties;
                 stats[p.tipoFiltro]++;
-                tableHtml += `<tr><td>${p.SUMINISTRO}</td><td><span style="color:${p.color}; font-weight:bold;">${p.tipoFiltro}</span></td><td>${p.DISTRITO || '—'}</td><td>${p.USUARIO || p.Usuario || '—'}</td></tr>`;
+                if (p.DISTRITO) distStats[p.DISTRITO] = (distStats[p.DISTRITO] || 0) + 1;
+                tableHtml += `<tr><td>${p.SUMINISTRO}</td><td><span style="color:${p.color}; font-weight:bold;">${p.tipoFiltro}</span></td><td>${p.DISTRITO || '—'}</td><td>${p.USUARIO || '—'}</td></tr>`;
             });
-            document.getElementById('stats-container').innerHTML = Object.keys(stats).map(k => `<div class="stat-card"><label style="font-size:13px; font-weight:700; color:#94a3b8; text-transform:uppercase;">${k}</label><span style="display:block; font-size:24px; font-weight:800;">${stats[k]}</span></div>`).join('');
+            
+            document.getElementById('stats-container').innerHTML = Object.keys(stats).map(k => `<div class="stat-card"><label style="font-size:13px; font-weight:700; color:#94a3b8;">${k}</label><span style="display:block; font-size:24px; font-weight:800;">${stats[k]}</span></div>`).join('');
             document.getElementById('report-table-body').innerHTML = tableHtml;
             document.getElementById('report-modal').style.display = 'flex';
+
+            updateCharts(stats, distStats);
+        }
+
+        function updateCharts(stats, distStats) {
+            if (chartAct) chartAct.destroy();
+            if (chartDist) chartDist.destroy();
+
+            const colors = { A1:'#d32f2f', A2:'#ffeb3b', A3:'#4caf50', IMPOSIBILIDAD:'#212121', PROYECTO:'#4682b4', VERENCAMPO:'#ff9800', REUBICACION:'#9c27b0' };
+
+            chartAct = new Chart(document.getElementById('chartActividades'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(stats),
+                    datasets: [{
+                        data: Object.values(stats),
+                        backgroundColor: Object.keys(stats).map(k => colors[k]),
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+            });
+
+            const topDistritos = Object.entries(distStats).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            chartDist = new Chart(document.getElementById('chartDistritos'), {
+                type: 'bar',
+                data: {
+                    labels: topDistritos.map(d => d[0]),
+                    datasets: [{
+                        label: 'Suministros',
+                        data: topDistritos.map(d => d[1]),
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 5
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
         }
         function cerrarReporte() { document.getElementById('report-modal').style.display = 'none'; }
-
-        // --- INSTRUCCIONES Y MODELO ---
         function abrirInstrucciones() { document.getElementById('instrucciones-modal').style.display = 'flex'; }
         function cerrarInstrucciones() { document.getElementById('instrucciones-modal').style.display = 'none'; }
 
         function descargarModelo() {
-            const data = [
-                { SUMINISTRO: "1234567", USUARIO: "JUAN PEREZ", MEDIDOR: "ABC-123", ACTIVIDAD: "A1", DISTRITO: "TRUJILLO", "VER EN CAMPO": "NO", REUBICACION: "NO" },
-                { SUMINISTRO: "2345678", USUARIO: "MARIA LOPEZ", MEDIDOR: "XYZ-456", ACTIVIDAD: "A2", DISTRITO: "LA ESPERANZA", "VER EN CAMPO": "SI", REUBICACION: "NO" },
-                { SUMINISTRO: "3456789", USUARIO: "CARLOS RUIZ", MEDIDOR: "DEF-789", ACTIVIDAD: "PROYECTO", DISTRITO: "VICTOR LARCO", "VER EN CAMPO": "NO", REUBICACION: "SI" },
-                { SUMINISTRO: "4567890", USUARIO: "ANA TORRES", MEDIDOR: "GHI-012", ACTIVIDAD: "IMPOSIBILIDAD", DISTRITO: "MOCHE", "VER EN CAMPO": "NO", REUBICACION: "NO" }
-            ];
+            const data = [{ SUMINISTRO: "1234567", USUARIO: "JUAN PEREZ", MEDIDOR: "ABC-123", ACTIVIDAD: "A1", DISTRITO: "TRUJILLO" }];
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Modelo_Carga");
-            XLSX.writeFile(wb, "Modelo_Carga_Suministros.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "Modelo");
+            XLSX.writeFile(wb, "Modelo_Carga.xlsx");
         }
 
         function exportarExcel() {
-            const visibleData = allMarkers.filter(m => clusterGroup.hasLayer(m)).map(m => {
+            const data = allMarkers.filter(m => clusterGroup.hasLayer(m)).map(m => {
                 const p = { ...m.properties };
-                const excluir = ["LATITUD", "LONGITUD", "LAT", "LNG", "color", "tipoFiltro"];
-                excluir.forEach(key => {
-                    delete p[key];
-                    delete p[key.toLowerCase()];
-                });
+                ["LATITUD", "LONGITUD", "LAT", "LNG", "color", "tipoFiltro"].forEach(key => delete p[key]);
                 return p;
             });
-            const ws = XLSX.utils.json_to_sheet(visibleData);
+            const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Reporte");
-            XLSX.writeFile(wb, "Reporte_Completo_Visible.xlsx");
+            XLSX.writeFile(wb, "Reporte_Visible.xlsx");
         }
 
         function exportarPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
-            
-            const visibleData = allMarkers.filter(m => clusterGroup.hasLayer(m)).map(m => {
-                const p = { ...m.properties };
-                const excluir = ["LATITUD", "LONGITUD", "LAT", "LNG", "color", "tipoFiltro"];
-                excluir.forEach(key => {
-                    delete p[key];
-                    delete p[key.toLowerCase()];
-                });
-                return p;
-            });
-
-            if (visibleData.length === 0) return;
-
-            const headers = Object.keys(visibleData[0]);
-            const rows = visibleData.map(obj => headers.map(key => obj[key]));
-
-            doc.text("Reporte de Suministros Visibles", 14, 15);
-            doc.autoTable({
-                head: [headers],
-                body: rows,
-                startY: 20,
-                theme: 'grid',
-                styles: { fontSize: 8 }
-            });
-
-            doc.save("Reporte_Suministros.pdf");
+            const data = allMarkers.filter(m => clusterGroup.hasLayer(m)).map(m => [m.properties.SUMINISTRO, m.properties.tipoFiltro, m.properties.DISTRITO || '', m.properties.USUARIO || '']);
+            doc.autoTable({ head: [['Suministro', 'Actividad', 'Distrito', 'Usuario']], body: data });
+            doc.save("Reporte_Visible.pdf");
         }
 
-        // --- FILTRO POR DISTRITO ---
         function actualizarDistritos() {
-            let dists = new Set(); 
-            allMarkers.forEach(m => { 
-                if(m.properties.DISTRITO) dists.add(m.properties.DISTRITO.toString().trim().toUpperCase()); 
-            });
-            let s = document.getElementById('distritoFilter'); 
+            let dists = [...new Set(allMarkers.map(m => m.properties.DISTRITO?.toUpperCase()))].filter(Boolean).sort();
+            let s = document.getElementById('distritoFilter');
             s.innerHTML = '<option value="">Todos los Distritos</option>';
-            Array.from(dists).sort().forEach(d => s.innerHTML += `<option value="${d}">${d}</option>`);
+            dists.forEach(d => s.innerHTML += `<option value="${d}">${d}</option>`);
         }
 
-        document.getElementById('distritoFilter').onchange = function() {
-            actualizarFiltrosGlobales();
-        };
+        document.getElementById('distritoFilter').onchange = () => actualizarFiltrosGlobales();
 
         function buscarSuministro(val) {
             const query = val.toUpperCase().trim();
             if(!query || query.length < 3) return;
-            
-            // Limpiar resaltado previo
             if (highlightCircle) map.removeLayer(highlightCircle);
-            
-            const searchPool = [...allMarkers, ...matrixMarkers];
-            
-            const found = searchPool.find(m => {
-                const p = m.properties;
-                const suministro = (p.SUMINISTRO || "").toString().toUpperCase();
-                const usuario = (p.USUARIO || p.Usuario || p.NOMBRE || "").toString().toUpperCase();
-                const medidor = (p.MEDIDOR || "").toString().toUpperCase();
-                return suministro.includes(query) || usuario.includes(query) || medidor.includes(query);
-            });
-
+            const found = [...allMarkers, ...matrixMarkers].find(m => m.properties.SUMINISTRO.includes(query) || (m.properties.USUARIO && m.properties.USUARIO.toUpperCase().includes(query)));
             if(found) { 
                 const latlng = found.getLatLng();
-                
-                // Mostrar la información inmediatamente
                 mostrarInfo(found.properties);
-                
-                // Si el marcador está en un grupo de clusters, expandirlo
-                if (clusterGroup.hasLayer(found)) {
-                    clusterGroup.zoomToShowLayer(found);
-                } else if (matrixMarkers.includes(found)) {
-                    // Si es de la matriz y la capa está oculta, mostrarla
-                    if (!capasVisibles.MATRIZ) {
-                        const matrizItem = Array.from(document.querySelectorAll('.leyenda-item')).find(el => el.textContent.includes('Matriz Maestra'));
-                        if (matrizItem) toggleCapa('MATRIZ', matrizItem);
-                    }
+                if (clusterGroup.hasLayer(found)) clusterGroup.zoomToShowLayer(found);
+                else if (matrixMarkers.includes(found)) {
+                    if (!capasVisibles.MATRIZ) toggleCapa('MATRIZ', null);
                     matrixClusterGroup.zoomToShowLayer(found);
-                } else {
-                    map.setView(latlng, 19);
-                }
-
-                // Crear efecto de resaltado (Círculo pulsante temporal)
-                highlightCircle = L.circleMarker(latlng, {
-                    radius: 20,
-                    color: '#facc15',
-                    weight: 4,
-                    fillColor: '#facc15',
-                    fillOpacity: 0.3,
-                    className: 'pulse-highlight'
-                }).addTo(map);
-
-                // Animación simple de "pulso" y auto-eliminación
-                let size = 20;
-                let growing = true;
-                const interval = setInterval(() => {
-                    if (!highlightCircle) { clearInterval(interval); return; }
-                    size = growing ? size + 2 : size - 2;
-                    if (size > 35) growing = false;
-                    if (size < 20) growing = true;
-                    highlightCircle.setRadius(size);
-                }, 50);
-
-                setTimeout(() => {
-                    if (highlightCircle) {
-                        map.removeLayer(highlightCircle);
-                        highlightCircle = null;
-                        clearInterval(interval);
-                    }
-                }, 4000);
+                } else map.setView(latlng, 19);
+                highlightCircle = L.circleMarker(latlng, { radius: 20, color: '#facc15', weight: 4, fillOpacity: 0.3, className: 'pulse-highlight' }).addTo(map);
+                setTimeout(() => { if (highlightCircle) map.removeLayer(highlightCircle); }, 4000);
             }
         }
 
         function ejecutarConteo() {
             let c = { A1:0, A2:0, A3:0, IMPOSIBILIDAD:0, PROYECTO:0, VERENCAMPO:0 };
             allMarkers.forEach(m => { if(clusterGroup.hasLayer(m)) c[m.properties.tipoFiltro]++; });
-            alert(`Resumen Visible:\nA1: ${c.A1}\nA2: ${c.A2}\nA3: ${c.A3}\nProyecto: ${c.PROYECTO}\nCampo: ${c.VERENCAMPO}`);
+            alert(`A1: ${c.A1}, A2: ${c.A2}, A3: ${c.A3}, Proyecto: ${c.PROYECTO}`);
         }
 
         function makeDraggable(el, handle) {
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            handle.onmousedown = dragMouseDown;
-            function dragMouseDown(e) { e = e || window.event; e.preventDefault(); pos3 = e.clientX; pos4 = e.clientY; document.onmouseup = closeDragElement; document.onmousemove = elementDrag; }
-            function elementDrag(e) { e = e || window.event; e.preventDefault(); pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY; pos3 = e.clientX; pos4 = e.clientY; el.style.top = (el.offsetTop - pos2) + "px"; el.style.left = (el.offsetLeft - pos1) + "px"; el.style.right = "auto"; }
-            function closeDragElement() { document.onmouseup = null; document.onmousemove = null; }
+            let p1 = 0, p2 = 0, p3 = 0, p4 = 0;
+            handle.onmousedown = e => {
+                p3 = e.clientX; p4 = e.clientY;
+                document.onmouseup = () => { document.onmouseup = null; document.onmousemove = null; };
+                document.onmousemove = e => {
+                    p1 = p3 - e.clientX; p2 = p4 - e.clientY; p3 = e.clientX; p4 = e.clientY;
+                    el.style.top = (el.offsetTop - p2) + "px"; el.style.left = (el.offsetLeft - p1) + "px";
+                };
+            };
         }
     </script>
 </body>
