@@ -112,8 +112,8 @@
             width: 220px;
         }
         #leyenda { top: 10px; }
-        #leyenda-frente { top: 350px; max-height: 300px; overflow-y: auto; }
-        #leyenda-archivos { top: 350px; max-height: 300px; overflow-y: auto; }
+        #leyenda-frente { top: 10px; max-height: 300px; overflow-y: auto; }
+        #leyenda-archivos { top: 10px; max-height: 300px; overflow-y: auto; }
         
         #leyenda.hidden-legend, #leyenda-frente.hidden-legend, #leyenda-archivos.hidden-legend {
             transform: translateX(calc(100% + 60px));
@@ -154,9 +154,10 @@
             transform: scale(1.05);
         }
         .map-control-btn.active {
-            color: #1d4ed8;
-            background: #eff6ff;
+            color: #1e40af;
+            background: linear-gradient(135deg, #e0f2fe 0%, #7dd3fc 100%);
             border-color: #3b82f6;
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
         #matrix-status {
@@ -194,7 +195,7 @@
                     <li><a href="#home" role="tab"><i class="fa fa-home"></i></a></li>
                     <li><a href="#menu" role="tab"><i class="fa fa-bars"></i></a></li>
                 </ul>
-                <div style="position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 10px; font-weight: bold; color: #94a3b8;">v2.7</div>
+                <div style="position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 10px; font-weight: bold; color: #94a3b8;">v4.1</div>
             </div>
         <div class="leaflet-sidebar-content">
             <div class="leaflet-sidebar-pane active" id="home">
@@ -257,6 +258,40 @@
         <div id="info-content"></div>
     </div>
 
+    <!-- Modal Google Drive Explorer (v4.1) -->
+    <div id="drive-modal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px;">
+        <div class="modal-box" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 style="margin:0; font-size:18px;"><i class="fab fa-google-drive"></i> Explorador de Carpeta Drive</h2>
+                <i class="fa fa-times" onclick="cerrarModalDrive()" style="cursor:pointer; color:#94a3b8;"></i>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:12px; color:#64748b; margin-bottom:15px;">
+                    Ingrese su Google API Key para listar los archivos de la carpeta configurada.
+                </p>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-size:11px; font-weight:bold; color:#94a3b8; margin-bottom:5px;">GOOGLE API KEY</label>
+                    <input type="password" id="drive-api-key" placeholder="Pegue su API Key aquí..." style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-size:11px; font-weight:bold; color:#94a3b8; margin-bottom:5px;">ID DE CARPETA</label>
+                    <input type="text" id="drive-folder-id" value="145Y2R9oxYM8ZTqKJwHBk1V2Y-bW7SeD5" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc;" readonly>
+                </div>
+                <button onclick="listarArchivosDrive()" style="width:100%; padding:12px; background:#34a853; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
+                    <i class="fa fa-search"></i> BUSCAR ARCHIVOS
+                </button>
+                <div id="drive-bulk-actions" style="display:none; margin-top:15px;">
+                    <button onclick="cargarTodosDrive()" style="width:100%; padding:10px; background:#3b82f6; color:white; border:none; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer;">
+                        <i class="fa fa-cloud-upload-alt"></i> CARGAR TODOS LOS ARCHIVOS
+                    </button>
+                </div>
+                <div id="drive-file-list" style="margin-top:20px; max-height:200px; overflow-y:auto; border-top:1px solid #f1f5f9; padding-top:10px;">
+                    <p style="text-align:center; color:#94a3b8; font-size:12px;">Los archivos aparecerán aquí...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <div id="report-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -304,7 +339,7 @@
                 <p>Para que los suministros se muestren correctamente en el mapa, el archivo Excel debe contener las siguientes columnas:</p>
                 <ul style="padding-left: 20px; margin-bottom: 20px;">
                     <li><strong>SUMINISTRO:</strong> (Obligatorio) Número identificador para ubicar en la matriz.</li>
-                    <li><strong>ACTIVIDAD:</strong> (Opcional) Define el color (A1, A2, A3, PROYECTO, IMPOSIBILIDAD, OTROS).</li>
+                    <li><strong>ACTIVIDAD:</strong> (Opcional) Define el color (A1, A2, A3, NO ASIGNADO, IMPOSIBILIDAD, OTROS).</li>
                     <li><strong>VER EN CAMPO:</strong> (Opcional) Si se pone "SI", el punto será naranja.</li>
                     <li><strong>REUBICACION:</strong> (Opcional) Si se pone "SI", el punto será morado.</li>
                     <li><strong>DISTRITO:</strong> (Opcional) Para usar los filtros del panel lateral.</li>
@@ -337,7 +372,7 @@
         <div class="leyenda-item" data-tipo="A2" onclick="toggleCapa('A2', this)"><div class="leyenda-color" style="background:#ffeb3b;"></div>A2</div>
         <div class="leyenda-item" data-tipo="A3" onclick="toggleCapa('A3', this)"><div class="leyenda-color" style="background:#4caf50;"></div>A3</div>
         <div class="leyenda-item" data-tipo="IMPOSIBILIDAD" onclick="toggleCapa('IMPOSIBILIDAD', this)"><div class="leyenda-color" style="background:#212121;"></div>Imposibilidad</div>
-        <div class="leyenda-item" data-tipo="PROYECTO" onclick="toggleCapa('PROYECTO', this)"><div class="leyenda-color" style="background:#4682b4;"></div>Proyecto</div>
+        <div class="leyenda-item" data-tipo="NO ASIGNADO" onclick="toggleCapa('NO ASIGNADO', this)"><div class="leyenda-color" style="background:#4682b4;"></div>No Asignado</div>
         <div class="leyenda-item" data-tipo="VERENCAMPO" onclick="toggleCapa('VERENCAMPO', this)"><div class="leyenda-color" style="background:#ff9800;"></div>Ver en Campo</div>
         <div class="leyenda-item" data-tipo="REUBICACION" onclick="toggleCapa('REUBICACION', this)"><div class="leyenda-color" style="background:#9c27b0;"></div>Reubicación</div>
         <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 8px 0;">
@@ -400,6 +435,9 @@
                 </div>
                 <div class="map-control-btn" onclick="map.zoomOut()" title="Disminuir Zoom">
                     <i class="fa fa-minus"></i>
+                </div>
+                <div id="btn-toggle-drive" class="map-control-btn" onclick="abrirModalDrive()" title="Explorar Carpeta Google Drive">
+                    <i class="fab fa-google-drive"></i>
                 </div>
                 <div id="btn-toggle-frentes" class="map-control-btn" onclick="toggleLeyendaFrente()" title="Filtrar Frentes">
                     <i class="fa fa-hard-hat"></i>
@@ -509,21 +547,31 @@
             drawnItems.addLayer(layer);
             seleccionarEnArea(layer);
             modoArea = false;
-            document.getElementById('btnArea').innerHTML = '<i class="fa fa-draw-polygon"></i> SELECCIÓN POR ÁREA';
-            document.getElementById('btnArea').style.background = '#8b5cf6';
+            document.getElementById('btnArea').innerHTML = '<i class="fa fa-eraser"></i> LIMPIAR ÁREA';
+            document.getElementById('btnArea').style.background = '#ef4444';
         });
 
         function activarSeleccionArea() {
-            modoArea = !modoArea;
+            // Si hay un dibujo en curso, cancelarlo
             if (modoArea) {
-                new L.Draw.Polygon(map, drawControl.options.draw.polygon).enable();
-                document.getElementById('btnArea').innerHTML = '<i class="fa fa-times"></i> CANCELAR ÁREA';
-                document.getElementById('btnArea').style.background = '#ef4444';
-            } else {
                 map.eachLayer(l => { if(l instanceof L.Draw.Polygon) l.disable(); });
+                modoArea = false;
                 document.getElementById('btnArea').innerHTML = '<i class="fa fa-draw-polygon"></i> SELECCIÓN POR ÁREA';
                 document.getElementById('btnArea').style.background = '#8b5cf6';
+                return;
             }
+
+            // Si ya hay un área dibujada, el botón sirve para limpiar
+            if (drawnItems.getLayers().length > 0) {
+                limpiarSeleccion();
+                return;
+            }
+
+            // Iniciar nuevo dibujo
+            modoArea = true;
+            new L.Draw.Polygon(map, drawControl.options.draw.polygon).enable();
+            document.getElementById('btnArea').innerHTML = '<i class="fa fa-times"></i> CANCELAR ÁREA';
+            document.getElementById('btnArea').style.background = '#ef4444';
         }
 
         function seleccionarEnArea(layer) {
@@ -545,9 +593,10 @@
             actualizarUISeleccion();
         }
 
-        var capasVisibles = { A1: true, A2: true, A3: true, IMPOSIBILIDAD: true, PROYECTO: true, VERENCAMPO: true, REUBICACION: true, MATRIZ: false };
+        var capasVisibles = { A1: true, A2: true, A3: true, IMPOSIBILIDAD: true, "NO ASIGNADO": true, VERENCAMPO: true, REUBICACION: true, MATRIZ: false };
         var frentesVisibles = {};
         var archivosVisibles = {};
+        var archivosSource = {}; // fileName -> 'app' | 'drive'
         var listaFrentes = new Set();
         var listaArchivos = new Set();
 
@@ -683,87 +732,102 @@
         }
 
         function toggleArchivo(archivo, element) {
+            // Si el clic fue en el botón de borrar, no hacer toggle
+            if (event && event.target.closest('.delete-file-btn')) return;
+            
             archivosVisibles[archivo] = !archivosVisibles[archivo];
             if (element) element.classList.toggle('inactive', !archivosVisibles[archivo]);
             actualizarFiltrosGlobales();
         }
 
+        function eliminarArchivo(archivo) {
+            if (!confirm(`¿Está seguro de eliminar el archivo "${archivo}" y todos sus puntos?`)) return;
+            
+            // 1. Eliminar de las estructuras de datos
+            listaArchivos.delete(archivo);
+            delete archivosVisibles[archivo];
+            delete archivosSource[archivo];
+            
+            // 2. Eliminar marcadores del mapa y del array global
+            const marcadoresAEliminar = allMarkers.filter(m => m.properties.fileName === archivo);
+            marcadoresAEliminar.forEach(m => {
+                clusterGroup.removeLayer(m);
+            });
+            allMarkers = allMarkers.filter(m => m.properties.fileName !== archivo);
+            
+            // 3. Actualizar UI
+            actualizarLeyendaArchivos();
+            actualizarFiltrosGlobales();
+            actualizarDistritos();
+            actualizarLeyendaFrentes();
+        }
+
         function toggleLeyendaCompleta() {
             const leyenda = document.getElementById('leyenda');
             const btn = document.getElementById('btn-toggle-leyenda');
-            const leyendaFrente = document.getElementById('leyenda-frente');
-            const btnFrente = document.getElementById('btn-toggle-frentes');
-            const leyendaArchivos = document.getElementById('leyenda-archivos');
-            const btnArchivos = document.getElementById('btn-toggle-archivos');
             
             const estaAbierta = !leyenda.classList.contains('hidden-legend');
 
             if (!estaAbierta) {
-                // Al activar Leyenda Principal, ocultamos las otras
-                if (leyendaFrente) leyendaFrente.classList.add('hidden-legend');
-                if (btnFrente) btnFrente.classList.remove('active');
-                if (leyendaArchivos) leyendaArchivos.classList.add('hidden-legend');
-                if (btnArchivos) btnArchivos.classList.remove('active');
-
                 leyenda.classList.remove('hidden-legend');
                 if (btn) btn.classList.add('active');
             } else {
                 leyenda.classList.add('hidden-legend');
                 if (btn) btn.classList.remove('active');
             }
+            reorganizarLeyendas();
             actualizarEstilosMapa();
         }
 
         function toggleLeyendaFrente() {
             const leyenda = document.getElementById('leyenda-frente');
             const btn = document.getElementById('btn-toggle-frentes');
-            const leyendaPrincipal = document.getElementById('leyenda');
-            const btnPrincipal = document.getElementById('btn-toggle-leyenda');
-            const leyendaArchivos = document.getElementById('leyenda-archivos');
-            const btnArchivos = document.getElementById('btn-toggle-archivos');
 
             const estaAbierta = !leyenda.classList.contains('hidden-legend');
 
             if (!estaAbierta) {
-                // Al activar Frente, ocultamos las otras leyendas
-                leyendaPrincipal.classList.add('hidden-legend');
-                if (btnPrincipal) btnPrincipal.classList.remove('active');
-                if (leyendaArchivos) leyendaArchivos.classList.add('hidden-legend');
-                if (btnArchivos) btnArchivos.classList.remove('active');
-                
                 leyenda.classList.remove('hidden-legend');
                 if (btn) btn.classList.add('active');
             } else {
                 leyenda.classList.add('hidden-legend');
                 if (btn) btn.classList.remove('active');
             }
+            reorganizarLeyendas();
             actualizarEstilosMapa();
         }
 
         function toggleLeyendaArchivos() {
             const leyenda = document.getElementById('leyenda-archivos');
             const btn = document.getElementById('btn-toggle-archivos');
-            const leyendaPrincipal = document.getElementById('leyenda');
-            const btnPrincipal = document.getElementById('btn-toggle-leyenda');
-            const leyendaFrente = document.getElementById('leyenda-frente');
-            const btnFrente = document.getElementById('btn-toggle-frentes');
 
             const estaAbierta = !leyenda.classList.contains('hidden-legend');
 
             if (!estaAbierta) {
-                // Al activar Archivos, ocultamos las otras leyendas
-                leyendaPrincipal.classList.add('hidden-legend');
-                if (btnPrincipal) btnPrincipal.classList.remove('active');
-                if (leyendaFrente) leyendaFrente.classList.add('hidden-legend');
-                if (btnFrente) btnFrente.classList.remove('active');
-                
                 leyenda.classList.remove('hidden-legend');
                 if (btn) btn.classList.add('active');
             } else {
                 leyenda.classList.add('hidden-legend');
                 if (btn) btn.classList.remove('active');
             }
+            reorganizarLeyendas();
             actualizarEstilosMapa();
+        }
+
+        function reorganizarLeyendas() {
+            const ids = ['leyenda', 'leyenda-frente', 'leyenda-archivos'];
+            let currentTop = 10;
+            const gap = 15;
+            const zoomFactor = 0.8;
+
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el.classList.contains('hidden-legend')) {
+                    el.style.top = currentTop + "px";
+                    // Aproximación de altura considerando el zoom
+                    const rect = el.getBoundingClientRect();
+                    currentTop += (rect.height / zoomFactor) + gap;
+                }
+            });
         }
 
         function actualizarEstilosMapa() {
@@ -793,6 +857,7 @@
                          </div>`;
             });
             container.innerHTML = html;
+            reorganizarLeyendas();
         }
 
         function actualizarLeyendaArchivos() {
@@ -801,15 +866,44 @@
                 container.innerHTML = '<p style="font-size: 12px; color: #94a3b8;">Cargue un Excel para ver archivos...</p>';
                 return;
             }
+
+            const appFiles = Array.from(listaArchivos).filter(a => archivosSource[a] === 'app').sort();
+            const driveFiles = Array.from(listaArchivos).filter(a => archivosSource[a] === 'drive').sort();
+
             let html = "";
-            Array.from(listaArchivos).sort().forEach(a => {
-                if (archivosVisibles[a] === undefined) archivosVisibles[a] = true;
-                const inactiveClass = archivosVisibles[a] ? '' : 'inactive';
-                html += `<div class="leyenda-item ${inactiveClass}" onclick="toggleArchivo('${a}', this)">
-                            <div class="leyenda-color" style="background: #94a3b8;"></div><span style="font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a}</span>
-                         </div>`;
-            });
+
+            if (appFiles.length > 0) {
+                html += `<div style="font-size:10px; font-weight:bold; color:#64748b; margin:10px 0 5px 0; border-bottom:1px solid #e2e8f0; padding-bottom:2px;">CARGADOS POR APLICACIÓN</div>`;
+                appFiles.forEach(a => {
+                    if (archivosVisibles[a] === undefined) archivosVisibles[a] = true;
+                    const inactiveClass = archivosVisibles[a] ? '' : 'inactive';
+                    html += `<div class="leyenda-item ${inactiveClass}" onclick="toggleArchivo('${a}', this)" style="justify-content: space-between;">
+                                <div style="display: flex; align-items: center; overflow: hidden;">
+                                    <div class="leyenda-color" style="background: #3b82f6; flex-shrink: 0;"></div>
+                                    <span style="font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a}</span>
+                                </div>
+                                <i class="fa fa-trash delete-file-btn" onclick="eliminarArchivo('${a}')" style="color: #ef4444; margin-left: 8px; font-size: 12px; cursor: pointer;" title="Eliminar archivo"></i>
+                             </div>`;
+                });
+            }
+
+            if (driveFiles.length > 0) {
+                html += `<div style="font-size:10px; font-weight:bold; color:#059669; margin:15px 0 5px 0; border-bottom:1px solid #e2e8f0; padding-bottom:2px;">CARGADOS DESDE DRIVE</div>`;
+                driveFiles.forEach(a => {
+                    if (archivosVisibles[a] === undefined) archivosVisibles[a] = true;
+                    const inactiveClass = archivosVisibles[a] ? '' : 'inactive';
+                    html += `<div class="leyenda-item ${inactiveClass}" onclick="toggleArchivo('${a}', this)" style="justify-content: space-between;">
+                                <div style="display: flex; align-items: center; overflow: hidden;">
+                                    <div class="leyenda-color" style="background: #059669; flex-shrink: 0;"></div>
+                                    <span style="font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a}</span>
+                                </div>
+                                <i class="fa fa-trash delete-file-btn" onclick="eliminarArchivo('${a}')" style="color: #ef4444; margin-left: 8px; font-size: 12px; cursor: pointer;" title="Eliminar archivo"></i>
+                             </div>`;
+                });
+            }
+
             container.innerHTML = html;
+            reorganizarLeyendas();
         }
 
         function actualizarFiltrosGlobales() {
@@ -839,60 +933,233 @@
             });
         }
 
+        // CONFIGURACIÓN DE CARGA AUTOMÁTICA (v3.2)
+        // Carpeta vinculada: https://drive.google.com/drive/u/2/folders/145Y2R9oxYM8ZTqKJwHBk1V2Y-bW7SeD5
+        // Para agregar archivos, use el enlace de "Publicar en la web" (Formato Excel)
+        const ARCHIVOS_AUTO_CARGA = [
+            // Ejemplo: { nombre: "MISAEL.xlsx", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1v.../pub?output=xlsx" },
+        ];
+
+        async function cargarArchivosAutomaticos() {
+            if (ARCHIVOS_AUTO_CARGA.length === 0) return;
+            const statusEl = document.getElementById('matrix-status');
+            const originalText = statusEl.innerHTML;
+            
+            for (const item of ARCHIVOS_AUTO_CARGA) {
+                try {
+                    statusEl.innerHTML = `⌛ Cargando ${item.nombre}...`;
+                    const res = await fetch(item.url);
+                    if (!res.ok) throw new Error("Error HTTP " + res.status);
+                    const buffer = await res.arrayBuffer();
+                    // CARGA OCULTA: Pasamos 'false' para que no se vea en el mapa al inicio
+                    await procesarDatosExcel(buffer, item.nombre, false, 'app');
+                } catch (e) {
+                    console.error(`Error cargando ${item.nombre}:`, e);
+                }
+            }
+            statusEl.innerHTML = originalText;
+        }
+
         window.onload = function() {
-            cargarMatriz();
+            const savedKey = localStorage.getItem('google_drive_api_key');
+            if (savedKey) {
+                document.getElementById('drive-api-key').value = savedKey;
+                // Intentar listar archivos automáticamente si hay llave
+                setTimeout(listarArchivosDrive, 1000);
+            }
+
+            cargarMatriz().then(() => {
+                cargarArchivosAutomaticos();
+            });
             makeDraggable(document.getElementById("info-panel"), document.getElementById("info-header"));
         };
+
+        function abrirModalDrive() { 
+            document.getElementById('drive-modal').style.display = 'flex'; 
+            const btn = document.getElementById('btn-toggle-drive');
+            if (btn) btn.classList.add('active');
+        }
+        function cerrarModalDrive() { 
+            document.getElementById('drive-modal').style.display = 'none'; 
+            const btn = document.getElementById('btn-toggle-drive');
+            if (btn) btn.classList.remove('active');
+        }
+
+        let driveFiles = []; // Almacenar archivos listados para carga masiva
+
+        async function listarArchivosDrive() {
+            const apiKey = document.getElementById('drive-api-key').value.trim();
+            const folderId = document.getElementById('drive-folder-id').value.trim();
+            const listContainer = document.getElementById('drive-file-list');
+            const bulkActions = document.getElementById('drive-bulk-actions');
+
+            if (!apiKey) {
+                alert("Por favor, ingrese una Google API Key.");
+                return;
+            }
+
+            // Guardar API Key para futuras sesiones
+            localStorage.setItem('google_drive_api_key', apiKey);
+
+            listContainer.innerHTML = '<p style="text-align:center; color:#3b82f6; padding:10px;"><i class="fa fa-spinner fa-spin"></i> Buscando archivos...</p>';
+            bulkActions.style.display = 'none';
+            driveFiles = [];
+
+            try {
+                const query = `'${folderId}' in parents and (mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' or mimeType = 'application/vnd.google-apps.spreadsheet') and trashed = false`;
+                const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&key=${apiKey}&fields=files(id,name,mimeType)`;
+                
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.error) throw new Error(data.error.message);
+
+                if (!data.files || data.files.length === 0) {
+                    listContainer.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:10px;">No se encontraron archivos Excel en esta carpeta.</p>';
+                    return;
+                }
+
+                driveFiles = data.files;
+                bulkActions.style.display = 'block';
+
+                let html = "";
+                data.files.forEach(file => {
+                    html += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #f8fafc;">
+                            <div style="overflow:hidden; flex:1;">
+                                <div style="font-size:13px; font-weight:bold; color:#1e293b; white-space:nowrap; text-overflow:ellipsis;">${file.name}</div>
+                                <div style="font-size:10px; color:#94a3b8;">${file.mimeType.includes('spreadsheetml') ? 'Excel' : 'Google Sheet'}</div>
+                            </div>
+                            <button onclick="cargarArchivoDrive('${file.id}', '${file.name}', '${file.mimeType}')" style="padding:5px 12px; background:#3b82f6; color:white; border:none; border-radius:6px; font-size:11px; cursor:pointer;">
+                                CARGAR
+                            </button>
+                        </div>
+                    `;
+                });
+                listContainer.innerHTML = html;
+            } catch (e) {
+                listContainer.innerHTML = `<p style="text-align:center; color:#ef4444; padding:10px;">Error: ${e.message}</p>`;
+            }
+        }
+
+        async function cargarTodosDrive() {
+            if (driveFiles.length === 0) return;
+            if (!confirm(`¿Desea cargar los ${driveFiles.length} archivos encontrados? (Se cargarán ocultos por defecto)`)) return;
+
+            const btn = document.querySelector('#drive-bulk-actions button');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+
+            for (let i = 0; i < driveFiles.length; i++) {
+                const file = driveFiles[i];
+                btn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Cargando ${i+1}/${driveFiles.length}...`;
+                try {
+                    await cargarArchivoDrive(file.id, file.name, file.mimeType, true);
+                } catch (e) {
+                    console.error(`Error cargando ${file.name}:`, e);
+                }
+            }
+
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            alert("Carga masiva finalizada.");
+        }
+
+        async function cargarArchivoDrive(fileId, fileName, mimeType, silent = false) {
+            const apiKey = document.getElementById('drive-api-key').value.trim();
+            let downloadUrl = "";
+
+            if (mimeType === 'application/vnd.google-apps.spreadsheet') {
+                downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&key=${apiKey}`;
+            } else {
+                downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${apiKey}`;
+            }
+
+            try {
+                const res = await fetch(downloadUrl);
+                if (!res.ok) throw new Error("Error al descargar el archivo.");
+                const buffer = await res.arrayBuffer();
+                // Cargamos oculto por defecto como se solicitó
+                await procesarDatosExcel(buffer, fileName, false, 'drive');
+                if (!silent) alert(`Archivo "${fileName}" cargado correctamente (oculto en la leyenda).`);
+            } catch (e) {
+                if (!silent) alert("Error al cargar el archivo: " + e.message);
+                throw e;
+            }
+        }
+
+        async function procesarDatosExcel(arrayBuffer, fileName, startVisible = true, source = 'app') {
+            // Manejo de nombres duplicados
+            let finalName = fileName;
+            let counter = 1;
+            while (listaArchivos.has(finalName)) {
+                const baseName = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+                const ext = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')) : '';
+                finalName = `${baseName} (${counter})${ext}`;
+                counter++;
+            }
+
+            listaArchivos.add(finalName);
+            archivosVisibles[finalName] = startVisible;
+            archivosSource[finalName] = source;
+
+            const wb = XLSX.read(arrayBuffer, {type: 'array'});
+            const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval: ""});
+            
+            json.forEach(row => {
+                let s = "";
+                for (let k in row) if (k.toUpperCase().trim() === "SUMINISTRO") s = row[k].toString().trim().toUpperCase();
+                if (s && matrizUbicaciones.has(s)) {
+                    const dataMatriz = matrizUbicaciones.get(s);
+                    const lat = parseFloat(dataMatriz.LATITUD || dataMatriz.lat || 0);
+                    const lng = parseFloat(dataMatriz.LONGITUD || dataMatriz.lng || 0);
+                    if (lat && lng) {
+                        let tipo = 'NO ASIGNADO';
+                        let verCampo = false, reubicacion = false;
+                        for (let k in row) {
+                            const key = k.toUpperCase().trim();
+                            const val = row[k].toString().toUpperCase().trim();
+                            if (key === "ACTIVIDAD") {
+                                if (['A1', 'A2', 'A3', 'IMPOSIBILIDAD'].includes(val)) {
+                                    tipo = val;
+                                } else {
+                                    tipo = 'NO ASIGNADO';
+                                }
+                            }
+                            if (key === "VER EN CAMPO" && val === "SI") verCampo = true;
+                            if (key === "REUBICACION" && val === "SI") reubicacion = true;
+                        }
+                        
+                        let color = { A1:'#d32f2f', A2:'#ffeb3b', A3:'#4caf50', IMPOSIBILIDAD:'#212121', "NO ASIGNADO":'#4682b4', VERENCAMPO:'#ff9800', REUBICACION:'#9c27b0' }[tipo] || '#4682b4';
+                        
+                        let frente = (row.FRENTE || "").toString().trim().toUpperCase();
+                        if (frente) listaFrentes.add(frente);
+
+                        let m = L.marker([lat, lng]);
+                        m.properties = { ...dataMatriz, ...row, tipoFiltro: tipo, color: color, SUMINISTRO: s, isReubicacion: reubicacion, isVerCampo: verCampo, fileName: finalName };
+                        restaurarEstilo(m);
+                        
+                        m.on('click', function() { handleMarkerClick(m); });
+                        allMarkers.push(m);
+                        // Solo añadir al cluster si debe ser visible
+                        if (startVisible) clusterGroup.addLayer(m);
+                    }
+                }
+            });
+            actualizarDistritos();
+            actualizarLeyendaFrentes();
+            actualizarLeyendaArchivos();
+            document.getElementById('btnConteo').disabled = false;
+            document.getElementById('btnReporte').disabled = false;
+            if (!startVisible) actualizarFiltrosGlobales();
+        }
 
         document.getElementById('excelFile').onchange = function(e) {
             Array.from(e.target.files).forEach(file => {
                 const fileName = file.name;
-                listaArchivos.add(fileName);
-                archivosVisibles[fileName] = true;
-
                 const reader = new FileReader();
-                reader.onload = function(ev) {
-                    const data = new Uint8Array(ev.target.result);
-                    const wb = XLSX.read(data, {type: 'array'});
-                    const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval: ""});
-                    json.forEach(row => {
-                        let s = "";
-                        for (let k in row) if (k.toUpperCase().trim() === "SUMINISTRO") s = row[k].toString().trim().toUpperCase();
-                        if (s && matrizUbicaciones.has(s)) {
-                            const dataMatriz = matrizUbicaciones.get(s);
-                            const lat = parseFloat(dataMatriz.LATITUD || dataMatriz.lat || 0);
-                            const lng = parseFloat(dataMatriz.LONGITUD || dataMatriz.lng || 0);
-                            if (lat && lng) {
-                                let tipo = 'PROYECTO';
-                                let verCampo = false, reubicacion = false;
-                                for (let k in row) {
-                                    const key = k.toUpperCase().trim();
-                                    const val = row[k].toString().toUpperCase().trim();
-                                    if (key === "ACTIVIDAD") tipo = val;
-                                    if (key === "VER EN CAMPO" && val === "SI") verCampo = true;
-                                    if (key === "REUBICACION" && val === "SI") reubicacion = true;
-                                }
-                                
-                                let color = { A1:'#d32f2f', A2:'#ffeb3b', A3:'#4caf50', IMPOSIBILIDAD:'#212121', PROYECTO:'#4682b4', VERENCAMPO:'#ff9800', REUBICACION:'#9c27b0' }[tipo] || '#4682b4';
-                                
-                                let frente = (row.FRENTE || "").toString().trim().toUpperCase();
-                                if (frente) listaFrentes.add(frente);
-
-                                let m = L.marker([lat, lng]);
-                                m.properties = { ...dataMatriz, ...row, tipoFiltro: tipo, color: color, SUMINISTRO: s, isReubicacion: reubicacion, isVerCampo: verCampo, fileName: fileName };
-                                restaurarEstilo(m);
-                                
-                                m.on('click', function() { handleMarkerClick(m); });
-                                allMarkers.push(m);
-                                clusterGroup.addLayer(m);
-                            }
-                        }
-                    });
-                    actualizarDistritos();
-                    actualizarLeyendaFrentes();
-                    actualizarLeyendaArchivos();
-                    document.getElementById('btnConteo').disabled = false;
-                    document.getElementById('btnReporte').disabled = false;
+                reader.onload = async function(ev) {
+                    await procesarDatosExcel(ev.target.result, fileName, true, 'app');
                 };
                 reader.readAsArrayBuffer(file);
             });
@@ -1021,6 +1288,11 @@
             });
             drawnItems.clearLayers();
             actualizarUISeleccion();
+            
+            // Restaurar estado del botón de área
+            modoArea = false;
+            document.getElementById('btnArea').innerHTML = '<i class="fa fa-draw-polygon"></i> SELECCIÓN POR ÁREA';
+            document.getElementById('btnArea').style.background = '#8b5cf6';
         }
 
         function exportarSeleccionExcel() {
@@ -1071,26 +1343,9 @@
             }
         }
 
-        function toggleHeatmap() {
-            modoHeatmap = !modoHeatmap;
-            const btn = document.getElementById('btnHeatmap');
-            if (modoHeatmap) {
-                const points = allMarkers.map(m => [m.getLatLng().lat, m.getLatLng().lng, 0.5]);
-                heatLayer = L.heatLayer(points, { radius: 25, blur: 15, maxZoom: 17 }).addTo(map);
-                btn.innerHTML = '<i class="fa fa-fire"></i> MAPA DE CALOR (ON)';
-                btn.style.background = "#ea580c !important";
-                map.removeLayer(clusterGroup);
-            } else {
-                if (heatLayer) map.removeLayer(heatLayer);
-                btn.innerHTML = '<i class="fa fa-fire"></i> MAPA DE CALOR (OFF)';
-                btn.style.background = "#f97316 !important";
-                map.addLayer(clusterGroup);
-            }
-        }
-
         function abrirReporte() {
             const visibleMarkers = allMarkers.filter(m => clusterGroup.hasLayer(m));
-            const stats = { A1:0, A2:0, A3:0, IMPOSIBILIDAD:0, PROYECTO:0, VERENCAMPO:0, REUBICACION:0 };
+            const stats = { A1:0, A2:0, A3:0, IMPOSIBILIDAD:0, "NO ASIGNADO":0, VERENCAMPO:0, REUBICACION:0 };
             const distStats = {};
             let tableHtml = "";
             
@@ -1112,7 +1367,7 @@
             if (chartAct) chartAct.destroy();
             if (chartDist) chartDist.destroy();
 
-            const colors = { A1:'#d32f2f', A2:'#ffeb3b', A3:'#4caf50', IMPOSIBILIDAD:'#212121', PROYECTO:'#4682b4', VERENCAMPO:'#ff9800', REUBICACION:'#9c27b0' };
+            const colors = { A1:'#d32f2f', A2:'#ffeb3b', A3:'#4caf50', IMPOSIBILIDAD:'#212121', "NO ASIGNADO":'#4682b4', VERENCAMPO:'#ff9800', REUBICACION:'#9c27b0' };
 
             chartAct = new Chart(document.getElementById('chartActividades'), {
                 type: 'doughnut',
@@ -1202,9 +1457,9 @@
         }
 
         function ejecutarConteo() {
-            let c = { A1:0, A2:0, A3:0, IMPOSIBILIDAD:0, PROYECTO:0, VERENCAMPO:0 };
+            let c = { A1:0, A2:0, A3:0, IMPOSIBILIDAD:0, "NO ASIGNADO":0, VERENCAMPO:0 };
             allMarkers.forEach(m => { if(clusterGroup.hasLayer(m)) c[m.properties.tipoFiltro]++; });
-            alert(`A1: ${c.A1}, A2: ${c.A2}, A3: ${c.A3}, Proyecto: ${c.PROYECTO}`);
+            alert(`A1: ${c.A1}, A2: ${c.A2}, A3: ${c.A3}, No Asignado: ${c["NO ASIGNADO"]}`);
         }
 
         function makeDraggable(el, handle) {
