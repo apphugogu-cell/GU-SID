@@ -40,8 +40,11 @@
             box-shadow: 0 0 25px rgba(0,0,0,0.1); 
             border-right: 1px solid #e2e8f0; 
             box-sizing: border-box;
-            zoom: 0.8; 
+            transition: all 0.3s ease;
         }
+        body.pc-mode .leaflet-sidebar { zoom: 0.8; }
+        body.mobile-mode .leaflet-sidebar { zoom: 1.0; }
+
         .leaflet-sidebar-header { 
             background: var(--primary); 
             color: white; 
@@ -82,8 +85,11 @@
             position: fixed; top: 20px; right: 20px; width: 340px; background: white;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); z-index: 2000; border-radius: 20px; 
             display: none; flex-direction: column; border: 1px solid #e2e8f0; overflow: hidden;
-            zoom: 0.8; 
+            transition: all 0.3s ease;
         }
+        body.pc-mode #info-panel { zoom: 0.8; }
+        body.mobile-mode #info-panel { zoom: 1.0; width: 90%; right: 5%; left: 5%; top: 10%; }
+
         #info-header { padding: 12px 15px; background: #f8fafc; cursor: move; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
         #info-content { padding: 20px; max-height: 500px; overflow-y: auto; }
 
@@ -108,9 +114,11 @@
             position: absolute; right: 55px; background: white; padding: 15px; border-radius: 15px;
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-size: 15px; z-index: 1000;
             transition: all 0.3s ease;
-            zoom: 0.8; 
             width: 220px;
         }
+        body.pc-mode #leyenda, body.pc-mode #leyenda-frente, body.pc-mode #leyenda-archivos { zoom: 0.8; }
+        body.mobile-mode #leyenda, body.mobile-mode #leyenda-frente, body.mobile-mode #leyenda-archivos { zoom: 1.0; right: 10px; width: 180px; }
+
         #leyenda { top: 10px; }
         #leyenda-frente { top: 10px; max-height: 300px; overflow-y: auto; }
         #leyenda-archivos { top: 10px; max-height: 300px; overflow-y: auto; }
@@ -163,8 +171,10 @@
         #matrix-status {
             position: fixed; bottom: 10px; left: 10px; background: #1e293b; color: #38bdf8;
             padding: 5px 12px; font-size: 14px; font-weight: bold; z-index: 2000; border-radius: 8px;
-            zoom: 0.8; 
+            transition: all 0.3s ease;
         }
+        body.pc-mode #matrix-status { zoom: 0.8; }
+        body.mobile-mode #matrix-status { zoom: 1.0; bottom: 20px; left: 50%; transform: translateX(-50%); width: auto; white-space: nowrap; }
         .btn-location {
             background: white;
             border: 2px solid rgba(0,0,0,0.2);
@@ -202,6 +212,15 @@
                 <h1 class="leaflet-sidebar-header">Gestión de Suministros <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
                 
                 <div style="padding: 15px 0;">
+                    <div style="display: flex; gap: 5px; margin-bottom: 15px;">
+                        <button id="btn-mode-pc" onclick="setDeviceMode('pc')" style="background: #f1f5f9; color: #475569; flex: 1; height: 30px; font-size: 12px;">
+                            <i class="fa fa-desktop"></i> MODO PC
+                        </button>
+                        <button id="btn-mode-mobile" onclick="setDeviceMode('mobile')" style="background: #f1f5f9; color: #475569; flex: 1; height: 30px; font-size: 12px;">
+                            <i class="fa fa-mobile-alt"></i> MODO CELULAR
+                        </button>
+                    </div>
+
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                         <label style="font-weight: bold; color: #1d4ed8; font-size: 14px; text-transform: uppercase;">CARGAR EXCEL:</label>
                         <i class="fa fa-question-circle" onclick="abrirInstrucciones()" style="cursor: pointer; color: #3b82f6; font-size: 18px;" title="Ver instrucciones de carga"></i>
@@ -337,13 +356,14 @@
             </div>
             <div class="modal-body" style="line-height: 1.6; color: #334155;">
                 <p>Para que los suministros se muestren correctamente en el mapa, el archivo Excel debe contener las siguientes columnas:</p>
-                <ul style="padding-left: 20px; margin-bottom: 20px;">
-                    <li><strong>SUMINISTRO:</strong> (Obligatorio) Número identificador para ubicar en la matriz.</li>
-                    <li><strong>ACTIVIDAD:</strong> (Opcional) Define el color (A1, A2, A3, NO ASIGNADO, IMPOSIBILIDAD, OTROS).</li>
-                    <li><strong>VER EN CAMPO:</strong> (Opcional) Si se pone "SI", el punto será naranja.</li>
-                    <li><strong>REUBICACION:</strong> (Opcional) Si se pone "SI", el punto será morado.</li>
-                    <li><strong>DISTRITO:</strong> (Opcional) Para usar los filtros del panel lateral.</li>
-                    <li><strong>USUARIO / MEDIDOR:</strong> (Opcional) Para mostrar en el panel de detalles.</li>
+                <ul style="padding-left: 20px; margin-bottom: 20px; font-size: 14px;">
+                    <li><strong>SUMINISTRO:</strong> (Obligatorio) ID para ubicar en la matriz.</li>
+                    <li><strong>ACTIVIDAD:</strong> (Opcional) A1, A2, A3, NO ASIGNADO, IMPOSIBILIDAD.</li>
+                    <li><strong>FRENTE:</strong> (Opcional) Para agrupar y filtrar por frentes de trabajo.</li>
+                    <li><strong>VER EN CAMPO / REUBICACION:</strong> (Opcional) Marcar con "SI".</li>
+                    <li><strong>DISTRITO / LOCALIDAD:</strong> (Opcional) Para filtros geográficos.</li>
+                    <li><strong>USUARIO / MEDIDOR / DIRECCION:</strong> (Opcional) Datos informativos.</li>
+                    <li><strong>CATEGORIA / OBSERVACION:</strong> (Opcional) Detalles adicionales.</li>
                 </ul>
                 <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
                     <p style="margin: 0; font-size: 14px;"><strong>Nota:</strong> Si la palabra <strong>"CAMPO"</strong> aparece en cualquier columna, el punto se marcará automáticamente en color naranja.</p>
@@ -427,7 +447,7 @@
         customControls.onAdd = function() {
             const div = L.DomUtil.create('div', 'map-control-column');
             div.innerHTML = `
-                <div class="map-control-btn" onclick="toggleLocation()" title="Mi Ubicación">
+                <div id="btn-location" class="map-control-btn" onclick="toggleLocation()" title="Mi Ubicación">
                     <i class="fa fa-location-arrow"></i>
                 </div>
                 <div class="map-control-btn" onclick="map.zoomIn()" title="Aumentar Zoom">
@@ -960,7 +980,36 @@
             statusEl.innerHTML = originalText;
         }
 
+        function setDeviceMode(mode) {
+            const body = document.body;
+            const btnPc = document.getElementById('btn-mode-pc');
+            const btnMobile = document.getElementById('btn-mode-mobile');
+
+            if (mode === 'pc') {
+                body.classList.remove('mobile-mode');
+                body.classList.add('pc-mode');
+                btnPc.style.background = '#3b82f6';
+                btnPc.style.color = 'white';
+                btnMobile.style.background = '#f1f5f9';
+                btnMobile.style.color = '#475569';
+            } else {
+                body.classList.remove('pc-mode');
+                body.classList.add('mobile-mode');
+                btnMobile.style.background = '#3b82f6';
+                btnMobile.style.color = 'white';
+                btnPc.style.background = '#f1f5f9';
+                btnPc.style.color = '#475569';
+            }
+            localStorage.setItem('preferred_device_mode', mode);
+            setTimeout(reorganizarLeyendas, 350); // Reajustar posiciones después de la transición
+        }
+
         window.onload = function() {
+            // Cargar modo preferido o detectar por ancho de pantalla
+            const savedMode = localStorage.getItem('preferred_device_mode');
+            const defaultMode = savedMode || (window.innerWidth < 768 ? 'mobile' : 'pc');
+            setDeviceMode(defaultMode);
+
             const savedKey = localStorage.getItem('google_drive_api_key');
             if (savedKey) {
                 document.getElementById('drive-api-key').value = savedKey;
@@ -1314,7 +1363,24 @@
                     <h2 style="margin:0; color:#1d4ed8; font-size: 22px; font-weight: 800;">Suministro: ${p.SUMINISTRO}</h2>
                     ${(lat && lng) ? `<a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="background:#ea4335; color:white; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none;"><i class="fa fa-map-marker-alt"></i></a>` : ''}
                 </div>`;
-            const campos = ["USUARIO", "MEDIDOR", "CATEGORIA", "REUBICACION", "DIRECCION", "DISTRITO", "LOCALIDAD", "ACTIVIDAD", "OBSERVACION"];
+            
+            // Lógica de Actividad Combinada
+            let actividadDisplay = p.tipoFiltro;
+            if (['A1', 'A2', 'A3'].includes(p.tipoFiltro)) {
+                let extras = [];
+                if (p.isReubicacion) extras.push("Reub.");
+                if (p.isVerCampo) extras.push("VerC");
+                if (extras.length > 0) {
+                    actividadDisplay += " / " + extras.join(" / ");
+                }
+            }
+
+            h += `<div style="margin-bottom: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 6px;">
+                    <div style="font-size: 13px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">ACTIVIDAD</div>
+                    <div style="font-size: 17px; color: #1e293b; font-weight: 600;">${actividadDisplay}</div>
+                  </div>`;
+
+            const campos = ["USUARIO", "MEDIDOR", "CATEGORIA", "DIRECCION", "DISTRITO", "LOCALIDAD", "OBSERVACION"];
             campos.forEach(campo => {
                 if (p[campo]) h += `<div style="margin-bottom: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 6px;"><div style="font-size: 13px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">${campo}</div><div style="font-size: 17px; color: #1e293b; font-weight: 600;">${p[campo]}</div></div>`;
             });
@@ -1402,11 +1468,24 @@
         function cerrarInstrucciones() { document.getElementById('instrucciones-modal').style.display = 'none'; }
 
         function descargarModelo() {
-            const data = [{ SUMINISTRO: "1234567", USUARIO: "JUAN PEREZ", MEDIDOR: "ABC-123", ACTIVIDAD: "A1", DISTRITO: "TRUJILLO" }];
+            const data = [{ 
+                SUMINISTRO: "1234567", 
+                ACTIVIDAD: "A1", 
+                "VER EN CAMPO": "NO", 
+                REUBICACION: "NO", 
+                FRENTE: "FRENTE 1",
+                DISTRITO: "TRUJILLO", 
+                LOCALIDAD: "CENTRO",
+                USUARIO: "JUAN PEREZ", 
+                MEDIDOR: "ABC-123", 
+                CATEGORIA: "DOMESTICO",
+                DIRECCION: "AV. LARCO 123",
+                OBSERVACION: "NINGUNA"
+            }];
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Modelo");
-            XLSX.writeFile(wb, "Modelo_Carga.xlsx");
+            XLSX.writeFile(wb, "Modelo_Carga_Completo.xlsx");
         }
 
         function exportarExcel() {
@@ -1442,7 +1521,11 @@
             const query = val.toUpperCase().trim();
             if(!query || query.length < 3) return;
             if (highlightCircle) map.removeLayer(highlightCircle);
-            const found = [...allMarkers, ...matrixMarkers].find(m => m.properties.SUMINISTRO.includes(query) || (m.properties.USUARIO && m.properties.USUARIO.toUpperCase().includes(query)));
+            const found = [...allMarkers, ...matrixMarkers].find(m => 
+                m.properties.SUMINISTRO.includes(query) || 
+                (m.properties.USUARIO && m.properties.USUARIO.toUpperCase().includes(query)) ||
+                (m.properties.NOMBRE && m.properties.NOMBRE.toUpperCase().includes(query))
+            );
             if(found) { 
                 const latlng = found.getLatLng();
                 mostrarInfo(found.properties);
