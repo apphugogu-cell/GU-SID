@@ -27,10 +27,16 @@
       box-shadow: 0 25px 50px rgba(0,0,0,0.15);
       overflow: hidden;
     }
-    header {
-      background: linear-gradient(to right, #1e2937, #334155);
-      color: white;
-      padding: 24px 32px;
+    .header-modern {
+      background: #0f172a;
+      border-bottom: 1px solid #334155;
+    }
+    .chrome-frame {
+      position: relative;
+      padding: 4px;
+      background: linear-gradient(135deg, #ffffff 0%, #dcdcdc 15%, #808080 35%, #f0f0f0 50%, #666666 65%, #a0a0a0 85%, #333333 100%);
+      border-radius: 20px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.4);
     }
     .card {
       background: #f8fafc;
@@ -66,23 +72,38 @@
 </head>
 <body>
 <div class="container">
-  <header>
-    <div class="flex items-center justify-between">
+
+  <!-- ==================== MEMBRETE MODERNO ==================== -->
+  <header class="header-modern text-white">
+    <div class="px-8 py-5 flex items-center justify-between">
       <div class="flex items-center gap-6">
-        <div class="chrome-frame p-3 bg-white rounded-3xl">
-          <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" width="65" height="65">
+        <div class="chrome-frame">
+          <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoLentes.png" 
+               width="58" height="58" alt="Logo Uralmo">
         </div>
-        <div>
-          <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" class="h-14 w-auto">
-          <p class="text-xs text-slate-300">MEDIDORES 2 • INTELIGENCIA DOCUMENTAL</p>
-        </div>
+        <img src="https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/main/logoMEMBRETE.png" 
+             class="h-14 w-auto" alt="Grupo Uralmo">
       </div>
-      <div class="text-right">
-        <div class="text-3xl font-bold">Procesador PDF</div>
-        <div class="text-emerald-400 text-sm">APP 007 • Avance por Lotes</div>
+
+      <div class="text-center">
+        <div class="text-3xl font-bold tracking-tight">Procesador PDF-IMG</div>
+        <div class="text-emerald-400 text-sm font-medium">APP 012 • Avance por Lotes</div>
+      </div>
+
+      <div class="flex items-center gap-6">
+        <div id="current-datetime" class="font-mono text-sm text-right text-slate-300">
+          <!-- Fecha y hora -->
+        </div>
+
+        <button onclick="alert('Perfil de usuario en desarrollo')" 
+                class="flex items-center gap-3 bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all">
+          <i data-lucide="user" class="w-5 h-5"></i>
+          <span>Usuario</span>
+        </button>
       </div>
     </div>
   </header>
+  <!-- ==================================================== -->
 
   <div class="p-8">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -93,7 +114,6 @@
         </h3>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <!-- Archivos simultáneos -->
           <div>
             <label class="block text-sm font-semibold mb-2">Archivos PDF simultáneos</label>
             <input type="number" id="parallelCount" value="20" min="1" max="50" 
@@ -101,7 +121,6 @@
             <p class="text-xs text-slate-500 mt-1">Recomendado: 2–4 (más de 5 puede ralentizar el navegador)</p>
           </div>
 
-          <!-- Descarga automática -->
           <div>
             <label class="block text-sm font-semibold mb-2">Descarga automática cada</label>
             <select id="batchSize" class="w-full p-4 border border-slate-300 rounded-2xl text-lg">
@@ -114,7 +133,6 @@
             </select>
           </div>
 
-          <!-- Formato -->
           <div>
             <label class="block text-sm font-semibold mb-2">Formato de Imágenes</label>
             <div class="flex gap-6">
@@ -131,7 +149,6 @@
           </div>
         </div>
 
-        <!-- Qué exportar -->
         <div class="mt-8">
           <h4 class="font-semibold mb-3">Qué exportar</h4>
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
@@ -155,7 +172,6 @@
       </div>
     </div>
 
-    <!-- Avance por lote -->
     <div id="batchProgress" class="batch-info text-center my-6 hidden">
       Lote <span id="currentBatch" class="text-3xl font-bold">1</span> 
       de <span id="totalBatches" class="text-3xl font-bold">1</span>
@@ -391,7 +407,6 @@ btnProcesar.addEventListener('click', async () => {
     processedCount += batch.length;
     document.getElementById('globalProgress').value = Math.round((processedCount / files.length) * 100);
 
-    // Descarga automática
     if (batchSize > 0 && processedCount % batchSize === 0) {
       await descargarZip(true, batchNumber);
       batchNumber++;
@@ -399,7 +414,6 @@ btnProcesar.addEventListener('click', async () => {
     }
   }
 
-  // Último lote
   if (batchSize === 0 || processedCount % batchSize !== 0) {
     await descargarZip(true, batchNumber);
   }
@@ -411,7 +425,22 @@ btnProcesar.addEventListener('click', async () => {
 
 document.getElementById('btnDescargar').addEventListener('click', () => descargarZip(false));
 
-lucide.createIcons();
+// Reloj en tiempo real
+function updateDateTime() {
+  const now = new Date();
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const dateStr = now.toLocaleDateString('es-ES', options);
+  const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  
+  const el = document.getElementById('current-datetime');
+  if (el) el.innerHTML = `${dateStr}<br><span class="text-emerald-400">${timeStr}</span>`;
+}
+
+window.onload = () => {
+  lucide.createIcons();
+  updateDateTime();
+  setInterval(updateDateTime, 60000);
+};
 </script>
 </body>
 </html>
