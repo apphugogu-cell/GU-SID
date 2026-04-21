@@ -35,18 +35,90 @@
         }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        /* Sidebar */
+        /* Sidebar Refactor */
         .leaflet-sidebar { 
             box-shadow: 0 0 25px rgba(0,0,0,0.1); 
             border-right: 1px solid #e2e8f0; 
             box-sizing: border-box;
             transition: all 0.3s ease;
+            width: 55px !important; /* Narrow width for icons only */
+            background: white !important;
         }
         body.pc-mode .leaflet-sidebar { zoom: 0.8; }
         body.mobile-mode .leaflet-sidebar { zoom: 1.0; }
+        
+        .leaflet-sidebar-content { display: none !important; } /* We will use floating windows */
+
+        #leyenda, #leyenda-frente, #leyenda-archivos, #leyenda-gestion, #leyenda-seleccion, #leyenda-analisis {
+            position: absolute; left: 65px; background: white; padding: 0; border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-size: 14px; z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 260px; overflow: hidden; border: 1px solid #e2e8f0;
+            display: block;
+        }
+        .leyenda-header {
+            background: var(--primary); color: white; padding: 6px 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            font-weight: bold; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .leyenda-body { padding: 10px; }
+        
+        body.pc-mode #leyenda, body.pc-mode #leyenda-frente, body.pc-mode #leyenda-archivos,
+        body.pc-mode #leyenda-gestion, body.pc-mode #leyenda-seleccion, body.pc-mode #leyenda-analisis { zoom: 0.8; }
+        
+        body.mobile-mode #leyenda, body.mobile-mode #leyenda-frente, body.mobile-mode #leyenda-archivos,
+        body.mobile-mode #leyenda-gestion, body.mobile-mode #leyenda-seleccion, body.mobile-mode #leyenda-analisis { 
+            zoom: 1.0; left: 10px; width: 220px; 
+            transform: translateX(0); /* Avoid translation by default in mobile if visible */
+        }
+
+        #leyenda { top: 10px; }
+        #leyenda-frente { top: 10px; max-height: 400px; overflow-y: auto; }
+        #leyenda-archivos { top: 10px; max-height: 400px; overflow-y: auto; }
+        #leyenda-gestion { top: 10px; }
+        #leyenda-seleccion { top: 10px; }
+        #leyenda-analisis { top: 10px; }
+        
+        .hidden-legend {
+            transform: translateX(calc(-100% - 100px)) !important;
+            opacity: 0; pointer-events: none;
+        }
+
+        .leyenda-item { 
+            display: flex; align-items: center; margin: 1px 0; cursor: pointer; 
+            padding: 3px 8px; border-radius: 6px; transition: all 0.2s;
+            border: 1px solid transparent; line-height: 1.2;
+        }
+        .leyenda-item:hover { background: #f8fafc; border-color: #e2e8f0; }
+        .leyenda-item.inactive { opacity: 0.5; filter: grayscale(0.5); }
+        .leyenda-color { width: 14px; height: 14px; border-radius: 4px; margin-right: 10px; flex-shrink: 0; }
+        
+        .leaflet-sidebar-tabs li.active { background-color: var(--primary) !important; }
+        .leaflet-sidebar-tabs li.active a { color: white !important; }
+
+        .leaflet-sidebar-tabs { width: 40px !important; background: white !important; border-right: 1px solid #e2e8f0 !important; }
+        .leaflet-sidebar-tabs ul { width: 40px !important; padding-top: 0 !important; }
+        .leaflet-sidebar-tabs ul li { 
+            width: 40px !important; height: 40px !important; margin: 0 !important;
+            border-radius: 0 !important; border: none !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            background: white !important; transition: all 0.2s !important;
+            box-shadow: none !important;
+            cursor: pointer; position: relative;
+        }
+        .leaflet-sidebar-tabs ul li:hover { background: #f8fafc !important; }
+        .leaflet-sidebar-tabs ul li a { 
+            color: var(--primary) !important; font-size: 18px !important; 
+            line-height: 40px !important; width: 40px !important; height: 40px !important;
+            display: flex !important; align-items: center; justify-content: center;
+        }
+
+        .leaflet-sidebar { width: 40px !important; }
+        #leyenda, #leyenda-frente, #leyenda-archivos, #leyenda-gestion, #leyenda-seleccion, #leyenda-analisis {
+            left: 50px; 
+        }
 
         .leaflet-sidebar-header { 
-            background: var(--primary); 
             color: white; 
             padding: 10px; 
             font-size: 22px; 
@@ -65,10 +137,10 @@
 
         /* Botones */
         button {
-            width: 100%; height: 34px; font-size: 15px; font-weight: 600; margin: 6px 0; border-radius: 8px;
-            border: none; background: #3b82f6; color: white; cursor: pointer; transition: all 0.2s ease;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            box-sizing: border-box;
+            width: 100%; height: 26px; font-size: 12px; font-weight: 600; margin: 2px 0; border-radius: 4px;
+            border: none; background: var(--primary); color: white; cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center; gap: 4px;
+            box-sizing: border-box; line-height: 1; padding: 0 8px;
         }
         button:hover { background: var(--primary-hover); transform: translateY(-1px); }
         button.danger { background: #ef4444 !important; }
@@ -76,13 +148,13 @@
 
         /* Inputs */
         select, input[type="text"], input[type="file"] {
-            width: 100%; padding: 8px 10px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px;
-            margin: 6px 0; background: white; outline: none; box-sizing: border-box;
+            width: 100%; padding: 2px 6px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px;
+            margin: 2px 0; background: white; outline: none; box-sizing: border-box; height: 26px;
         }
 
-        /* Panel de Detalles */
+        /* Panel de Detalles (Smaller) */
         #info-panel {
-            position: fixed; top: 20px; right: 20px; width: 340px; background: white;
+            position: fixed; top: 20px; right: 20px; width: 280px; background: white;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); z-index: 2000; border-radius: 20px; 
             display: none; flex-direction: column; border: 1px solid #e2e8f0; overflow: hidden;
             transition: all 0.3s ease;
@@ -90,8 +162,8 @@
         body.pc-mode #info-panel { zoom: 0.8; }
         body.mobile-mode #info-panel { zoom: 1.0; width: 90%; right: 5%; left: 5%; top: 10%; }
 
-        #info-header { padding: 12px 15px; background: #f8fafc; cursor: move; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
-        #info-content { padding: 20px; max-height: 500px; overflow-y: auto; }
+        #info-header { padding: 10px 15px; background: #f8fafc; cursor: move; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
+        #info-content { padding: 15px; max-height: 450px; overflow-y: auto; }
 
         /* Modal de Reporte */
         #report-modal {
@@ -110,63 +182,41 @@
         .stats-grid { display: grid; grid-template-cols: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
         .stat-card { padding: 15px; border-radius: 15px; border: 1px solid #f1f5f9; text-align: center; }
 
-        #leyenda, #leyenda-frente, #leyenda-archivos {
-            position: absolute; right: 55px; background: white; padding: 15px; border-radius: 15px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-size: 15px; z-index: 1000;
-            transition: all 0.3s ease;
-            width: 220px;
-        }
-        body.pc-mode #leyenda, body.pc-mode #leyenda-frente, body.pc-mode #leyenda-archivos { zoom: 0.8; }
-        body.mobile-mode #leyenda, body.mobile-mode #leyenda-frente, body.mobile-mode #leyenda-archivos { zoom: 1.0; right: 10px; width: 180px; }
 
-        #leyenda { top: 10px; }
-        #leyenda-frente { top: 10px; max-height: 300px; overflow-y: auto; }
-        #leyenda-archivos { top: 10px; max-height: 300px; overflow-y: auto; }
-        
-        #leyenda.hidden-legend, #leyenda-frente.hidden-legend, #leyenda-archivos.hidden-legend {
-            transform: translateX(calc(100% + 60px));
-        }
-        .leyenda-item { 
-            display: flex; align-items: center; margin: 6px 0; cursor: pointer; 
-            padding: 4px 8px; border-radius: 6px; transition: background 0.2s;
-        }
-        .leyenda-item:hover { background: #f1f5f9; }
-        .leyenda-item.inactive { opacity: 0.4; text-decoration: line-through; }
-        .leyenda-color { width: 12px; height: 12px; border-radius: 4px; margin-right: 10px; }
-
-        .map-control-column {
+        /* Floating Controls Right Bottom */
+        .floating-controls-right {
+            position: fixed;
+            right: 15px;
+            z-index: 4500;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            margin-top: 10px;
-            margin-right: 10px;
+            gap: 12px;
         }
-        .map-control-btn {
+        body.pc-mode .floating-controls-right {
+            bottom: 30px;
+            top: auto;
+        }
+        body.mobile-mode .floating-controls-right {
+            top: 20px;
+            bottom: auto;
+        }
+        .floating-btn {
+            width: 40px;
+            height: 40px;
             background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            width: 30px;
-            height: 30px;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            color: var(--primary);
+            font-size: 18px;
             cursor: pointer;
-            color: #1e293b;
-            font-size: 10px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
         }
-        .map-control-btn:hover {
-            background: #f8fafc;
-            color: #1d4ed8;
-            transform: scale(1.05);
-        }
-        .map-control-btn.active {
-            color: #1e40af;
-            background: linear-gradient(135deg, #e0f2fe 0%, #7dd3fc 100%);
-            border-color: #3b82f6;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
+        .floating-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .floating-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
         #matrix-status {
             position: fixed; bottom: 10px; left: 10px; background: #1e293b; color: #38bdf8;
@@ -174,7 +224,17 @@
             transition: all 0.3s ease;
         }
         body.pc-mode #matrix-status { zoom: 0.8; }
-        body.mobile-mode #matrix-status { zoom: 1.0; bottom: 20px; left: 50%; transform: translateX(-50%); width: auto; white-space: nowrap; }
+        body.mobile-mode #matrix-status { 
+            zoom: 1.0; 
+            bottom: 80px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: auto; 
+            white-space: nowrap; 
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
         .btn-location {
             background: white;
             border: 2px solid rgba(0,0,0,0.2);
@@ -191,81 +251,330 @@
         }
         .btn-location:hover { background: #f1f5f9; color: #1e40af; }
         .btn-location.active { color: #ef4444; border-color: #ef4444; }
+        /* Mobile Bottom Sheet & Nav (v4.2) */
+        .mobile-only { display: none !important; }
+        
+        body.mobile-mode .mobile-only { display: flex !important; }
+        body.mobile-mode .leaflet-sidebar { display: none !important; }
+        body.mobile-mode #leyenda, body.mobile-mode #leyenda-frente, body.mobile-mode #leyenda-archivos { display: none !important; }
+
+        #mobile-bottom-sheet {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            height: 35vh;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 4000;
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 -15px 35px rgba(0,0,0,0.2);
+            flex-direction: column;
+            transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            display: none; /* Oculto por defecto */
+        }
+        body.mobile-mode #mobile-bottom-sheet { display: flex; }
+        #mobile-bottom-sheet.active { bottom: 65px; } 
+
+        #mobile-sheet-handle {
+            width: 40px;
+            height: 5px;
+            background: #cbd5e1;
+            border-radius: 10px;
+            margin: 12px auto;
+        }
+        #mobile-sheet-header {
+            padding: 0 20px 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        #mobile-sheet-title {
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 14px;
+            color: var(--primary);
+            letter-spacing: 1px;
+        }
+        #mobile-sheet-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        #mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 65px;
+            background: white;
+            z-index: 4001;
+            display: none; /* Oculto por defecto */
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #e2e8f0;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        body.mobile-mode #mobile-nav { display: flex; }
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            padding: 10px 0;
+        }
+        .mobile-nav-item i { font-size: 22px; }
+        .mobile-nav-item span { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .mobile-nav-item.active { color: var(--primary); transform: translateY(-3px); }
+        .mobile-nav-item.active i { filter: drop-shadow(0 2px 4px rgba(29, 78, 216, 0.2)); }
+        /* Floating Search (v4.4) */
+        #floating-search-container {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 4500;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+        .search-trigger {
+            width: 45px;
+            height: 45px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            color: var(--primary);
+            font-size: 20px;
+            cursor: pointer;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+        .search-trigger:hover { transform: scale(1.05); background: #f8fafc; }
+        .search-trigger:active { transform: scale(0.95); }
+        
+        #search-bar-floating {
+            background: white;
+            border-radius: 16px;
+            padding: 4px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: none;
+            width: 300px;
+            border: 1px solid #e2e8f0;
+            position: relative;
+            animation: slideInRight 0.3s ease;
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        #search-bar-floating input {
+            width: 100%;
+            border: none;
+            padding: 12px 40px 12px 15px;
+            outline: none;
+            font-size: 14px;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+        .close-search-floating {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        #search-results-floating {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 5001;
+            border: 1px solid #e2e8f0;
+            display: none;
+        }
+        
+        .search-result-item {
+            padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f1f5f9;
+            font-size: 13px; transition: background 0.2s;
+        }
+        .search-result-item:hover { background: #f8fafc; }
+        .search-result-item .suministro { font-weight: bold; color: var(--primary); }
+        .search-result-item .usuario { font-size: 11px; color: #64748b; display: block; }
+
+        /* Mobile adjustments for floating search */
+        #floating-search-container { display: none !important; }
+        body.mobile-mode #floating-search-container { display: flex !important; top: 10px; right: 10px; }
+        body.mobile-mode #search-bar-floating { width: calc(100vw - 40px); }
+
+        .pc-only { display: block !important; }
+        body.mobile-mode .pc-only { display: none !important; }
+
+        .search-results-sidebar {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
 
     <div id="matrix-status">Cargando Matriz Maestra...</div>
 
+    <div class="floating-controls-right">
+        <div id="btn-print-map" class="floating-btn" onclick="window.print()" title="Imprimir Mapa" style="background: #10b981; color: white;">
+            <i class="fa fa-print"></i>
+        </div>
+        <div id="btn-device-toggle" class="floating-btn" onclick="toggleDeviceModeManual()" title="Cambiar Modo de Dispositivo">
+            <i id="device-icon" class="fa fa-mobile-alt"></i>
+        </div>
+        <div id="btn-location-toggle" class="floating-btn" onclick="toggleLocation()" title="Mi Ubicación">
+            <i class="fa fa-location-arrow"></i>
+        </div>
+    </div>
+
+    <!-- Map and Nav remain same -->
     <div id="map"></div>
 
+    <!-- Mobile Bottom Sheet (v4.2) -->
+    <div id="mobile-bottom-sheet" class="mobile-only">
+        <div id="mobile-sheet-handle"></div>
+        <div id="mobile-sheet-header">
+            <span id="mobile-sheet-title">Menú</span>
+            <i class="fa fa-times" onclick="closeMobileSheet()" style="color: #94a3b8; font-size: 20px;"></i>
+        </div>
+        <div id="mobile-sheet-content"></div>
+    </div>
+
+    <!-- Mobile Navigation Bar (v4.2) -->
+    <div id="mobile-nav" class="mobile-only">
+        <div class="mobile-nav-item" id="nav-home" onclick="openMobileTab('home')">
+            <i class="fa fa-search"></i>
+            <span>Gestión</span>
+        </div>
+        <div class="mobile-nav-item" id="nav-seleccion" onclick="openMobileTab('seleccion')">
+            <i class="fa fa-mouse-pointer"></i>
+            <span>Selección</span>
+        </div>
+        <div class="mobile-nav-item" id="nav-leyenda" onclick="openMobileTab('leyenda')">
+            <i class="fa fa-list-ul"></i>
+            <span>Capas</span>
+        </div>
+        <div class="mobile-nav-item" id="nav-archivos" onclick="openMobileTab('archivos')">
+            <i class="fa fa-file-excel"></i>
+            <span>Excel</span>
+        </div>
+        <div class="mobile-nav-item" id="nav-menu" onclick="openMobileTab('menu')">
+            <i class="fa fa-chart-pie"></i>
+            <span>Reportes</span>
+        </div>
+    </div>
+
+    <!-- Sidebar with toggle window behavior -->
     <div id="sidebar" class="leaflet-sidebar collapsed">
-            <div class="leaflet-sidebar-tabs">
-                <ul role="tablist">
-                    <li><a href="#home" role="tab"><i class="fa fa-home"></i></a></li>
-                    <li><a href="#menu" role="tab"><i class="fa fa-bars"></i></a></li>
-                </ul>
-                <div style="position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 10px; font-weight: bold; color: #94a3b8;">v4.1</div>
+        <div class="leaflet-sidebar-tabs">
+            <ul role="tablist">
+                <li id="tab-btn-gestion"><a href="javascript:void(0)" onclick="toggleLeyendaGestion()" title="Gestión de Suministros"><i class="fa fa-search"></i></a></li>
+                <li id="tab-btn-seleccion"><a href="javascript:void(0)" onclick="toggleLeyendaSeleccion()" title="Herramientas de Selección"><i class="fa fa-mouse-pointer"></i></a></li>
+                <li id="tab-btn-analisis"><a href="javascript:void(0)" onclick="toggleLeyendaAnalisis()" title="Análisis y Reportes"><i class="fa fa-chart-pie"></i></a></li>
+                <li id="tab-btn-leyenda"><a href="javascript:void(0)" onclick="toggleLeyendaCompleta()" title="Capas de Actividades"><i class="fa fa-list-ul"></i></a></li>
+                <li id="tab-btn-frentes"><a href="javascript:void(0)" onclick="toggleLeyendaFrente()" title="Frentes de Trabajo"><i class="fa fa-hard-hat"></i></a></li>
+                <li id="tab-btn-archivos"><a href="javascript:void(0)" onclick="toggleLeyendaArchivos()" title="Archivos Cargados"><i class="fa fa-file-excel"></i></a></li>
+                <li id="tab-btn-drive"><a href="javascript:void(0)" onclick="abrirModalDrive()" title="Cargar desde Drive"><i class="fab fa-google-drive"></i></a></li>
+            </ul>
+            <ul role="tablist">
+                <li><a href="javascript:void(0)" onclick="map.zoomIn()"><i class="fa fa-plus"></i></a></li>
+                <li><a href="javascript:void(0)" onclick="map.zoomOut()"><i class="fa fa-minus"></i></a></li>
+            </ul>
+            <div style="position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 10px; font-weight: bold; color: #94a3b8;">v4.2</div>
+        </div>
+        <!-- Sidebar content removed - using floating windows -->
+    </div>
+
+    <!-- Floating Window: Gestión de Suministros -->
+    <div id="leyenda-gestion" class="hidden-legend">
+        <div class="leyenda-header">
+            <span>Gestión de Suministros</span>
+            <i class="fa fa-times" onclick="toggleLeyendaGestion()" style="cursor: pointer; opacity: 0.8;"></i>
+        </div>
+        <div class="leyenda-body">
+            <div>
+                <label style="font-weight: bold; color: #1d4ed8; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 2px;">BÚSQUEDA:</label>
+                <input type="text" id="search-box-pc" placeholder="Suministro / Medidor / Nombre..." oninput="buscarSuministro(this.value, true)" autocomplete="off">
+                <div id="search-results-pc" class="search-results-sidebar" style="position: absolute; width: calc(100% - 20px); background: white; z-index: 5000;"></div>
             </div>
-        <div class="leaflet-sidebar-content">
-            <div class="leaflet-sidebar-pane active" id="home">
-                <h1 class="leaflet-sidebar-header">Gestión de Suministros <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
-                
-                <div style="padding: 15px 0;">
-                    <div style="display: flex; gap: 5px; margin-bottom: 15px;">
-                        <button id="btn-mode-pc" onclick="setDeviceMode('pc')" style="background: #f1f5f9; color: #475569; flex: 1; height: 30px; font-size: 12px;">
-                            <i class="fa fa-desktop"></i> MODO PC
-                        </button>
-                        <button id="btn-mode-mobile" onclick="setDeviceMode('mobile')" style="background: #f1f5f9; color: #475569; flex: 1; height: 30px; font-size: 12px;">
-                            <i class="fa fa-mobile-alt"></i> MODO CELULAR
-                        </button>
-                    </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <label style="font-weight: bold; color: #1d4ed8; font-size: 14px; text-transform: uppercase;">CARGAR EXCEL:</label>
-                        <i class="fa fa-question-circle" onclick="abrirInstrucciones()" style="cursor: pointer; color: #3b82f6; font-size: 18px;" title="Ver instrucciones de carga"></i>
-                    </div>
-                    <input type="file" id="excelFile" accept=".xlsx" multiple />
+            <div style="margin-top: 8px;">
+                <label style="font-weight: bold; color: #1d4ed8; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 2px;">DISTRITO:</label>
+                <select id="distritoFilter" style="font-size: 12px; height: 28px;">
+                    <option value="">TODOS LOS DISTRITOS</option>
+                </select>
+            </div>
 
-                    <select id="distritoFilter"><option value="">Todos los Distritos</option></select>
-
-                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin:20px 0;">
-
-                    <button id="btnSeleccionar" onclick="toggleModoClic()"><i class="fa fa-mouse-pointer"></i> MODO SELECCIÓN</button>
-                    
-                    <button id="btnArea" onclick="activarSeleccionArea()" class="warning" style="background: #8b5cf6 !important;">
-                        <i class="fa fa-draw-polygon"></i> SELECCIÓN POR ÁREA
-                    </button>
-
-                    <button id="btnExportarSeleccion" disabled onclick="exportarSeleccionExcel()" class="warning">
-                        <i class="fa fa-download"></i> EXPORTAR SELECCIÓN (<span id="count-seleccion">0</span>)
-                    </button>
-
-                    <button onclick="limpiarSeleccion()"><i class="fa fa-eraser"></i> Limpiar Selección</button>
-
-                    <button onclick="window.print()" style="background: #475569;"><i class="fa fa-print"></i> IMPRIMIR MAPA</button>
-
-                    <input type="text" id="search-box" placeholder="Buscar Suministro / Medidor..." oninput="buscarSuministro(this.value)">
+            <div style="margin-top: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #1d4ed8; font-size: 11px; text-transform: uppercase;">CARGAR EXCEL:</label>
+                    <i class="fa fa-question-circle" onclick="abrirInstrucciones()" style="cursor: pointer; color: #3b82f6; font-size: 14px;" title="Ver instrucciones de carga"></i>
                 </div>
+                <input type="file" id="excelFile" accept=".xlsx" multiple style="font-size: 11px;" />
             </div>
+        </div>
+    </div>
 
-            <div class="leaflet-sidebar-pane" id="menu">
-                <h1 class="leaflet-sidebar-header">Análisis y Reportes <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
-                <div style="padding: 15px 0;">
-                    <label style="font-weight: bold; color: #1d4ed8; font-size: 14px; text-transform: uppercase;">HERRAMIENTAS:</label>
-                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-                        <button id="btnConteo" disabled onclick="ejecutarConteo()" style="height: 40px; font-size: 16px;">
-                            <i class="fa fa-chart-pie"></i> EJECUTAR CONTEO
-                        </button>
-                        <button id="btnReporte" disabled onclick="abrirReporte()" style="height: 40px; font-size: 16px;">
-                            <i class="fa fa-file-alt"></i> VER REPORTE DETALLADO
-                        </button>
-                    </div>
-                    <p style="font-size: 14px; color: #64748b; margin-top: 15px; line-height: 1.4;">
-                        * Estas opciones se habilitan una vez cargado el archivo Excel con los datos de suministros.
-                    </p>
-                </div>
+    <!-- Floating Window: Herramientas de Selección -->
+    <div id="leyenda-seleccion" class="hidden-legend">
+        <div class="leyenda-header">
+            <span>Herramientas de Selección</span>
+            <i class="fa fa-times" onclick="toggleLeyendaSeleccion()" style="cursor: pointer; opacity: 0.8;"></i>
+        </div>
+        <div class="leyenda-body">
+            <button id="btnSeleccionar" onclick="toggleModoClic()"><i class="fa fa-mouse-pointer"></i> MODO SELECCIÓN</button>
+            <button id="btnArea" onclick="activarSeleccionArea()"><i class="fa fa-draw-polygon"></i> SELECCIÓN POR ÁREA</button>
+            <button id="btnExportarSeleccion" disabled onclick="exportarSeleccionExcel()" class="warning"><i class="fa fa-download"></i> EXPORTAR SELECCIÓN (<span id="count-seleccion">0</span>)</button>
+            <button onclick="limpiarSeleccion()" class="danger"><i class="fa fa-eraser"></i> LIMPIAR SELECCIÓN</button>
+        </div>
+    </div>
+
+    <!-- Floating Window: Análisis y Reportes -->
+    <div id="leyenda-analisis" class="hidden-legend">
+        <div class="leyenda-header">
+            <span>Análisis y Reportes</span>
+            <i class="fa fa-times" onclick="toggleLeyendaAnalisis()" style="cursor: pointer; opacity: 0.8;"></i>
+        </div>
+        <div class="leyenda-body">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button id="btnConteo" disabled onclick="ejecutarConteo()">
+                    <i class="fa fa-chart-pie"></i> EJECUTAR CONTEO
+                </button>
+                <button id="btnReporte" disabled onclick="abrirReporte()">
+                    <i class="fa fa-file-alt"></i> REPORTE DETALLADO
+                </button>
             </div>
+            <p style="font-size: 11px; color: #64748b; margin-top: 10px; line-height: 1.3;">* Cargue un Excel para habilitar estas herramientas.</p>
         </div>
     </div>
 
@@ -310,8 +619,70 @@
             </div>
         </div>
     </div>
-    
-    <div id="report-modal">
+    <div id="leyenda" class="hidden-legend">
+        <div class="leyenda-header">
+            <span>Actividades</span>
+            <i class="fa fa-times" onclick="toggleLeyendaCompleta()" style="cursor: pointer; opacity: 0.8;"></i>
+        </div>
+        <div class="leyenda-body">
+            <div style="display: flex; gap: 5px; margin-bottom: 12px;">
+                <button onclick="toggleTodasCapas()" style="font-size: 11px;">Alternar Todas</button>
+            </div>
+            <div class="leyenda-item" data-tipo="A1" onclick="toggleCapa('A1', this)"><div class="leyenda-color" style="background:#d32f2f;"></div>A1</div>
+            <div class="leyenda-item" data-tipo="A2" onclick="toggleCapa('A2', this)"><div class="leyenda-color" style="background:#ffeb3b;"></div>A2</div>
+            <div class="leyenda-item" data-tipo="A3" onclick="toggleCapa('A3', this)"><div class="leyenda-color" style="background:#4caf50;"></div>A3</div>
+            <div class="leyenda-item" data-tipo="IMPOSIBILIDAD" onclick="toggleCapa('IMPOSIBILIDAD', this)"><div class="leyenda-color" style="background:#212121;"></div>Imposibilidad</div>
+            <div class="leyenda-item" data-tipo="NO ASIGNADO" onclick="toggleCapa('NO ASIGNADO', this)"><div class="leyenda-color" style="background:#4682b4;"></div>No Asignado</div>
+            <div class="leyenda-item" data-tipo="VERENCAMPO" onclick="toggleCapa('VERENCAMPO', this)"><div class="leyenda-color" style="background:#ff9800;"></div>Ver en Campo</div>
+            <div class="leyenda-item" data-tipo="REUBICACION" onclick="toggleCapa('REUBICACION', this)"><div class="leyenda-color" style="background:#9c27b0;"></div>Reubicación</div>
+            <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 10px 0;">
+            <div class="leyenda-item" data-tipo="MATRIZ" onclick="toggleCapa('MATRIZ', this)">
+                <div class="leyenda-color" style="background:#93c5fd; border: 1px solid #3b82f6; border-radius: 50%;"></div>
+                Matriz Maestra
+            </div>
+        </div>
+    </div>
+
+    <div id="leyenda-frente" class="hidden-legend">
+        <div class="leyenda-header">
+            <span>Frentes</span>
+            <i class="fa fa-times" onclick="toggleLeyendaFrente()" style="cursor: pointer; opacity: 0.8;"></i>
+        </div>
+        <div class="leyenda-body">
+            <div style="display: flex; gap: 5px; margin-bottom: 12px;">
+                <button onclick="toggleTodosFrentes()" style="width: 100%; height: 28px; font-size: 11px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Alternar Todos</button>
+            </div>
+            <div id="frentes-list">
+                <p style="font-size: 12px; color: #94a3b8;">Cargue un Excel para ver frentes...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="leyenda-archivos" class="hidden-legend">
+        <div class="leyenda-header">
+            <span>Archivos Excel</span>
+            <i class="fa fa-times" onclick="toggleLeyendaArchivos()" style="cursor: pointer; opacity: 0.8;"></i>
+        </div>
+        <div class="leyenda-body">
+            <div style="display: flex; gap: 5px; margin-bottom: 12px;">
+                <button onclick="toggleTodosArchivos()" style="width: 100%; height: 28px; font-size: 11px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Alternar Todos</button>
+            </div>
+            <div id="archivos-list">
+                <p style="font-size: 12px; color: #94a3b8;">Cargue un Excel para ver archivos...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="info-panel">
+        <div id="info-header">
+            <span style="font-weight: 800; font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Detalle del Suministro</span>
+            <i class="fa fa-times" onclick="cerrarPanelInfo()" style="cursor:pointer; color: #cbd5e1;"></i>
+        </div>
+        <div id="info-content"></div>
+    </div>
+
+    <!-- Modal de Reporte -->
+    <div id="report-modal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px;">
         <div class="modal-box">
             <div class="modal-header">
                 <h2 style="margin:0; font-size: 22px; color: #1e293b;">Reporte de Actividades</h2>
@@ -380,54 +751,6 @@
 
     <!-- El botón de leyenda ahora se genera dinámicamente en JS -->
 
-    <div id="leyenda">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <strong style="font-size: 16px;">Capas / Actividades</strong>
-            <i class="fa fa-chevron-right" onclick="toggleLeyendaCompleta()" style="cursor: pointer; color: #94a3b8; font-size: 13px;"></i>
-        </div>
-        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-            <button onclick="toggleTodasCapas()" style="width: 100%; height: 24px; font-size: 10px; padding: 0 5px; background: #3b82f6; border-radius: 6px; color: white; border: none; cursor: pointer;">Alternar Todas las Capas</button>
-        </div>
-        <div class="leyenda-item" data-tipo="A1" onclick="toggleCapa('A1', this)"><div class="leyenda-color" style="background:#d32f2f;"></div>A1</div>
-        <div class="leyenda-item" data-tipo="A2" onclick="toggleCapa('A2', this)"><div class="leyenda-color" style="background:#ffeb3b;"></div>A2</div>
-        <div class="leyenda-item" data-tipo="A3" onclick="toggleCapa('A3', this)"><div class="leyenda-color" style="background:#4caf50;"></div>A3</div>
-        <div class="leyenda-item" data-tipo="IMPOSIBILIDAD" onclick="toggleCapa('IMPOSIBILIDAD', this)"><div class="leyenda-color" style="background:#212121;"></div>Imposibilidad</div>
-        <div class="leyenda-item" data-tipo="NO ASIGNADO" onclick="toggleCapa('NO ASIGNADO', this)"><div class="leyenda-color" style="background:#4682b4;"></div>No Asignado</div>
-        <div class="leyenda-item" data-tipo="VERENCAMPO" onclick="toggleCapa('VERENCAMPO', this)"><div class="leyenda-color" style="background:#ff9800;"></div>Ver en Campo</div>
-        <div class="leyenda-item" data-tipo="REUBICACION" onclick="toggleCapa('REUBICACION', this)"><div class="leyenda-color" style="background:#9c27b0;"></div>Reubicación</div>
-        <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 8px 0;">
-        <div class="leyenda-item" data-tipo="MATRIZ" onclick="toggleCapa('MATRIZ', this)">
-            <div class="leyenda-color" style="background:#93c5fd; border: 1px solid #3b82f6; border-radius: 50%;"></div>
-            Matriz Maestra
-        </div>
-    </div>
-
-    <div id="leyenda-frente" class="hidden-legend">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <strong style="font-size: 16px;">Frentes</strong>
-            <i class="fa fa-chevron-right" onclick="toggleLeyendaFrente()" style="cursor: pointer; color: #94a3b8; font-size: 13px;"></i>
-        </div>
-        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-            <button onclick="toggleTodosFrentes()" style="width: 100%; height: 24px; font-size: 10px; padding: 0 5px; background: #3b82f6; border-radius: 6px; color: white; border: none; cursor: pointer;">Alternar Todos los Frentes</button>
-        </div>
-        <div id="frentes-list">
-            <p style="font-size: 12px; color: #94a3b8;">Cargue un Excel para ver frentes...</p>
-        </div>
-    </div>
-
-    <div id="leyenda-archivos" class="hidden-legend">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <strong style="font-size: 16px;">Archivos Excel</strong>
-            <i class="fa fa-chevron-right" onclick="toggleLeyendaArchivos()" style="cursor: pointer; color: #94a3b8; font-size: 13px;"></i>
-        </div>
-        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-            <button onclick="toggleTodosArchivos()" style="width: 100%; height: 24px; font-size: 10px; padding: 0 5px; background: #3b82f6; border-radius: 6px; color: white; border: none; cursor: pointer;">Alternar Todos los Archivos</button>
-        </div>
-        <div id="archivos-list">
-            <p style="font-size: 12px; color: #94a3b8;">Cargue un Excel para ver archivos...</p>
-        </div>
-    </div>
-
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="https://unpkg.com/leaflet-sidebar-v2@3.2.3/js/leaflet-sidebar.min.js"></script>
@@ -443,37 +766,18 @@
         map.createPane('matrizPane');
         map.getPane('matrizPane').style.zIndex = 350;
 
-        const customControls = L.control({ position: 'topright' });
-        customControls.onAdd = function() {
-            const div = L.DomUtil.create('div', 'map-control-column');
-            div.innerHTML = `
-                <div id="btn-location" class="map-control-btn" onclick="toggleLocation()" title="Mi Ubicación">
-                    <i class="fa fa-location-arrow"></i>
-                </div>
-                <div class="map-control-btn" onclick="map.zoomIn()" title="Aumentar Zoom">
-                    <i class="fa fa-plus"></i>
-                </div>
-                <div class="map-control-btn" onclick="map.zoomOut()" title="Disminuir Zoom">
-                    <i class="fa fa-minus"></i>
-                </div>
-                <div id="btn-toggle-drive" class="map-control-btn" onclick="abrirModalDrive()" title="Explorar Carpeta Google Drive">
-                    <i class="fab fa-google-drive"></i>
-                </div>
-                <div id="btn-toggle-frentes" class="map-control-btn" onclick="toggleLeyendaFrente()" title="Filtrar Frentes">
-                    <i class="fa fa-hard-hat"></i>
-                </div>
-                <div id="btn-toggle-archivos" class="map-control-btn" onclick="toggleLeyendaArchivos()" title="Filtrar Archivos Excel">
-                    <i class="fa fa-file-excel"></i>
-                </div>
-                <div id="btn-toggle-leyenda" class="map-control-btn active" onclick="toggleLeyendaCompleta()" title="Mostrar/Ocultar Leyenda">
-                    <i class="fa fa-list-ul"></i>
-                </div>
-            `;
-            return div;
-        };
-        customControls.addTo(map);
-
         var sidebar = L.control.sidebar({ container: 'sidebar', position: 'left' }).addTo(map);
+        
+        // Sincronizar estado del botón de la derecha con la barra lateral
+        sidebar.on('opening', function() {
+            const btn = document.getElementById('btn-toggle-sidebar');
+            if (btn) btn.classList.add('active');
+        });
+        sidebar.on('closing', function() {
+            const btn = document.getElementById('btn-toggle-sidebar');
+            if (btn) btn.classList.remove('active');
+        });
+
         var clusterGroup = L.markerClusterGroup({ disableClusteringAtZoom: 16 }).addTo(map);
         var matrixClusterGroup = L.markerClusterGroup({ 
             disableClusteringAtZoom: 16,
@@ -485,7 +789,7 @@
         var watchId = null;
 
         function toggleLocation() {
-            const btn = document.getElementById('btn-location');
+            const tabBtn = document.getElementById('btn-location-toggle');
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
@@ -493,7 +797,7 @@
                 if (userLocationCircle) map.removeLayer(userLocationCircle);
                 userLocationMarker = null;
                 userLocationCircle = null;
-                btn.classList.remove('active');
+                if (tabBtn) tabBtn.classList.remove('active');
                 return;
             }
 
@@ -502,7 +806,7 @@
                 return;
             }
 
-            btn.classList.add('active');
+            if (tabBtn) tabBtn.classList.add('active');
             watchId = navigator.geolocation.watchPosition((pos) => {
                 const lat = pos.coords.latitude;
                 const lng = pos.coords.longitude;
@@ -526,7 +830,6 @@
                 }
             }, (err) => {
                 console.error("Error de geolocalización:", err);
-                toggleLocation();
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
@@ -782,72 +1085,90 @@
             actualizarLeyendaFrentes();
         }
 
+        function toggleLeyendaGestion() {
+            const panel = document.getElementById('leyenda-gestion');
+            const tabBtn = document.getElementById('tab-btn-gestion');
+            panel.classList.toggle('hidden-legend');
+            if (tabBtn) tabBtn.classList.toggle('active');
+            reorganizarLeyendas();
+        }
+
+        function toggleLeyendaSeleccion() {
+            const panel = document.getElementById('leyenda-seleccion');
+            const tabBtn = document.getElementById('tab-btn-seleccion');
+            panel.classList.toggle('hidden-legend');
+            if (tabBtn) tabBtn.classList.toggle('active');
+            reorganizarLeyendas();
+        }
+
+        function toggleLeyendaAnalisis() {
+            const panel = document.getElementById('leyenda-analisis');
+            const tabBtn = document.getElementById('tab-btn-analisis');
+            panel.classList.toggle('hidden-legend');
+            if (tabBtn) tabBtn.classList.toggle('active');
+            reorganizarLeyendas();
+        }
+
         function toggleLeyendaCompleta() {
             const leyenda = document.getElementById('leyenda');
-            const btn = document.getElementById('btn-toggle-leyenda');
-            
-            const estaAbierta = !leyenda.classList.contains('hidden-legend');
-
-            if (!estaAbierta) {
-                leyenda.classList.remove('hidden-legend');
-                if (btn) btn.classList.add('active');
-            } else {
-                leyenda.classList.add('hidden-legend');
-                if (btn) btn.classList.remove('active');
-            }
+            const tabBtn = document.getElementById('tab-btn-leyenda');
+            leyenda.classList.toggle('hidden-legend');
+            if (tabBtn) tabBtn.classList.toggle('active');
             reorganizarLeyendas();
             actualizarEstilosMapa();
         }
 
         function toggleLeyendaFrente() {
             const leyenda = document.getElementById('leyenda-frente');
-            const btn = document.getElementById('btn-toggle-frentes');
-
-            const estaAbierta = !leyenda.classList.contains('hidden-legend');
-
-            if (!estaAbierta) {
-                leyenda.classList.remove('hidden-legend');
-                if (btn) btn.classList.add('active');
-            } else {
-                leyenda.classList.add('hidden-legend');
-                if (btn) btn.classList.remove('active');
-            }
+            const tabBtn = document.getElementById('tab-btn-frentes');
+            leyenda.classList.toggle('hidden-legend');
+            if (tabBtn) tabBtn.classList.toggle('active');
             reorganizarLeyendas();
             actualizarEstilosMapa();
         }
 
         function toggleLeyendaArchivos() {
             const leyenda = document.getElementById('leyenda-archivos');
-            const btn = document.getElementById('btn-toggle-archivos');
-
-            const estaAbierta = !leyenda.classList.contains('hidden-legend');
-
-            if (!estaAbierta) {
-                leyenda.classList.remove('hidden-legend');
-                if (btn) btn.classList.add('active');
-            } else {
-                leyenda.classList.add('hidden-legend');
-                if (btn) btn.classList.remove('active');
-            }
+            const tabBtn = document.getElementById('tab-btn-archivos');
+            leyenda.classList.toggle('hidden-legend');
+            if (tabBtn) tabBtn.classList.toggle('active');
             reorganizarLeyendas();
             actualizarEstilosMapa();
         }
 
         function reorganizarLeyendas() {
-            const ids = ['leyenda', 'leyenda-frente', 'leyenda-archivos'];
+            const ids = ['leyenda-gestion', 'leyenda-seleccion', 'leyenda-analisis', 'leyenda', 'leyenda-frente', 'leyenda-archivos'];
             let currentTop = 10;
-            const gap = 15;
-            const zoomFactor = 0.8;
+            const gap = 12;
+            const zoomFactor = document.body.classList.contains('pc-mode') ? 0.8 : 1.0;
 
             ids.forEach(id => {
                 const el = document.getElementById(id);
-                if (!el.classList.contains('hidden-legend')) {
+                if (el && !el.classList.contains('hidden-legend')) {
                     el.style.top = currentTop + "px";
-                    // Aproximación de altura considerando el zoom
                     const rect = el.getBoundingClientRect();
                     currentTop += (rect.height / zoomFactor) + gap;
                 }
             });
+        }
+
+
+        function abrirModalDrive() {
+            const modal = document.getElementById('drive-modal');
+            const tabBtn = document.getElementById('tab-btn-drive');
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+                if (tabBtn) tabBtn.classList.remove('active');
+            } else {
+                modal.style.display = 'flex';
+                if (tabBtn) tabBtn.classList.add('active');
+            }
+        }
+
+        function cerrarModalDrive() {
+            document.getElementById('drive-modal').style.display = 'none';
+            const tabBtn = document.getElementById('tab-btn-drive');
+            if (tabBtn) tabBtn.classList.remove('active');
         }
 
         function actualizarEstilosMapa() {
@@ -893,7 +1214,7 @@
             let html = "";
 
             if (appFiles.length > 0) {
-                html += `<div style="font-size:10px; font-weight:bold; color:#64748b; margin:10px 0 5px 0; border-bottom:1px solid #e2e8f0; padding-bottom:2px;">CARGADOS POR APLICACIÓN</div>`;
+                html += `<div style="font-size:10px; font-weight:bold; color:#64748b; margin:5px 0 2px 0; border-bottom:1px solid #e2e8f0; padding-bottom:px;">CARGADOS POR APLICACIÓN</div>`;
                 appFiles.forEach(a => {
                     if (archivosVisibles[a] === undefined) archivosVisibles[a] = true;
                     const inactiveClass = archivosVisibles[a] ? '' : 'inactive';
@@ -908,7 +1229,7 @@
             }
 
             if (driveFiles.length > 0) {
-                html += `<div style="font-size:10px; font-weight:bold; color:#059669; margin:15px 0 5px 0; border-bottom:1px solid #e2e8f0; padding-bottom:2px;">CARGADOS DESDE DRIVE</div>`;
+                html += `<div style="font-size:10px; font-weight:bold; color:#059669; margin:8px 0 2px 0; border-bottom:1px solid #e2e8f0; padding-bottom:1px;">CARGADOS DESDE DRIVE</div>`;
                 driveFiles.forEach(a => {
                     if (archivosVisibles[a] === undefined) archivosVisibles[a] = true;
                     const inactiveClass = archivosVisibles[a] ? '' : 'inactive';
@@ -982,33 +1303,97 @@
 
         function setDeviceMode(mode) {
             const body = document.body;
-            const btnPc = document.getElementById('btn-mode-pc');
-            const btnMobile = document.getElementById('btn-mode-mobile');
+            const deviceIcon = document.getElementById('device-icon');
 
             if (mode === 'pc') {
                 body.classList.remove('mobile-mode');
                 body.classList.add('pc-mode');
-                btnPc.style.background = '#3b82f6';
-                btnPc.style.color = 'white';
-                btnMobile.style.background = '#f1f5f9';
-                btnMobile.style.color = '#475569';
+                if(deviceIcon) deviceIcon.className = 'fa fa-mobile-alt';
+                closeMobileSheet();
             } else {
                 body.classList.remove('pc-mode');
                 body.classList.add('mobile-mode');
-                btnMobile.style.background = '#3b82f6';
-                btnMobile.style.color = 'white';
-                btnPc.style.background = '#f1f5f9';
-                btnPc.style.color = '#475569';
+                if(deviceIcon) deviceIcon.className = 'fa fa-desktop';
+                if (sidebar) sidebar.close();
             }
             localStorage.setItem('preferred_device_mode', mode);
-            setTimeout(reorganizarLeyendas, 350); // Reajustar posiciones después de la transición
+            setTimeout(reorganizarLeyendas, 350); 
+        }
+
+        function toggleDeviceModeManual() {
+            const current = document.body.classList.contains('mobile-mode') ? 'mobile' : 'pc';
+            setDeviceMode(current === 'pc' ? 'mobile' : 'pc');
+        }
+
+        let currentMobileTab = null;
+
+        function openMobileTab(tabId) {
+            const sheet = document.getElementById('mobile-bottom-sheet');
+            const content = document.getElementById('mobile-sheet-content');
+            const title = document.getElementById('mobile-sheet-title');
+            
+            // Regresar contenido previo si existe
+            closeMobileSheet();
+
+            document.querySelectorAll('.mobile-nav-item').forEach(item => item.classList.remove('active'));
+            const activeNav = document.getElementById('nav-' + tabId);
+            if(activeNav) activeNav.classList.add('active');
+
+            let sourceId = '';
+            switch(tabId) {
+                case 'home': title.innerText = 'Gestión de Suministros'; sourceId = 'leyenda-gestion'; break;
+                case 'seleccion': title.innerText = 'Herramientas de Selección'; sourceId = 'leyenda-seleccion'; break;
+                case 'leyenda': title.innerText = 'Capas y Actividades'; sourceId = 'leyenda'; break;
+                case 'frentes': title.innerText = 'Frentes de Trabajo'; sourceId = 'leyenda-frente'; break;
+                case 'archivos': title.innerText = 'Archivos Excel'; sourceId = 'leyenda-archivos'; break;
+                case 'menu': title.innerText = 'Análisis y Reportes'; sourceId = 'leyenda-analisis'; break;
+            }
+
+            if (sourceId) {
+                const source = document.getElementById(sourceId);
+                const body = source.querySelector('.leyenda-body');
+                if (body) {
+                    currentMobileTab = sourceId;
+                    // Mover elementos en lugar de clonar para mantener IDs y eventos
+                    while (body.firstChild) {
+                        content.appendChild(body.firstChild);
+                    }
+                }
+            }
+
+            sheet.classList.add('active');
+        }
+
+        function closeMobileSheet() {
+            const sheet = document.getElementById('mobile-bottom-sheet');
+            const content = document.getElementById('mobile-sheet-content');
+            
+            if (currentMobileTab) {
+                const target = document.getElementById(currentMobileTab).querySelector('.leyenda-body');
+                if (target) {
+                    while (content.firstChild) {
+                        target.appendChild(content.firstChild);
+                    }
+                }
+                currentMobileTab = null;
+            }
+
+            if(sheet) sheet.classList.remove('active');
+            document.querySelectorAll('.mobile-nav-item').forEach(item => item.classList.remove('active'));
         }
 
         window.onload = function() {
-            // Cargar modo preferido o detectar por ancho de pantalla
-            const savedMode = localStorage.getItem('preferred_device_mode');
-            const defaultMode = savedMode || (window.innerWidth < 768 ? 'mobile' : 'pc');
+            // Detección automática de dispositivo
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+            const defaultMode = isMobile ? 'mobile' : 'pc';
             setDeviceMode(defaultMode);
+
+            if (defaultMode === 'pc') {
+                toggleLeyendaGestion();
+                toggleLeyendaCompleta(); 
+            } else {
+                openMobileTab('home');
+            }
 
             const savedKey = localStorage.getItem('google_drive_api_key');
             if (savedKey) {
@@ -1517,15 +1902,65 @@
 
         document.getElementById('distritoFilter').onchange = () => actualizarFiltrosGlobales();
 
-        function buscarSuministro(val) {
+        function toggleFloatingSearch() {
+            const bar = document.getElementById('search-bar-floating');
+            const trigger = document.getElementById('search-trigger-btn');
+            const input = document.getElementById('search-box-floating');
+            
+            if (bar.style.display === 'block') {
+                bar.style.display = 'none';
+                trigger.style.display = 'flex';
+                document.getElementById('search-results-floating').style.display = 'none';
+            } else {
+                bar.style.display = 'block';
+                trigger.style.display = 'none';
+                input.focus();
+            }
+        }
+
+        function buscarSuministro(val, isPc = false) {
             const query = val.toUpperCase().trim();
-            if(!query || query.length < 3) return;
-            if (highlightCircle) map.removeLayer(highlightCircle);
-            const found = [...allMarkers, ...matrixMarkers].find(m => 
+            const resultsDivId = isPc ? 'search-results-pc' : 'search-results-floating';
+            const resultsDiv = document.getElementById(resultsDivId);
+            
+            if(!query || query.length < 2) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            const matches = [...allMarkers, ...matrixMarkers].filter(m => 
                 m.properties.SUMINISTRO.includes(query) || 
                 (m.properties.USUARIO && m.properties.USUARIO.toUpperCase().includes(query)) ||
-                (m.properties.NOMBRE && m.properties.NOMBRE.toUpperCase().includes(query))
-            );
+                (m.properties.NOMBRE && m.properties.NOMBRE.toUpperCase().includes(query)) ||
+                (m.properties.MEDIDOR && m.properties.MEDIDOR.toString().includes(query))
+            ).slice(0, 10);
+
+            if(matches.length > 0) {
+                resultsDiv.innerHTML = matches.map(m => `
+                    <div class="search-result-item" onclick="seleccionarResultado('${m.properties.SUMINISTRO}', ${isPc})">
+                        <span class="suministro">${m.properties.SUMINISTRO}</span>
+                        <span class="usuario">${m.properties.USUARIO || m.properties.NOMBRE || 'Sin nombre'}</span>
+                    </div>
+                `).join('');
+                resultsDiv.style.display = 'block';
+            } else {
+                resultsDiv.style.display = 'none';
+            }
+        }
+
+        function seleccionarResultado(suministroId, isPc = false) {
+            const resultsDivId = isPc ? 'search-results-pc' : 'search-results-floating';
+            const inputBoxId = isPc ? 'search-box-pc' : 'search-box-floating';
+            
+            document.getElementById(resultsDivId).style.display = 'none';
+            document.getElementById(inputBoxId).value = suministroId;
+            
+            // Opcional: cerrar el buscador al seleccionar en móvil
+            if (!isPc && window.innerWidth < 768) toggleFloatingSearch();
+
+            if (highlightCircle) map.removeLayer(highlightCircle);
+            const found = [...allMarkers, ...matrixMarkers].find(m => m.properties.SUMINISTRO === suministroId);
+            
             if(found) { 
                 const latlng = found.getLatLng();
                 mostrarInfo(found.properties);
