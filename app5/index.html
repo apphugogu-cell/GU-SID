@@ -50,7 +50,7 @@
         
         .leaflet-sidebar-content { display: none !important; } /* We will use floating windows */
 
-        #leyenda, #leyenda-frente, #leyenda-archivos, #leyenda-gestion, #leyenda-seleccion, #leyenda-analisis, #drive-window {
+        #leyenda, #leyenda-frente, #leyenda-archivos, #leyenda-gestion, #leyenda-seleccion, #leyenda-analisis, #leyenda-errores, #drive-window {
             position: absolute; left: 65px; background: white; padding: 0; border-radius: 12px;
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-size: 14px; z-index: 1000;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -66,11 +66,11 @@
         
         body.pc-mode #leyenda, body.pc-mode #leyenda-frente, body.pc-mode #leyenda-archivos,
         body.pc-mode #leyenda-gestion, body.pc-mode #leyenda-seleccion, body.pc-mode #leyenda-analisis,
-        body.pc-mode #drive-window { zoom: 0.8; }
+        body.pc-mode #leyenda-errores, body.pc-mode #drive-window { zoom: 0.8; }
         
         body.mobile-mode #leyenda, body.mobile-mode #leyenda-frente, body.mobile-mode #leyenda-archivos,
         body.mobile-mode #leyenda-gestion, body.mobile-mode #leyenda-seleccion, body.mobile-mode #leyenda-analisis,
-        body.mobile-mode #drive-window { 
+        body.mobile-mode #leyenda-errores, body.mobile-mode #drive-window { 
             display: none !important;
         }
 
@@ -80,6 +80,7 @@
         #leyenda-gestion { top: 60px; }
         #leyenda-seleccion { top: 60px; }
         #leyenda-analisis { top: 60px; }
+        #leyenda-errores { top: 60px; max-height: 400px; overflow-y: auto; }
         #drive-window { top: 60px; }
         
         .hidden-legend {
@@ -420,26 +421,79 @@
         }
         #search-results-floating {
             position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
+            top: 100%;
+            left: 0;
             width: 100%;
             background: white;
-            border-radius: 12px;
+            border-radius: 0 0 16px 16px;
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-            max-height: 250px;
+            max-height: 300px;
             overflow-y: auto;
             z-index: 5001;
             border: 1px solid #e2e8f0;
+            border-top: none;
             display: none;
+            margin-top: -8px;
+            padding-top: 8px;
+        }
+
+        #search-bar-floating.has-results {
+            border-radius: 16px 16px 0 0;
         }
         
         .search-result-item {
-            padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f1f5f9;
-            font-size: 13px; transition: background 0.2s;
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f8fafc;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
         }
-        .search-result-item:hover { background: #f8fafc; }
-        .search-result-item .suministro { font-weight: bold; color: var(--primary); }
-        .search-result-item .usuario { font-size: 11px; color: #64748b; display: block; }
+        .search-result-item:last-child { border-bottom: none; }
+        .search-result-item:hover { background: #f1f5f9; padding-left: 20px; }
+        .search-result-item i { color: #94a3b8; font-size: 14px; }
+        .search-result-item .result-info { flex: 1; }
+        .search-result-item .suministro { font-weight: 700; color: #1e293b; font-size: 13px; line-height: 1; margin-bottom: 2px; }
+        .search-result-item .usuario { font-size: 11px; color: #64748b; font-weight: 500; }
+        .search-result-item .tag { 
+            font-size: 9px; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            font-weight: 800; 
+            text-transform: uppercase;
+        }
+        .tag-active { background: #dcfce7; color: #166534; }
+        .tag-matrix { background: #f1f5f9; color: #475569; }
+
+        .notification-dot {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 1.5px solid white;
+            display: none;
+            animation: pulse-red 2s infinite;
+        }
+        @keyframes pulse-red {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .error-item {
+            padding: 8px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .error-item:last-child { border-bottom: none; }
+        .error-suministro { font-weight: 700; color: #1e293b; }
+        .error-archivo { color: #64748b; font-size: 9px; }
 
         /* Mobile adjustments for floating search */
         #floating-search-container { display: flex !important; }
@@ -460,6 +514,33 @@
             display: none;
             z-index: 5000;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .chip-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 5px;
+        }
+        .chip {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+            border: 1px solid #e2e8f0;
+        }
+        .chip i {
+            cursor: pointer;
+            color: #94a3b8;
+            font-size: 10px;
+        }
+        .chip i:hover {
+            color: #ef4444;
         }
     </style>
 </head>
@@ -554,13 +635,18 @@
     <div id="sidebar" class="leaflet-sidebar collapsed">
         <div class="leaflet-sidebar-tabs">
             <ul role="tablist">
-                <li id="tab-btn-search"><a href="javascript:void(0)" onclick="toggleFloatingSearch()" title="Buscador de Suministros"><i class="fa fa-search"></i></a></li>
                 <li id="tab-btn-gestion"><a href="javascript:void(0)" onclick="toggleLeyendaGestion()" title="Gestión de Datos (Excel/Distritos)"><i class="fa fa-file-import"></i></a></li>
                 <li id="tab-btn-seleccion"><a href="javascript:void(0)" onclick="toggleLeyendaSeleccion()" title="Herramientas de Selección"><i class="fa fa-mouse-pointer"></i></a></li>
                 <li id="tab-btn-analisis"><a href="javascript:void(0)" onclick="toggleLeyendaAnalisis()" title="Análisis y Reportes"><i class="fa fa-chart-pie"></i></a></li>
                 <li id="tab-btn-leyenda"><a href="javascript:void(0)" onclick="toggleLeyendaCompleta()" title="Capas de Actividades"><i class="fa fa-list-ul"></i></a></li>
                 <li id="tab-btn-frentes"><a href="javascript:void(0)" onclick="toggleLeyendaFrente()" title="Frentes de Trabajo"><i class="fa fa-hard-hat"></i></a></li>
                 <li id="tab-btn-archivos"><a href="javascript:void(0)" onclick="toggleLeyendaArchivos()" title="Archivos Cargados"><i class="fa fa-file-excel"></i></a></li>
+                <li id="tab-btn-errores">
+                    <a href="javascript:void(0)" onclick="toggleLeyendaErrores()" title="Registros no Encontrados en Matriz" style="position: relative;">
+                        <i class="fa fa-exclamation-circle"></i>
+                        <span id="dot-errores" class="notification-dot"></span>
+                    </a>
+                </li>
                 <li id="tab-btn-drive"><a href="javascript:void(0)" onclick="abrirModalDrive()" title="Cargar desde Drive"><i class="fab fa-google-drive"></i></a></li>
             </ul>
             <div style="position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 10px; font-weight: bold; color: #94a3b8;">v4.2</div>
@@ -581,6 +667,7 @@
                     <i class="fa fa-question-circle" onclick="abrirInstrucciones()" style="cursor: pointer; color: #3b82f6; font-size: 14px;" title="Ver instrucciones de carga"></i>
                 </div>
                 <input type="file" id="excelFile" accept=".xlsx" multiple style="font-size: 11px;" />
+                <div id="excel-validation-msg" style="margin-top: 4px; font-size: 10px; display: none;"></div>
             </div>
 
             <div style="margin-top: 8px;">
@@ -588,6 +675,55 @@
                 <select id="distritoFilter" style="font-size: 12px; height: 28px;">
                     <option value="">TODOS LOS DISTRITOS</option>
                 </select>
+            </div>
+
+            <div style="margin-top: 8px;">
+                <label style="font-weight: bold; color: #1d4ed8; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 2px;">ACTIVIDAD:</label>
+                <select id="actividadFilter" style="font-size: 12px; height: 28px;" onchange="agregarActividadMultiselect(this.value)">
+                    <option value="">TODAS LAS ACTIVIDADES</option>
+                    <option value="A1">A1</option>
+                    <option value="A2">A2</option>
+                    <option value="A3">A3</option>
+                    <option value="NEGATIVA">NEGATIVA</option>
+                    <option value="IMPOSIBILIDAD">IMPOSIBILIDAD</option>
+                    <option value="VERENCAMPO">VER EN CAMPO</option>
+                    <option value="REUBICACION">REUBICACIÓN</option>
+                    <option value="NO ASIGNADO">NO ASIGNADO</option>
+                </select>
+                <div id="chips-actividades" class="chip-container"></div>
+            </div>
+
+            <div style="margin-top: 8px;">
+                <label style="font-weight: bold; color: #1d4ed8; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 2px;">FRENTE:</label>
+                <select id="frenteFilter" style="font-size: 12px; height: 28px;">
+                    <option value="">TODOS LOS FRENTES</option>
+                </select>
+            </div>
+
+            <div style="margin-top: 8px;">
+                <label style="font-weight: bold; color: #1d4ed8; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 2px;">RANGO DE FECHAS:</label>
+                <select id="dateRangeSelect" onchange="toggleCustomDateInputs()" style="font-size: 12px; height: 28px;">
+                    <option value="all">TODAS LAS FECHAS</option>
+                    <option value="today">HOY</option>
+                    <option value="last7">ÚLTIMOS 7 DÍAS</option>
+                    <option value="thisMonth">ESTE MES</option>
+                    <option value="custom">PERSONALIZADO</option>
+                </select>
+                <div id="customDateContainer" style="display: none; margin-top: 4px; gap: 4px; flex-direction: column;">
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="font-size: 10px; color: #64748b; width: 40px;">DESDE:</label>
+                        <input type="date" id="dateStart" style="flex: 1; font-size: 11px; height: 24px; padding: 0 4px;" onchange="actualizarFiltrosGlobales()" />
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <label style="font-size: 10px; color: #64748b; width: 40px;">HASTA:</label>
+                        <input type="date" id="dateEnd" style="flex: 1; font-size: 11px; height: 24px; padding: 0 4px;" onchange="actualizarFiltrosGlobales()" />
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 8px;">
+                <label style="font-weight: bold; color: #1d4ed8; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 2px;">BUSCAR (USUARIO/DIRECCIÓN):</label>
+                <input type="text" id="freeTextFilter" placeholder="Texto a buscar..." style="font-size: 12px; height: 28px;" />
             </div>
         </div>
     </div>
@@ -719,6 +855,26 @@
         </div>
     </div>
 
+    <div id="leyenda-errores" class="hidden-legend">
+        <div class="leyenda-header" style="background: #ef4444;">
+            <span>Suministros sin Match</span>
+            <i class="fa fa-times" onclick="toggleLeyendaErrores()" style="cursor: pointer; opacity: 0.8;"></i>
+        </div>
+        <div class="leyenda-body">
+            <div style="margin-bottom: 8px; border-bottom: 1px solid #fee2e2; padding-bottom: 8px;">
+                <p style="font-size: 10px; color: #991b1b; margin: 0;">Estos suministros están en el Excel pero NO existen en la base de datos maestra.</p>
+            </div>
+            <div id="errores-list" style="max-height: 300px; overflow-y: auto;">
+                <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 20px;">Sin discrepancias detectadas.</p>
+            </div>
+            <div style="margin-top: 10px;">
+                <button onclick="descargarErroresCSV()" style="width: 100%; height: 28px; font-size: 11px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                    <i class="fa fa-download"></i> DESCARGAR LISTA
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Reporte -->
     <div id="report-modal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px;">
         <div class="modal-box">
@@ -727,7 +883,16 @@
                 <i class="fa fa-times" onclick="cerrarReporte()" style="cursor:pointer; font-size: 20px; color: #94a3b8;"></i>
             </div>
             <div class="modal-body" style="background: #f8fafc;">
-                <div class="stats-grid" id="stats-container"></div>
+                <div style="display: flex; gap: 15px; margin-bottom: 15px; align-items: stretch; flex-wrap: wrap;">
+                    <div id="stats-container" class="stats-grid" style="flex: 1; min-width: 300px; margin: 0;"></div>
+                    <div style="flex: 0 0 250px; background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 10px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                        <span style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Vista Geográfica Actual</span>
+                        <div id="mini-map-preview" style="height: 150px; width: 100%; border-radius: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; z-index: 5;"></div>
+                        <button onclick="centrarEnMiniatura()" style="font-size: 11px; height: 28px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; font-weight: 600;">
+                            <i class="fa fa-crosshairs"></i> CENTRAR MAPA PRINCIPAL
+                        </button>
+                    </div>
+                </div>
                 
                 <div class="dashboard-container">
                     <div class="dashboard-card">
@@ -790,13 +955,17 @@
                 <ul style="padding-left: 20px; margin-bottom: 20px; font-size: 14px;">
                     <li><strong>SUMINISTRO:</strong> (Obligatorio) ID para ubicar en la matriz.</li>
                     <li><strong>ACTIVIDAD:</strong> (Opcional) A1, A2, A3, NEGATIVA, IMPOSIBILIDAD, NO ASIGNADO.</li>
+                    <li><strong>FECHA:</strong> (Recomendado) Formato YYYY-MM-DD para análisis temporal y reportes.</li>
                     <li><strong>FRENTE:</strong> (Opcional) Para agrupar y filtrar por frentes de trabajo.</li>
                     <li><strong>VER EN CAMPO / REUBICACION:</strong> (Opcional) Marcar con "SI".</li>
-                    <li><strong>DISTRITO / LOCALIDAD:</strong> (Opcional) Para filtros geográficos.</li>
-                    <li><strong>FECHA:</strong> (Opcional) Formato YYYY-MM-DD para análisis temporal.</li>
-                    <li><strong>USUARIO / MEDIDOR / DIRECCION:</strong> (Opcional) Datos informativos.</li>
+                    <li><strong>MEDIDOR:</strong> (Opcional) Dato informativo.</li>
                     <li><strong>CATEGORIA / OBSERVACION:</strong> (Opcional) Detalles adicionales.</li>
                 </ul>
+                <div style="background: #f1f5f9; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #3b82f6;">
+                    <p style="margin: 0; font-size: 13px; color: #1e293b;">
+                        <strong>Nota:</strong> Los campos <strong>DISTRITO</strong>, <strong>LOCALIDAD</strong>, <strong>DIRECCIÓN</strong> y <strong>USUARIO</strong> no son necesarios en su archivo, ya que el sistema los vincula automáticamente mediante la <strong>Matriz Maestra</strong> al usar el número de Suministro.
+                    </p>
+                </div>
                 <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
                     <p style="margin: 0; font-size: 14px;"><strong>Nota:</strong> Si la palabra <strong>"CAMPO"</strong> aparece en cualquier columna, el punto se marcará automáticamente en color naranja.</p>
                 </div>
@@ -896,6 +1065,7 @@
 
         var matrizUbicaciones = new Map();
         var allMarkers = [];
+        var unmatchedData = []; // Suministros que no están en la matriz
         var matrixMarkers = [];
         var selectedMarkers = [];
         var modoClic = false;
@@ -1224,7 +1394,7 @@
         }
 
         function reorganizarLeyendas() {
-            const ids = ['leyenda-gestion', 'leyenda-seleccion', 'leyenda-analisis', 'leyenda', 'leyenda-frente', 'leyenda-archivos'];
+            const ids = ['leyenda-gestion', 'leyenda-seleccion', 'leyenda-analisis', 'leyenda', 'leyenda-frente', 'leyenda-archivos', 'leyenda-errores'];
             let currentTop = 10;
             const gap = 12;
             const zoomFactor = document.body.classList.contains('pc-mode') ? 0.8 : 1.0;
@@ -1337,28 +1507,97 @@
         function actualizarFiltrosGlobales() {
             clusterGroup.clearLayers();
             const distritoActivo = document.getElementById('distritoFilter').value.toUpperCase();
+            const frenteActivo = document.getElementById('frenteFilter').value.toUpperCase();
+            const queryQuery = document.getElementById('freeTextFilter').value.toUpperCase().trim();
+
+            const dateRangeType = document.getElementById('dateRangeSelect').value;
+            let startDate = null;
+            let endDate = null;
+            
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            if (dateRangeType === 'today') {
+                startDate = today;
+                endDate = new Date(today);
+                endDate.setDate(endDate.getDate() + 1);
+            } else if (dateRangeType === 'last7') {
+                startDate = new Date(today);
+                startDate.setDate(startDate.getDate() - 7);
+                endDate = new Date(today);
+                endDate.setDate(endDate.getDate() + 1);
+            } else if (dateRangeType === 'thisMonth') {
+                startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            } else if (dateRangeType === 'custom') {
+                const s = document.getElementById('dateStart').value;
+                const e = document.getElementById('dateEnd').value;
+                if (s) startDate = new Date(s + "T00:00:00");
+                if (e) {
+                    endDate = new Date(e + "T23:59:59");
+                }
+            }
+
             allMarkers.forEach(m => {
                 const p = m.properties;
                 const distM = (p.DISTRITO || "").toString().toUpperCase().trim();
                 const frenteM = (p.FRENTE || "").toString().toUpperCase().trim();
+                const usuarioM = (p.USUARIO || "").toString().toUpperCase().trim();
+                const direccionM = (p.DIRECCION || "").toString().toUpperCase().trim();
+                const medidorM = (p.MEDIDOR || "").toString().toUpperCase().trim();
                 const archivoM = p.fileName;
                 
                 const cumpleDistrito = !distritoActivo || distM === distritoActivo;
                 const cumpleArchivo = archivosVisibles[archivoM] !== false;
                 
-                // Lógica aditiva: visible si su actividad está activa O si su estado especial (R/C) está activo
+                // Lógica de Actividad Multiselect
+                let cumpleActividadSelect = true;
+                if (actividadesSeleccionadas.length > 0) {
+                    cumpleActividadSelect = actividadesSeleccionadas.some(act => {
+                        return p.tipoFiltro === act || 
+                               (act === 'REUBICACION' && p.isReubicacion) ||
+                               (act === 'VERENCAMPO' && p.isVerCampo);
+                    });
+                }
+
                 const cumpleCapaBase = capasVisibles[p.tipoFiltro];
                 const cumpleReubicacion = p.isReubicacion && capasVisibles['REUBICACION'];
                 const cumpleVerCampo = p.isVerCampo && capasVisibles['VERENCAMPO'];
+                const cumpleCapaLeyenda = cumpleCapaBase || cumpleReubicacion || cumpleVerCampo;
                 
-                const cumpleCapa = cumpleCapaBase || cumpleReubicacion || cumpleVerCampo;
-                const cumpleFrente = !frenteM || frentesVisibles[frenteM] !== false;
-                
-                if (cumpleDistrito && cumpleArchivo && cumpleCapa && cumpleFrente) {
+                const cumpleFrenteSelect = !frenteActivo || frenteM === frenteActivo;
+                const cumpleFrenteLeyenda = !frenteM || frentesVisibles[frenteM] !== false;
+
+                const cumpleTexto = !queryQuery || 
+                                    usuarioM.includes(queryQuery) || 
+                                    direccionM.includes(queryQuery) || 
+                                    medidorM.includes(queryQuery) ||
+                                    p.SUMINISTRO.toString().includes(queryQuery);
+
+                let cumpleFecha = true;
+                if (startDate || endDate) {
+                    if (p.FECHA_PROCESADA) {
+                        const mDate = new Date(p.FECHA_PROCESADA + "T00:00:00");
+                        if (startDate && mDate < startDate) cumpleFecha = false;
+                        if (endDate && mDate > endDate) cumpleFecha = false;
+                    } else {
+                        cumpleFecha = false;
+                    }
+                }
+
+                if (cumpleDistrito && cumpleArchivo && cumpleActividadSelect && cumpleCapaLeyenda && cumpleFrenteSelect && cumpleFrenteLeyenda && cumpleTexto && cumpleFecha) {
                     clusterGroup.addLayer(m);
-                    restaurarEstilo(m); // Actualizar estilo (letras R/C) al filtrar
+                    restaurarEstilo(m);
                 }
             });
+        }
+
+        function toggleCustomDateInputs() {
+            const val = document.getElementById('dateRangeSelect').value;
+            const container = document.getElementById('customDateContainer');
+            container.style.display = (val === 'custom') ? 'flex' : 'none';
+            actualizarFiltrosGlobales();
+            reorganizarLeyendas();
         }
 
         // CONFIGURACIÓN DE CARGA AUTOMÁTICA (v3.2)
@@ -1635,15 +1874,22 @@
             const wb = XLSX.read(arrayBuffer, {type: 'array'});
             const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval: ""});
             
+            let countProcessed = 0;
+            let countMatched = 0;
+
             json.forEach(row => {
+                countProcessed++;
                 let s = "";
                 for (let k in row) if (k.toUpperCase().trim() === "SUMINISTRO") s = row[k].toString().trim().toUpperCase();
+                
                 if (s && matrizUbicaciones.has(s)) {
                     const dataMatriz = matrizUbicaciones.get(s);
                     const lat = parseFloat(dataMatriz.LATITUD || dataMatriz.lat || 0);
                     const lng = parseFloat(dataMatriz.LONGITUD || dataMatriz.lng || 0);
                     if (lat && lng) {
+                        countMatched++;
                         let tipo = 'NO ASIGNADO';
+                        // ... logic for markers ...
                         let verCampo = false, reubicacion = false;
                         for (let k in row) {
                             const key = k.toUpperCase().trim();
@@ -1659,7 +1905,6 @@
                             if (key === "REUBICACION" && val === "SI") reubicacion = true;
                         }
 
-                        // Extraer Fecha si existe
                         let fechaVal = "";
                         for (let k in row) {
                             if (k.toUpperCase().trim() === "FECHA") {
@@ -1682,25 +1927,102 @@
                         
                         m.on('click', function() { handleMarkerClick(m); });
                         allMarkers.push(m);
-                        // Solo añadir al cluster si debe ser visible
                         if (startVisible) clusterGroup.addLayer(m);
+                    } else {
+                        // Lat/Lng missing even if matched (shouldn't happen with correct matrix)
+                        unmatchedData.push({ suministro: s, archivo: finalName, motivo: 'Sin Coordenadas' });
+                    }
+                } else {
+                    if (s) {
+                        unmatchedData.push({ suministro: s, archivo: finalName, motivo: 'No en Matriz' });
                     }
                 }
             });
             actualizarDistritos();
             actualizarLeyendaFrentes();
             actualizarLeyendaArchivos();
+            actualizarLeyendaErrores();
             document.getElementById('btnConteo').disabled = false;
             document.getElementById('btnReporte').disabled = false;
-            if (!startVisible) actualizarFiltrosGlobales();
+            actualizarFiltrosGlobales();
+            return { total: countProcessed, matched: countMatched };
         }
 
         document.getElementById('excelFile').onchange = function(e) {
-            Array.from(e.target.files).forEach(file => {
+            const files = Array.from(e.target.files);
+            const msgDiv = document.getElementById('excel-validation-msg');
+            msgDiv.style.display = 'none';
+            msgDiv.innerHTML = '';
+
+            if (files.length === 0) return;
+
+            files.forEach(file => {
                 const fileName = file.name;
                 const reader = new FileReader();
                 reader.onload = async function(ev) {
-                    await procesarDatosExcel(ev.target.result, fileName, true, 'app');
+                    const data = new Uint8Array(ev.target.result);
+                    const wb = XLSX.read(data, {type: 'array'});
+                    const sheet = wb.Sheets[wb.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(sheet, {defval: ""});
+                    
+                    // Validaciones en tiempo real
+                    let errors = [];
+                    let warnings = [];
+
+                    if (json.length === 0) {
+                        errors.push(`El archivo "${fileName}" está vacío.`);
+                    } else {
+                        const headers = Object.keys(json[0]).map(h => h.toUpperCase().trim());
+                        if (!headers.includes("SUMINISTRO")) {
+                            errors.push(`Falta la columna requerida: "SUMINISTRO" en "${fileName}".`);
+                        } else {
+                            // Validar que al menos existan suministros válidos
+                            const validRows = json.filter(row => {
+                                let s = "";
+                                for (let k in row) if (k.toUpperCase().trim() === "SUMINISTRO") s = row[k];
+                                return s && s.toString().trim() !== "";
+                            });
+                            if (validRows.length === 0) {
+                                errors.push(`"${fileName}" no contiene ningún número de SUMINISTRO válido.`);
+                            } else if (validRows.length < json.length) {
+                                warnings.push(`${json.length - validRows.length} filas en "${fileName}" no tienen ID de SUMINISTRO.`);
+                            }
+                        }
+                    }
+
+                    if (errors.length > 0) {
+                        msgDiv.style.display = 'block';
+                        msgDiv.style.color = '#ef4444';
+                        msgDiv.innerHTML += errors.map(err => `<div><i class="fa fa-exclamation-triangle"></i> ${err}</div>`).join('');
+                        return; // No procesar si hay errores
+                    }
+
+                    // Proceder si no hay errores fatales
+                    const summary = await procesarDatosExcel(ev.target.result, fileName, true, 'app');
+                    
+                    // Mostrar éxito brevemente o si hubo advertencias
+                    msgDiv.style.display = 'block';
+                    msgDiv.style.color = '#10b981';
+                    let successMsg = `<div><i class="fa fa-check-circle"></i> "${fileName}" cargado.</div>`;
+                    successMsg += `<div style="font-size: 9px; margin-left: 15px; color: #059669;">Matcheados: <b>${summary.matched}</b> de ${summary.total} filas.</div>`;
+                    
+                    if (summary.matched < summary.total) {
+                        const noMatch = summary.total - summary.matched;
+                        successMsg += `<div style="font-size: 9px; margin-left: 15px; color: #d97706;"><i class="fa fa-info-circle"></i> ${noMatch} suministros no encontrados en la Matriz.</div>`;
+                    }
+
+                    if (warnings.length > 0) {
+                        successMsg += warnings.map(w => `<div style="color: #f59e0b; font-size: 9px;"><i class="fa fa-info-circle"></i> ${w}</div>`).join('');
+                    }
+                    msgDiv.innerHTML += successMsg;
+                    
+                    // Limpiar mensaje después de 5 segundos si fue exitoso
+                    setTimeout(() => {
+                        if (msgDiv.innerHTML.includes('check-circle')) {
+                            msgDiv.style.display = 'none';
+                            msgDiv.innerHTML = '';
+                        }
+                    }, 5000);
                 };
                 reader.readAsArrayBuffer(file);
             });
@@ -1921,8 +2243,13 @@
             }
         }
 
+        var miniMapInstance = null;
+        var savedReportView = null;
+
         function abrirReporte() {
             const visibleMarkers = allMarkers.filter(m => clusterGroup.hasLayer(m));
+            savedReportView = { center: map.getCenter(), zoom: map.getZoom() };
+            
             const stats = { A1:0, A2:0, A3:0, NEGATIVA:0, IMPOSIBILIDAD:0, "NO ASIGNADO":0, VERENCAMPO:0, REUBICACION:0 };
             const distStats = {};
             const timeStats = {};
@@ -1936,9 +2263,14 @@
                 if (p.FECHA_PROCESADA) {
                     const date = new Date(p.FECHA_PROCESADA);
                     if (!isNaN(date.getTime())) {
-                        // Semana
-                        const weekStr = `${date.getFullYear()}-W${Math.ceil((date.getDate() + date.getDay()) / 7)}`;
-                        timeStats[weekStr] = (timeStats[weekStr] || 0) + 1;
+                        // Agrupar por Lunes de la semana para tendencia semanal
+                        const d = new Date(date);
+                        const day = d.getDay();
+                        const diff = d.getDate() - day + (day == 0 ? -6:1);
+                        const monday = new Date(d.setDate(diff)).toISOString().split('T')[0];
+                        
+                        timeStats[monday] = (timeStats[monday] || 0) + 1;
+                        
                         // Mes
                         const monthStr = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2,'0')}`;
                         monthStats[monthStr] = (monthStats[monthStr] || 0) + 1;
@@ -1952,12 +2284,11 @@
             const categories = ['A1', 'A2', 'A3', 'NEGATIVA', 'IMPOSIBILIDAD', 'VERENCAMPO', 'REUBICACION', 'NO ASIGNADO'];
             document.getElementById('stats-container').innerHTML = categories.map(k => `
                 <div class="stat-card" style="border-top-color: ${colorMap[k]}">
-                    <label>${k === 'VERENCAMPO' ? 'VER CAMPO' : k}</label>
+                    <label>${k === 'VERENCAMPO' ? 'VER EN CAMPO' : (k === 'IMPOSIBILIDAD' ? 'IMPOSIBILIDAD' : (k === 'REUBICACION' ? 'REUBICACIÓN' : k))}</label>
                     <span>${stats[k] || 0}</span>
                 </div>
             `).join('');
-
-            // ... (rest of logic for table preview)
+            
             let markersToShow = [];
             if (visibleMarkers.length <= 11) {
                 markersToShow = visibleMarkers;
@@ -1983,11 +2314,32 @@
                 </tr>`;
             });
             
-            document.getElementById('report-total-count').innerText = `TOTAL: ${visibleMarkers.length} SUMINISTROS`;
+            document.getElementById('report-total-count').innerText = `TOTAL: ${visibleMarkers.length} INTERVENCIONES`;
             document.getElementById('report-table-body').innerHTML = tableHtml;
             document.getElementById('report-modal').style.display = 'flex';
 
+            setTimeout(() => {
+                if (!miniMapInstance) {
+                    miniMapInstance = L.map('mini-map-preview', { 
+                        zoomControl: false, 
+                        attributionControl: false,
+                        keyboard: false,
+                        tap: false
+                    });
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(miniMapInstance);
+                }
+                miniMapInstance.setView(map.getCenter(), Math.max(0, map.getZoom() - 2));
+                miniMapInstance.invalidateSize();
+            }, 300);
+
             updateDashboardCharts(stats, distStats, timeStats, monthStats, colorMap);
+        }
+
+        function centrarEnMiniatura() {
+            if (savedReportView) {
+                map.setView(savedReportView.center, savedReportView.zoom);
+                cerrarReporte();
+            }
         }
 
         var chartAct, chartDist, chartTime, chartMonth;
@@ -2031,7 +2383,7 @@
                 data: {
                     labels: sortedMonths,
                     datasets: [{
-                        label: 'Suministros',
+                        label: 'Intervenciones',
                         data: sortedMonths.map(m => monthStats[m]),
                         backgroundColor: '#10b981',
                         borderRadius: 4
@@ -2055,7 +2407,7 @@
                 data: {
                     labels: sortedWeeks,
                     datasets: [{
-                        label: 'Avance',
+                        label: 'Producción',
                         data: sortedWeeks.map(w => timeStats[w]),
                         borderColor: '#1d4ed8',
                         backgroundColor: 'rgba(29, 78, 216, 0.1)',
@@ -2108,21 +2460,18 @@
             const data = [{ 
                 SUMINISTRO: "1234567", 
                 ACTIVIDAD: "A1", 
+                FECHA: new Date().toISOString().split('T')[0],
                 "VER EN CAMPO": "NO", 
                 REUBICACION: "NO", 
                 FRENTE: "FRENTE 1",
-                DISTRITO: "TRUJILLO", 
-                LOCALIDAD: "CENTRO",
-                USUARIO: "JUAN PEREZ", 
                 MEDIDOR: "ABC-123", 
                 CATEGORIA: "DOMESTICO",
-                DIRECCION: "AV. LARCO 123",
                 OBSERVACION: "NINGUNA"
             }];
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Modelo");
-            XLSX.writeFile(wb, "Modelo_Carga_Completo.xlsx");
+            XLSX.writeFile(wb, "Modelo_Carga_Suministros.xlsx");
         }
 
         function obtenerDataReporte() {
@@ -2379,27 +2728,32 @@
         function actualizarDistritos() {
             let dists = [...new Set(allMarkers.map(m => m.properties.DISTRITO?.toUpperCase()))].filter(Boolean).sort();
             let s = document.getElementById('distritoFilter');
-            s.innerHTML = '<option value="">Todos los Distritos</option>';
+            s.innerHTML = '<option value="">TODOS LOS DISTRITOS</option>';
             dists.forEach(d => s.innerHTML += `<option value="${d}">${d}</option>`);
+
+            let frentes = [...listaFrentes].sort();
+            let sf = document.getElementById('frenteFilter');
+            sf.innerHTML = '<option value="">TODOS LOS FRENTES</option>';
+            frentes.forEach(f => sf.innerHTML += `<option value="${f}">${f}</option>`);
         }
 
         document.getElementById('distritoFilter').onchange = () => actualizarFiltrosGlobales();
+        document.getElementById('frenteFilter').onchange = () => actualizarFiltrosGlobales();
+        document.getElementById('freeTextFilter').oninput = () => actualizarFiltrosGlobales();
 
         function toggleFloatingSearch() {
             const bar = document.getElementById('search-bar-floating');
             const trigger = document.getElementById('search-trigger-btn');
             const input = document.getElementById('search-box-floating');
-            const tabBtn = document.getElementById('tab-btn-search');
             
             if (bar.style.display === 'block') {
                 bar.style.display = 'none';
                 if (trigger) trigger.style.display = 'flex';
-                if (tabBtn) tabBtn.classList.remove('active');
                 document.getElementById('search-results-floating').style.display = 'none';
+                bar.classList.remove('has-results');
             } else {
                 bar.style.display = 'block';
                 if (trigger) trigger.style.display = 'none';
-                if (tabBtn) tabBtn.classList.add('active');
                 input.focus();
             }
         }
@@ -2408,47 +2762,154 @@
             const query = (val || "").toString().toUpperCase().trim();
             const resultsDivId = isPc ? 'search-results-pc' : 'search-results-floating';
             const resultsDiv = document.getElementById(resultsDivId);
+            const searchBar = document.getElementById('search-bar-floating');
             
             if (!resultsDiv) return;
 
             if(!query || query.length < 2) {
                 resultsDiv.style.display = 'none';
+                if (searchBar) searchBar.classList.remove('has-results');
                 return;
             }
 
-            const matches = [...allMarkers, ...matrixMarkers].filter(m => {
-                if (!m.properties) return false;
-                const suministro = (m.properties.SUMINISTRO || "").toString().toUpperCase();
-                const usuario = (m.properties.USUARIO || "").toString().toUpperCase();
-                const nombre = (m.properties.NOMBRE || "").toString().toUpperCase();
-                const medidor = (m.properties.MEDIDOR || "").toString().toUpperCase();
-                
-                return suministro.includes(query) || 
-                       usuario.includes(query) || 
-                       nombre.includes(query) || 
-                       medidor.includes(query);
-            }).slice(0, 15);
+            // Buscar primero en activos
+            const matchesActive = allMarkers.filter(m => {
+                const p = m.properties;
+                return (p.SUMINISTRO?.toString().includes(query) || 
+                        p.USUARIO?.toString().toUpperCase().includes(query) || 
+                        p.MEDIDOR?.toString().toUpperCase().includes(query));
+            }).slice(0, 5).map(m => ({ ...m, isActive: true }));
+
+            // Buscar en matriz
+            const matchesMatrix = matrixMarkers.filter(m => {
+                const p = m.properties;
+                return (p.SUMINISTRO?.toString().includes(query) || 
+                        p.NOMBRE?.toString().toUpperCase().includes(query) || 
+                        p.MEDIDOR?.toString().toUpperCase().includes(query));
+            }).slice(0, 10).map(m => ({ ...m, isActive: false }));
+
+            const matches = [...matchesActive, ...matchesMatrix].slice(0, 15);
 
             if(matches.length > 0) {
-                resultsDiv.innerHTML = matches.map(m => `
-                    <div class="search-result-item" onclick="seleccionarResultado('${m.properties.SUMINISTRO}', ${isPc})">
-                        <div class="suministro">${m.properties.SUMINISTRO}</div>
-                        <div class="usuario">${m.properties.USUARIO || m.properties.NOMBRE || 'Sin nombre'}</div>
+                resultsDiv.innerHTML = matches.map(m => {
+                    const p = m.properties;
+                    const tagClass = m.isActive ? 'tag-active' : 'tag-matrix';
+                    const tagLabel = m.isActive ? 'CARGADO' : 'MATRIZ';
+                    const icon = m.isActive ? 'fa-check-circle' : 'fa-database';
+                    return `
+                    <div class="search-result-item" onclick="seleccionarResultado('${p.SUMINISTRO}', ${isPc})">
+                        <i class="fa ${icon}"></i>
+                        <div class="result-info">
+                            <div class="suministro">${p.SUMINISTRO}</div>
+                            <div class="usuario">${p.USUARIO || p.NOMBRE || 'Sin nombre'}</div>
+                        </div>
+                        <span class="tag ${tagClass}">${tagLabel}</span>
                     </div>
-                `).join('');
+                `}).join('');
                 resultsDiv.style.display = 'block';
-                resultsDiv.style.zIndex = "10000"; // Asegurar visibilidad total
+                if (searchBar) searchBar.classList.add('has-results');
             } else {
-                resultsDiv.innerHTML = '<div style="padding:10px; font-size:11px; color:#94a3b8; text-align:center;">No se encontraron resultados</div>';
+                resultsDiv.innerHTML = '<div style="padding:15px; font-size:12px; color:#94a3b8; text-align:center; font-weight:500;"><i class="fa fa-search-minus" style="display:block; font-size:18px; margin-bottom:5px; opacity:0.5;"></i> No se encontraron coincidencias</div>';
                 resultsDiv.style.display = 'block';
+                if (searchBar) searchBar.classList.add('has-results');
             }
+        }
+        let actividadesSeleccionadas = [];
+
+        function agregarActividadMultiselect(val) {
+            if (!val) return;
+            if (!actividadesSeleccionadas.includes(val)) {
+                actividadesSeleccionadas.push(val);
+                renderizarChipsActividades();
+                actualizarFiltrosGlobales();
+            }
+            document.getElementById('actividadFilter').value = ""; // Reset select
+        }
+
+        function removerActividadMultiselect(val) {
+            actividadesSeleccionadas = actividadesSeleccionadas.filter(a => a !== val);
+            renderizarChipsActividades();
+            actualizarFiltrosGlobales();
+        }
+
+        function renderizarChipsActividades() {
+            const container = document.getElementById('chips-actividades');
+            const selectEl = document.getElementById('actividadFilter');
+            const labelMap = {
+                'VERENCAMPO': 'VER EN CAMPO',
+                'REUBICACION': 'REUBICACIÓN'
+            };
+            
+            // Actualizar texto del desplegable
+            if (actividadesSeleccionadas.length > 0) {
+                selectEl.options[0].text = "AÑADIR ACTIVIDAD...";
+            } else {
+                selectEl.options[0].text = "TODAS LAS ACTIVIDADES";
+            }
+
+            container.innerHTML = actividadesSeleccionadas.map(a => `
+                <div class="chip">
+                    ${labelMap[a] || a}
+                    <i class="fa fa-times" onclick="removerActividadMultiselect('${a}')"></i>
+                </div>
+            `).join('');
+        }
+
+        function toggleLeyendaErrores() {
+            const el = document.getElementById('leyenda-errores');
+            const tabBtn = document.getElementById('tab-btn-errores');
+            el.classList.toggle('hidden-legend');
+            if (tabBtn) tabBtn.classList.toggle('active');
+            reorganizarLeyendas();
+        }
+
+        function actualizarLeyendaErrores() {
+            const container = document.getElementById('errores-list');
+            const dot = document.getElementById('dot-errores');
+            
+            if (unmatchedData.length === 0) {
+                container.innerHTML = '<p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 20px;">Sin discrepancias detectadas.</p>';
+                dot.style.display = 'none';
+                return;
+            }
+
+            dot.style.display = 'block';
+            container.innerHTML = unmatchedData.map(item => `
+                <div class="error-item">
+                    <div>
+                        <div class="error-suministro">${item.suministro}</div>
+                        <div class="error-archivo">${item.archivo}</div>
+                    </div>
+                    <span style="font-size: 9px; padding: 2px 5px; background: #fee2e2; color: #b91c1c; border-radius: 4px; font-weight: 700;">${item.motivo}</span>
+                </div>
+            `).join('');
+        }
+
+        function descargarErroresCSV() {
+            if (unmatchedData.length === 0) return Swal.fire('Sin datos', 'No hay registros sin match para descargar.', 'info');
+            
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "SUMINISTRO,ARCHIVO,MOTIVO\n";
+            unmatchedData.forEach(row => {
+                csvContent += `${row.suministro},${row.archivo},${row.motivo}\n`;
+            });
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `suministros_no_encontrados_${new Date().getTime()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function seleccionarResultado(suministroId, isPc = false) {
             const resultsDivId = isPc ? 'search-results-pc' : 'search-results-floating';
             const inputBoxId = isPc ? 'search-box-pc' : 'search-box-floating';
+            const searchBar = document.getElementById('search-bar-floating');
             
             document.getElementById(resultsDivId).style.display = 'none';
+            if (searchBar) searchBar.classList.remove('has-results');
             document.getElementById(inputBoxId).value = suministroId;
             
             // Opcional: cerrar el buscador al seleccionar en móvil
