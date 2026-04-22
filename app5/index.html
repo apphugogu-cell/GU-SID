@@ -18,6 +18,7 @@
     <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/jspdf-autotable@3.5.23/dist/jspdf.plugin.autotable.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         :root {
@@ -49,11 +50,11 @@
         
         .leaflet-sidebar-content { display: none !important; } /* We will use floating windows */
 
-        #leyenda, #leyenda-frente, #leyenda-archivos, #leyenda-gestion, #leyenda-seleccion, #leyenda-analisis {
+        #leyenda, #leyenda-frente, #leyenda-archivos, #leyenda-gestion, #leyenda-seleccion, #leyenda-analisis, #drive-window {
             position: absolute; left: 65px; background: white; padding: 0; border-radius: 12px;
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-size: 14px; z-index: 1000;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            width: 260px; overflow: hidden; border: 1px solid #e2e8f0;
+            width: 260px; border: 1px solid #e2e8f0;
             display: block;
         }
         .leyenda-header {
@@ -64,20 +65,22 @@
         .leyenda-body { padding: 10px; }
         
         body.pc-mode #leyenda, body.pc-mode #leyenda-frente, body.pc-mode #leyenda-archivos,
-        body.pc-mode #leyenda-gestion, body.pc-mode #leyenda-seleccion, body.pc-mode #leyenda-analisis { zoom: 0.8; }
+        body.pc-mode #leyenda-gestion, body.pc-mode #leyenda-seleccion, body.pc-mode #leyenda-analisis,
+        body.pc-mode #drive-window { zoom: 0.8; }
         
         body.mobile-mode #leyenda, body.mobile-mode #leyenda-frente, body.mobile-mode #leyenda-archivos,
-        body.mobile-mode #leyenda-gestion, body.mobile-mode #leyenda-seleccion, body.mobile-mode #leyenda-analisis { 
-            zoom: 1.0; left: 10px; width: 220px; 
-            transform: translateX(0); /* Avoid translation by default in mobile if visible */
+        body.mobile-mode #leyenda-gestion, body.mobile-mode #leyenda-seleccion, body.mobile-mode #leyenda-analisis,
+        body.mobile-mode #drive-window { 
+            display: none !important;
         }
 
-        #leyenda { top: 10px; }
-        #leyenda-frente { top: 10px; max-height: 400px; overflow-y: auto; }
-        #leyenda-archivos { top: 10px; max-height: 400px; overflow-y: auto; }
-        #leyenda-gestion { top: 10px; }
-        #leyenda-seleccion { top: 10px; }
-        #leyenda-analisis { top: 10px; }
+        #leyenda { top: 60px; }
+        #leyenda-frente { top: 60px; max-height: 400px; overflow-y: auto; }
+        #leyenda-archivos { top: 60px; max-height: 400px; overflow-y: auto; }
+        #leyenda-gestion { top: 60px; }
+        #leyenda-seleccion { top: 60px; }
+        #leyenda-analisis { top: 60px; }
+        #drive-window { top: 60px; }
         
         .hidden-legend {
             transform: translateX(calc(-100% - 100px)) !important;
@@ -162,7 +165,7 @@
         body.pc-mode #info-panel { zoom: 0.8; }
         body.mobile-mode #info-panel { zoom: 1.0; width: 90%; right: 5%; left: 5%; top: 10%; }
 
-        #info-header { padding: 10px 15px; background: #f8fafc; cursor: move; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
+        #info-header { padding: 10px 15px; background: #f8fafc; cursor: default; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
         #info-content { padding: 15px; max-height: 450px; overflow-y: auto; }
 
         /* Modal de Reporte */
@@ -175,12 +178,20 @@
         .modal-body { padding: 25px; overflow-y: auto; flex: 1; }
         .modal-footer { padding: 15px 25px; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; }
 
-        .report-table { width: 100%; border-collapse: collapse; font-size: 15px; }
-        .report-table th { background: #f1f5f9; padding: 10px; text-align: left; }
-        .report-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
+        .report-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        .report-table th { background: #f8fafc; padding: 6px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .report-table td { padding: 5px 8px; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
 
-        .stats-grid { display: grid; grid-template-cols: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        .stat-card { padding: 15px; border-radius: 15px; border: 1px solid #f1f5f9; text-align: center; }
+        .stats-grid { display: flex; gap: 5px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; }
+        .stat-card { min-width: 89px; flex: 1; padding: 7px 3px; border-radius: 11px; border: 1px solid #f1f5f9; text-align: center; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-top: 3px solid var(--primary); transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card label { font-size: 9px !important; color: #64748b !important; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 1px; white-space: nowrap; }
+        .stat-card span { font-size: 16px !important; color: #0f172a !important; font-weight: 800; }
+
+        .dashboard-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 11px; margin-bottom: 14px; }
+        .dashboard-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 11px; padding: 11px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); min-width: 0; }
+        .dashboard-card h3 { margin: 0 0 9px 0; font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; text-align: center; }
+        .chart-wrapper { position: relative; height: 179px; width: 100%; }
 
 
         /* Floating Controls Right Bottom */
@@ -219,21 +230,21 @@
         .floating-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
         #matrix-status {
-            position: fixed; bottom: 10px; left: 10px; background: #1e293b; color: #38bdf8;
-            padding: 5px 12px; font-size: 14px; font-weight: bold; z-index: 2000; border-radius: 8px;
-            transition: all 0.3s ease;
+            position: fixed; bottom: 15px; left: 15px; width: 28px; height: 28px;
+            background: #1e293b; color: white; display: flex; align-items: center; justify-content: center;
+            font-size: 14px; z-index: 2000; border-radius: 50%; cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            border: 2px solid #fff; transition: all 0.3s ease;
         }
+        #matrix-status:hover { transform: scale(1.1); }
+        #matrix-status.success { background: #22c55e; }
+        #matrix-status.loading { background: #f59e0b; }
+        #matrix-status.error { background: #ef4444; }
         body.pc-mode #matrix-status { zoom: 0.8; }
         body.mobile-mode #matrix-status { 
             zoom: 1.0; 
             bottom: 80px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: auto; 
-            white-space: nowrap; 
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.1);
+            left: 20px;
         }
         .btn-location {
             background: white;
@@ -324,15 +335,15 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
             color: #94a3b8;
             cursor: pointer;
             transition: all 0.3s ease;
             flex: 1;
-            padding: 10px 0;
+            padding: 8px 0;
         }
-        .mobile-nav-item i { font-size: 22px; }
-        .mobile-nav-item span { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .mobile-nav-item i { font-size: 20px; }
+        .mobile-nav-item span { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
         .mobile-nav-item.active { color: var(--primary); transform: translateY(-3px); }
         .mobile-nav-item.active i { filter: drop-shadow(0 2px 4px rgba(29, 78, 216, 0.2)); }
         /* Floating Search (v4.4) */
@@ -421,8 +432,9 @@
         .search-result-item .usuario { font-size: 11px; color: #64748b; display: block; }
 
         /* Mobile adjustments for floating search */
-        #floating-search-container { display: none !important; }
-        body.mobile-mode #floating-search-container { display: flex !important; top: 10px; right: 10px; }
+        #floating-search-container { display: flex !important; }
+        body.pc-mode #floating-search-container { top: 15px; right: 15px; }
+        body.mobile-mode #floating-search-container { top: 10px; right: 10px; }
         body.mobile-mode #search-bar-floating { width: calc(100vw - 40px); }
 
         .pc-only { display: block !important; }
@@ -436,16 +448,30 @@
             max-height: 200px;
             overflow-y: auto;
             display: none;
-            z-index: 100;
+            z-index: 5000;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
 
-    <div id="matrix-status">Cargando Matriz Maestra...</div>
+    <div id="matrix-status" class="loading" onclick="mostrarEstadoMatriz()" title="Estado de la Matriz">
+        <i class="fa fa-database"></i>
+    </div>
+
+    <!-- Floating Search Container (v4.5) -->
+    <div id="floating-search-container">
+        <div id="search-bar-floating">
+            <input type="text" id="search-box-floating" placeholder="Buscar Suministro o Nombre..." oninput="buscarSuministro(this.value, false)" autocomplete="off">
+            <i class="fa fa-times-circle close-search-floating" onclick="toggleFloatingSearch()"></i>
+            <div id="search-results-floating"></div>
+        </div>
+    </div>
 
     <div class="floating-controls-right">
+        <div id="search-trigger-btn" class="floating-btn mobile-only" onclick="toggleFloatingSearch()" title="Buscar Suministro" style="background: #3b82f6; color: white;">
+            <i class="fa fa-search"></i>
+        </div>
         <div id="btn-print-map" class="floating-btn" onclick="window.print()" title="Imprimir Mapa" style="background: #10b981; color: white;">
             <i class="fa fa-print"></i>
         </div>
@@ -470,15 +496,23 @@
         <div id="mobile-sheet-content"></div>
     </div>
 
-    <!-- Mobile Navigation Bar (v4.2) -->
+    <!-- Mobile Navigation Bar (v4.3) -->
     <div id="mobile-nav" class="mobile-only">
-        <div class="mobile-nav-item" id="nav-home" onclick="openMobileTab('home')">
+        <div class="mobile-nav-item" id="nav-search" onclick="toggleFloatingSearch()">
             <i class="fa fa-search"></i>
-            <span>Gestión</span>
+            <span>Buscar</span>
+        </div>
+        <div class="mobile-nav-item" id="nav-home" onclick="openMobileTab('home')">
+            <i class="fa fa-file-import"></i>
+            <span>Cargar</span>
         </div>
         <div class="mobile-nav-item" id="nav-seleccion" onclick="openMobileTab('seleccion')">
             <i class="fa fa-mouse-pointer"></i>
             <span>Selección</span>
+        </div>
+        <div class="mobile-nav-item" id="nav-frentes" onclick="openMobileTab('frentes')">
+            <i class="fa fa-hard-hat"></i>
+            <span>Frentes</span>
         </div>
         <div class="mobile-nav-item" id="nav-leyenda" onclick="openMobileTab('leyenda')">
             <i class="fa fa-list-ul"></i>
@@ -487,6 +521,10 @@
         <div class="mobile-nav-item" id="nav-archivos" onclick="openMobileTab('archivos')">
             <i class="fa fa-file-excel"></i>
             <span>Excel</span>
+        </div>
+        <div class="mobile-nav-item" id="nav-drive" onclick="openMobileTab('drive')">
+            <i class="fab fa-google-drive"></i>
+            <span>Drive</span>
         </div>
         <div class="mobile-nav-item" id="nav-menu" onclick="openMobileTab('menu')">
             <i class="fa fa-chart-pie"></i>
@@ -498,17 +536,14 @@
     <div id="sidebar" class="leaflet-sidebar collapsed">
         <div class="leaflet-sidebar-tabs">
             <ul role="tablist">
-                <li id="tab-btn-gestion"><a href="javascript:void(0)" onclick="toggleLeyendaGestion()" title="Gestión de Suministros"><i class="fa fa-search"></i></a></li>
+                <li id="tab-btn-search"><a href="javascript:void(0)" onclick="toggleFloatingSearch()" title="Buscador de Suministros"><i class="fa fa-search"></i></a></li>
+                <li id="tab-btn-gestion"><a href="javascript:void(0)" onclick="toggleLeyendaGestion()" title="Gestión de Datos (Excel/Distritos)"><i class="fa fa-file-import"></i></a></li>
                 <li id="tab-btn-seleccion"><a href="javascript:void(0)" onclick="toggleLeyendaSeleccion()" title="Herramientas de Selección"><i class="fa fa-mouse-pointer"></i></a></li>
                 <li id="tab-btn-analisis"><a href="javascript:void(0)" onclick="toggleLeyendaAnalisis()" title="Análisis y Reportes"><i class="fa fa-chart-pie"></i></a></li>
                 <li id="tab-btn-leyenda"><a href="javascript:void(0)" onclick="toggleLeyendaCompleta()" title="Capas de Actividades"><i class="fa fa-list-ul"></i></a></li>
                 <li id="tab-btn-frentes"><a href="javascript:void(0)" onclick="toggleLeyendaFrente()" title="Frentes de Trabajo"><i class="fa fa-hard-hat"></i></a></li>
                 <li id="tab-btn-archivos"><a href="javascript:void(0)" onclick="toggleLeyendaArchivos()" title="Archivos Cargados"><i class="fa fa-file-excel"></i></a></li>
                 <li id="tab-btn-drive"><a href="javascript:void(0)" onclick="abrirModalDrive()" title="Cargar desde Drive"><i class="fab fa-google-drive"></i></a></li>
-            </ul>
-            <ul role="tablist">
-                <li><a href="javascript:void(0)" onclick="map.zoomIn()"><i class="fa fa-plus"></i></a></li>
-                <li><a href="javascript:void(0)" onclick="map.zoomOut()"><i class="fa fa-minus"></i></a></li>
             </ul>
             <div style="position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 10px; font-weight: bold; color: #94a3b8;">v4.2</div>
         </div>
@@ -518,14 +553,16 @@
     <!-- Floating Window: Gestión de Suministros -->
     <div id="leyenda-gestion" class="hidden-legend">
         <div class="leyenda-header">
-            <span>Gestión de Suministros</span>
-            <i class="fa fa-times" onclick="toggleLeyendaGestion()" style="cursor: pointer; opacity: 0.8;"></i>
+            <i class="fa fa-times" onclick="toggleLeyendaGestion()" style="cursor: pointer; opacity: 0.8; font-size: 14px;"></i>
+            <span>Gestión de Datos</span>
         </div>
         <div class="leyenda-body">
             <div>
-                <label style="font-weight: bold; color: #1d4ed8; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 2px;">BÚSQUEDA:</label>
-                <input type="text" id="search-box-pc" placeholder="Suministro / Medidor / Nombre..." oninput="buscarSuministro(this.value, true)" autocomplete="off">
-                <div id="search-results-pc" class="search-results-sidebar" style="position: absolute; width: calc(100% - 20px); background: white; z-index: 5000;"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #1d4ed8; font-size: 11px; text-transform: uppercase;">CARGAR EXCEL:</label>
+                    <i class="fa fa-question-circle" onclick="abrirInstrucciones()" style="cursor: pointer; color: #3b82f6; font-size: 14px;" title="Ver instrucciones de carga"></i>
+                </div>
+                <input type="file" id="excelFile" accept=".xlsx" multiple style="font-size: 11px;" />
             </div>
 
             <div style="margin-top: 8px;">
@@ -533,14 +570,6 @@
                 <select id="distritoFilter" style="font-size: 12px; height: 28px;">
                     <option value="">TODOS LOS DISTRITOS</option>
                 </select>
-            </div>
-
-            <div style="margin-top: 8px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                    <label style="font-weight: bold; color: #1d4ed8; font-size: 11px; text-transform: uppercase;">CARGAR EXCEL:</label>
-                    <i class="fa fa-question-circle" onclick="abrirInstrucciones()" style="cursor: pointer; color: #3b82f6; font-size: 14px;" title="Ver instrucciones de carga"></i>
-                </div>
-                <input type="file" id="excelFile" accept=".xlsx" multiple style="font-size: 11px;" />
             </div>
         </div>
     </div>
@@ -580,42 +609,40 @@
 
     <div id="info-panel">
         <div id="info-header">
-            <span style="font-weight: 800; font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Detalle del Suministro</span>
-            <i class="fa fa-times" onclick="cerrarPanelInfo()" style="cursor:pointer; color: #cbd5e1;"></i>
+            <i class="fa fa-times" onclick="cerrarPanelInfo()" style="cursor:pointer; color: #cbd5e1; font-size: 14px;"></i>
+            <span style="font-weight: 800; font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Detalle del Suministro</span>
         </div>
         <div id="info-content"></div>
     </div>
 
-    <!-- Modal Google Drive Explorer (v4.1) -->
-    <div id="drive-modal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px;">
-        <div class="modal-box" style="max-width: 500px;">
-            <div class="modal-header">
-                <h2 style="margin:0; font-size:18px;"><i class="fab fa-google-drive"></i> Explorador de Carpeta Drive</h2>
-                <i class="fa fa-times" onclick="cerrarModalDrive()" style="cursor:pointer; color:#94a3b8;"></i>
+    <!-- Window Google Drive Explorer (v4.1) -->
+    <div id="drive-window" class="hidden-legend">
+        <div class="leyenda-header">
+            <span>Explorador de Drive</span>
+            <i class="fa fa-times" onclick="cerrarModalDrive()" style="cursor: pointer; opacity: 0.8;"></i>
+        </div>
+        <div class="leyenda-body">
+            <p style="font-size:11px; color:#64748b; margin-bottom:10px; line-height: 1.3;">
+                Ingrese su Google API Key para listar los archivos de la carpeta configurada.
+            </p>
+            <div style="margin-bottom:8px;">
+                <label style="display:block; font-size:10px; font-weight:bold; color:#94a3b8; margin-bottom:2px; text-transform: uppercase;">GOOGLE API KEY / TOKEN</label>
+                <input type="password" id="drive-api-key" placeholder="API Key para leer o Token para guardar..." style="height: 24px;">
             </div>
-            <div class="modal-body">
-                <p style="font-size:12px; color:#64748b; margin-bottom:15px;">
-                    Ingrese su Google API Key para listar los archivos de la carpeta configurada.
-                </p>
-                <div style="margin-bottom:15px;">
-                    <label style="display:block; font-size:11px; font-weight:bold; color:#94a3b8; margin-bottom:5px;">GOOGLE API KEY</label>
-                    <input type="password" id="drive-api-key" placeholder="Pegue su API Key aquí..." style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
-                </div>
-                <div style="margin-bottom:15px;">
-                    <label style="display:block; font-size:11px; font-weight:bold; color:#94a3b8; margin-bottom:5px;">ID DE CARPETA</label>
-                    <input type="text" id="drive-folder-id" value="145Y2R9oxYM8ZTqKJwHBk1V2Y-bW7SeD5" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc;" readonly>
-                </div>
-                <button onclick="listarArchivosDrive()" style="width:100%; padding:12px; background:#34a853; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
-                    <i class="fa fa-search"></i> BUSCAR ARCHIVOS
+            <div style="margin-bottom:8px;">
+                <label style="display:block; font-size:10px; font-weight:bold; color:#94a3b8; margin-bottom:2px; text-transform: uppercase;">ID DE CARPETA</label>
+                <input type="text" id="drive-folder-id" value="145Y2R9oxYM8ZTqKJwHBk1V2Y-bW7SeD5" style="height: 24px; background:#f8fafc;" readonly>
+            </div>
+            <button onclick="listarArchivosDrive()">
+                <i class="fa fa-search"></i> BUSCAR ARCHIVOS
+            </button>
+            <div id="drive-bulk-actions" style="display:none; margin-top:8px;">
+                <button onclick="cargarTodosDrive()" style="background:#3b82f6;">
+                    <i class="fa fa-cloud-upload-alt"></i> CARGAR TODO
                 </button>
-                <div id="drive-bulk-actions" style="display:none; margin-top:15px;">
-                    <button onclick="cargarTodosDrive()" style="width:100%; padding:10px; background:#3b82f6; color:white; border:none; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer;">
-                        <i class="fa fa-cloud-upload-alt"></i> CARGAR TODOS LOS ARCHIVOS
-                    </button>
-                </div>
-                <div id="drive-file-list" style="margin-top:20px; max-height:200px; overflow-y:auto; border-top:1px solid #f1f5f9; padding-top:10px;">
-                    <p style="text-align:center; color:#94a3b8; font-size:12px;">Los archivos aparecerán aquí...</p>
-                </div>
+            </div>
+            <div id="drive-file-list" style="margin-top:10px; max-height:200px; overflow-y:auto; border-top:1px solid #f1f5f9; padding-top:8px;">
+                <p style="text-align:center; color:#94a3b8; font-size:11px;">Los archivos aparecerán aquí...</p>
             </div>
         </div>
     </div>
@@ -631,6 +658,7 @@
             <div class="leyenda-item" data-tipo="A1" onclick="toggleCapa('A1', this)"><div class="leyenda-color" style="background:#d32f2f;"></div>A1</div>
             <div class="leyenda-item" data-tipo="A2" onclick="toggleCapa('A2', this)"><div class="leyenda-color" style="background:#ffeb3b;"></div>A2</div>
             <div class="leyenda-item" data-tipo="A3" onclick="toggleCapa('A3', this)"><div class="leyenda-color" style="background:#4caf50;"></div>A3</div>
+            <div class="leyenda-item" data-tipo="NEGATIVA" onclick="toggleCapa('NEGATIVA', this)"><div class="leyenda-color" style="background:#f43f5e;"></div>Negativa</div>
             <div class="leyenda-item" data-tipo="IMPOSIBILIDAD" onclick="toggleCapa('IMPOSIBILIDAD', this)"><div class="leyenda-color" style="background:#212121;"></div>Imposibilidad</div>
             <div class="leyenda-item" data-tipo="NO ASIGNADO" onclick="toggleCapa('NO ASIGNADO', this)"><div class="leyenda-color" style="background:#4682b4;"></div>No Asignado</div>
             <div class="leyenda-item" data-tipo="VERENCAMPO" onclick="toggleCapa('VERENCAMPO', this)"><div class="leyenda-color" style="background:#ff9800;"></div>Ver en Campo</div>
@@ -673,14 +701,6 @@
         </div>
     </div>
 
-    <div id="info-panel">
-        <div id="info-header">
-            <span style="font-weight: 800; font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Detalle del Suministro</span>
-            <i class="fa fa-times" onclick="cerrarPanelInfo()" style="cursor:pointer; color: #cbd5e1;"></i>
-        </div>
-        <div id="info-content"></div>
-    </div>
-
     <!-- Modal de Reporte -->
     <div id="report-modal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px;">
         <div class="modal-box">
@@ -688,31 +708,53 @@
                 <h2 style="margin:0; font-size: 22px; color: #1e293b;">Reporte de Actividades</h2>
                 <i class="fa fa-times" onclick="cerrarReporte()" style="cursor:pointer; font-size: 20px; color: #94a3b8;"></i>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="background: #f8fafc;">
                 <div class="stats-grid" id="stats-container"></div>
                 
-                <!-- Nueva sección de Gráficos -->
-                <div style="display: grid; grid-template-cols: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                    <div style="background: #f8fafc; padding: 15px; border-radius: 15px; border: 1px solid #e2e8f0;">
-                        <h3 style="margin:0 0 10px 0; font-size: 14px; color: #64748b; text-align: center;">DISTRIBUCIÓN POR ACTIVIDAD</h3>
-                        <canvas id="chartActividades" height="200"></canvas>
+                <div class="dashboard-container">
+                    <div class="dashboard-card">
+                        <h3>Composición por Actividad</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="chartActividades"></canvas>
+                        </div>
                     </div>
-                    <div style="background: #f8fafc; padding: 15px; border-radius: 15px; border: 1px solid #e2e8f0;">
-                        <h3 style="margin:0 0 10px 0; font-size: 14px; color: #64748b; text-align: center;">TOP 5 DISTRITOS</h3>
-                        <canvas id="chartDistritos" height="200"></canvas>
+                    <div class="dashboard-card">
+                        <h3>Análisis Mensual</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="chartMensual"></canvas>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Avance Semanal</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="chartTemporal"></canvas>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Top Distritos</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="chartDistritos"></canvas>
+                        </div>
                     </div>
                 </div>
 
-                <div style="overflow-x: auto;">
-                    <table class="report-table">
-                        <thead><tr><th>Suministro</th><th>Actividad</th><th>Distrito</th><th>Usuario</th></tr></thead>
-                        <tbody id="report-table-body"></tbody>
-                    </table>
+                <div style="background: #fff; padding: 15px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-size:11px; font-weight:800; color:#94a3b8; text-transform:uppercase;">Vista Previa de Datos (Primeros 10 + Último)</span>
+                        <span id="report-total-count" style="font-size:10px; background:#f1f5f9; padding:2px 8px; border-radius:10px; color:#64748b; font-weight:700;"></span>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="report-table">
+                            <thead><tr><th>Suministro</th><th>Actividad</th><th>Distrito</th><th>Fecha</th><th>Usuario</th></tr></thead>
+                            <tbody id="report-table-body"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button onclick="exportarExcel()" class="success" style="width: auto; padding: 0 20px; background: #16a34a !important;"><i class="fa fa-file-excel"></i> Excel</button>
-                <button onclick="exportarPDF()" class="success" style="width: auto; padding: 0 20px; background: #dc2626 !important;"><i class="fa fa-file-pdf"></i> PDF</button>
+                <button id="btn-sync-drive" onclick="sincronizarDrive()" class="success" style="width: auto; padding: 0 200px; background: #4285f4 !important;"><i class="fab fa-google-drive"></i> Sincronizar con Google Drive</button>
+                <button onclick="exportarExcel()" class="success" style="width: auto; padding: 0 20px; background: #16a34a !important;"><i class="fa fa-file-excel"></i> Descargar Excel</button>
+                <button onclick="exportarPDF()" class="success" style="width: auto; padding: 0 20px; background: #dc2626 !important;"><i class="fa fa-file-pdf"></i> Descargar PDF</button>
                 <button onclick="cerrarReporte()" style="width: auto; padding: 0 20px; background: #94a3b8;">Cerrar</button>
             </div>
         </div>
@@ -729,10 +771,11 @@
                 <p>Para que los suministros se muestren correctamente en el mapa, el archivo Excel debe contener las siguientes columnas:</p>
                 <ul style="padding-left: 20px; margin-bottom: 20px; font-size: 14px;">
                     <li><strong>SUMINISTRO:</strong> (Obligatorio) ID para ubicar en la matriz.</li>
-                    <li><strong>ACTIVIDAD:</strong> (Opcional) A1, A2, A3, NO ASIGNADO, IMPOSIBILIDAD.</li>
+                    <li><strong>ACTIVIDAD:</strong> (Opcional) A1, A2, A3, NEGATIVA, IMPOSIBILIDAD, NO ASIGNADO.</li>
                     <li><strong>FRENTE:</strong> (Opcional) Para agrupar y filtrar por frentes de trabajo.</li>
                     <li><strong>VER EN CAMPO / REUBICACION:</strong> (Opcional) Marcar con "SI".</li>
                     <li><strong>DISTRITO / LOCALIDAD:</strong> (Opcional) Para filtros geográficos.</li>
+                    <li><strong>FECHA:</strong> (Opcional) Formato YYYY-MM-DD para análisis temporal.</li>
                     <li><strong>USUARIO / MEDIDOR / DIRECCION:</strong> (Opcional) Datos informativos.</li>
                     <li><strong>CATEGORIA / OBSERVACION:</strong> (Opcional) Detalles adicionales.</li>
                 </ul>
@@ -884,8 +927,9 @@
                 return;
             }
 
-            // Si ya hay un área dibujada, el botón sirve para limpiar
+            // Si ya hay un área dibujada, el botón sirve para exportar y limpiar
             if (drawnItems.getLayers().length > 0) {
+                if (selectedMarkers.length > 0) exportarSeleccionExcel();
                 limpiarSeleccion();
                 return;
             }
@@ -916,7 +960,7 @@
             actualizarUISeleccion();
         }
 
-        var capasVisibles = { A1: true, A2: true, A3: true, IMPOSIBILIDAD: true, "NO ASIGNADO": true, VERENCAMPO: true, REUBICACION: true, MATRIZ: false };
+        var capasVisibles = { A1: true, A2: true, A3: true, NEGATIVA: true, IMPOSIBILIDAD: true, "NO ASIGNADO": true, VERENCAMPO: true, REUBICACION: true, MATRIZ: false };
         var frentesVisibles = {};
         var archivosVisibles = {};
         var archivosSource = {}; // fileName -> 'app' | 'drive'
@@ -956,6 +1000,8 @@
             });
         }
 
+        let matrizInfoFull = "Cargando Matriz Maestra...";
+
         async function cargarMatriz(forceRefresh = false) {
             const url = "https://raw.githubusercontent.com/apphugogu-cell/GU-MEDIDORES/refs/heads/main/app5/matriz_maestra.json";
             const statusEl = document.getElementById('matrix-status');
@@ -963,12 +1009,19 @@
             try {
                 let json = null;
                 if (!forceRefresh) {
-                    statusEl.innerText = "⌛ Buscando en memoria local...";
+                    statusEl.className = "loading";
+                    matrizInfoFull = "⌛ Buscando en memoria local...";
                     json = await getFromCache();
+                } else {
+                    matrizUbicaciones.clear();
+                    matrixMarkers.forEach(m => matrixClusterGroup.removeLayer(m));
+                    matrixMarkers = [];
+                    await clearCache();
                 }
 
                 if (!json) {
-                    statusEl.innerText = "⌛ Descargando Matriz (GitHub)...";
+                    statusEl.className = "loading";
+                    matrizInfoFull = "⌛ Descargando Matriz (GitHub)...";
                     const res = await fetch(url);
                     json = await res.json();
                     await saveToCache(json);
@@ -988,12 +1041,28 @@
                         }
                     }
                 });
-                statusEl.innerHTML = `✓ Matriz Lista: ${matrizUbicaciones.size} registros <span onclick="cargarMatriz(true)" style="cursor:pointer; text-decoration:underline; margin-left:10px; font-size:10px;">[Actualizar]</span>`;
-                statusEl.style.color = "#4ade80";
+                statusEl.className = "success";
+                matrizInfoFull = `✓ Matriz Lista: ${matrizUbicaciones.size} registros\nv4.2`;
             } catch(e) { 
-                statusEl.innerText = "⚠ Error al cargar Matriz";
-                statusEl.style.color = "#ef4444";
+                statusEl.className = "error";
+                matrizInfoFull = "⚠ Error al cargar Matriz";
             }
+        }
+
+        function mostrarEstadoMatriz() {
+            Swal.fire({
+                title: 'Estado de la Matriz',
+                text: matrizInfoFull,
+                icon: document.getElementById('matrix-status').classList.contains('success') ? 'success' : 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Actualizar Matriz',
+                cancelButtonText: 'Cerrar',
+                confirmButtonColor: '#3b82f6'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    cargarMatriz(true);
+                }
+            });
         }
 
         function toggleCapa(tipo, element) {
@@ -1347,6 +1416,7 @@
                 case 'frentes': title.innerText = 'Frentes de Trabajo'; sourceId = 'leyenda-frente'; break;
                 case 'archivos': title.innerText = 'Archivos Excel'; sourceId = 'leyenda-archivos'; break;
                 case 'menu': title.innerText = 'Análisis y Reportes'; sourceId = 'leyenda-analisis'; break;
+                case 'drive': title.innerText = 'Explorador de Drive'; sourceId = 'drive-window'; break;
             }
 
             if (sourceId) {
@@ -1405,16 +1475,23 @@
             cargarMatriz().then(() => {
                 cargarArchivosAutomaticos();
             });
-            makeDraggable(document.getElementById("info-panel"), document.getElementById("info-header"));
+            // makeDraggable(document.getElementById("info-panel"), document.getElementById("info-header"));
         };
 
         function abrirModalDrive() { 
-            document.getElementById('drive-modal').style.display = 'flex'; 
-            const btn = document.getElementById('btn-toggle-drive');
-            if (btn) btn.classList.add('active');
+            const win = document.getElementById('drive-window');
+            if (win.classList.contains('hidden-legend')) {
+                // Cerrar otras ventanas
+                document.querySelectorAll('.hidden-legend').forEach(l => l.classList.add('hidden-legend'));
+                win.classList.remove('hidden-legend');
+                const btn = document.getElementById('btn-toggle-drive');
+                if (btn) btn.classList.add('active');
+            } else {
+                cerrarModalDrive();
+            }
         }
         function cerrarModalDrive() { 
-            document.getElementById('drive-modal').style.display = 'none'; 
+            document.getElementById('drive-window').classList.add('hidden-legend'); 
             const btn = document.getElementById('btn-toggle-drive');
             if (btn) btn.classList.remove('active');
         }
@@ -1554,7 +1631,7 @@
                             const key = k.toUpperCase().trim();
                             const val = row[k].toString().toUpperCase().trim();
                             if (key === "ACTIVIDAD") {
-                                if (['A1', 'A2', 'A3', 'IMPOSIBILIDAD'].includes(val)) {
+                                if (['A1', 'A2', 'A3', 'NEGATIVA', 'IMPOSIBILIDAD'].includes(val)) {
                                     tipo = val;
                                 } else {
                                     tipo = 'NO ASIGNADO';
@@ -1563,14 +1640,26 @@
                             if (key === "VER EN CAMPO" && val === "SI") verCampo = true;
                             if (key === "REUBICACION" && val === "SI") reubicacion = true;
                         }
+
+                        // Extraer Fecha si existe
+                        let fechaVal = "";
+                        for (let k in row) {
+                            if (k.toUpperCase().trim() === "FECHA") {
+                                if (row[k] instanceof Date) {
+                                    fechaVal = row[k].toISOString().split('T')[0];
+                                } else {
+                                    fechaVal = row[k].toString().trim();
+                                }
+                            }
+                        }
                         
-                        let color = { A1:'#d32f2f', A2:'#ffeb3b', A3:'#4caf50', IMPOSIBILIDAD:'#212121', "NO ASIGNADO":'#4682b4', VERENCAMPO:'#ff9800', REUBICACION:'#9c27b0' }[tipo] || '#4682b4';
+                        let color = { A1:'#d32f2f', A2:'#facc15', A3:'#22c55e', NEGATIVA:'#f43f5e', IMPOSIBILIDAD:'#1e293b', "NO ASIGNADO":'#64748b', VERENCAMPO:'#f97316', REUBICACION:'#8b5cf6' }[tipo] || '#64748b';
                         
                         let frente = (row.FRENTE || "").toString().trim().toUpperCase();
                         if (frente) listaFrentes.add(frente);
 
                         let m = L.marker([lat, lng]);
-                        m.properties = { ...dataMatriz, ...row, tipoFiltro: tipo, color: color, SUMINISTRO: s, isReubicacion: reubicacion, isVerCampo: verCampo, fileName: finalName };
+                        m.properties = { ...dataMatriz, ...row, tipoFiltro: tipo, color: color, SUMINISTRO: s, isReubicacion: reubicacion, isVerCampo: verCampo, fileName: finalName, FECHA_PROCESADA: fechaVal };
                         restaurarEstilo(m);
                         
                         m.on('click', function() { handleMarkerClick(m); });
@@ -1744,9 +1833,9 @@
 
         function mostrarInfo(p) {
             const lat = p.LATITUD || p.lat, lng = p.LONGITUD || p.lng;
-            let h = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
-                    <h2 style="margin:0; color:#1d4ed8; font-size: 22px; font-weight: 800;">Suministro: ${p.SUMINISTRO}</h2>
-                    ${(lat && lng) ? `<a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="background:#ea4335; color:white; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none;"><i class="fa fa-map-marker-alt"></i></a>` : ''}
+            let h = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom: 2px solid #f1f5f9; padding-bottom: 6px;">
+                    <h2 style="margin:0; color:#1d4ed8; font-size: 16px; font-weight: 800;">Suministro: ${p.SUMINISTRO}</h2>
+                    ${(lat && lng) ? `<a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="background:#ea4335; color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none; font-size: 14px;"><i class="fa fa-map-marker-alt"></i></a>` : ''}
                 </div>`;
             
             // Lógica de Actividad Combinada
@@ -1760,14 +1849,14 @@
                 }
             }
 
-            h += `<div style="margin-bottom: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 6px;">
-                    <div style="font-size: 13px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">ACTIVIDAD</div>
-                    <div style="font-size: 17px; color: #1e293b; font-weight: 600;">${actividadDisplay}</div>
+            h += `<div style="margin-bottom: 8px; border-bottom: 1px solid #f8fafc; padding-bottom: 4px;">
+                    <div style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">ACTIVIDAD</div>
+                    <div style="font-size: 14px; color: #1e293b; font-weight: 600;">${actividadDisplay}</div>
                   </div>`;
 
             const campos = ["USUARIO", "MEDIDOR", "CATEGORIA", "DIRECCION", "DISTRITO", "LOCALIDAD", "OBSERVACION"];
             campos.forEach(campo => {
-                if (p[campo]) h += `<div style="margin-bottom: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 6px;"><div style="font-size: 13px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">${campo}</div><div style="font-size: 17px; color: #1e293b; font-weight: 600;">${p[campo]}</div></div>`;
+                if (p[campo]) h += `<div style="margin-bottom: 8px; border-bottom: 1px solid #f8fafc; padding-bottom: 4px;"><div style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">${campo}</div><div style="font-size: 14px; color: #1e293b; font-weight: 600;">${p[campo]}</div></div>`;
             });
             document.getElementById('info-content').innerHTML = h;
             document.getElementById('info-panel').style.display = 'flex';
@@ -1780,10 +1869,22 @@
                 activeMarker = null;
                 restaurarEstilo(oldMarker);
             }
+            if (highlightCircle) {
+                map.removeLayer(highlightCircle);
+                highlightCircle = null;
+            }
         }
 
         function toggleModoClic() { 
+            const previoModo = modoClic;
             modoClic = !modoClic; 
+
+            // Si estaba en modo selección y acaba de desactivarlo (cancelar), exportar y limpiar
+            if (previoModo && !modoClic) {
+                if (selectedMarkers.length > 0) exportarSeleccionExcel();
+                limpiarSeleccion();
+            }
+
             document.getElementById('btnSeleccionar').classList.toggle('danger', modoClic);
             document.getElementById('btnSeleccionar').innerHTML = modoClic ? '<i class="fa fa-times"></i> CANCELAR SELECCIÓN' : '<i class="fa fa-mouse-pointer"></i> MODO SELECCIÓN';
             map.getContainer().style.cursor = modoClic ? 'crosshair' : '';
@@ -1796,58 +1897,183 @@
 
         function abrirReporte() {
             const visibleMarkers = allMarkers.filter(m => clusterGroup.hasLayer(m));
-            const stats = { A1:0, A2:0, A3:0, IMPOSIBILIDAD:0, "NO ASIGNADO":0, VERENCAMPO:0, REUBICACION:0 };
+            const stats = { A1:0, A2:0, A3:0, NEGATIVA:0, IMPOSIBILIDAD:0, "NO ASIGNADO":0, VERENCAMPO:0, REUBICACION:0 };
             const distStats = {};
-            let tableHtml = "";
+            const timeStats = {};
+            const monthStats = {};
             
             visibleMarkers.forEach(m => {
                 const p = m.properties;
                 stats[p.tipoFiltro]++;
                 if (p.DISTRITO) distStats[p.DISTRITO] = (distStats[p.DISTRITO] || 0) + 1;
-                tableHtml += `<tr><td>${p.SUMINISTRO}</td><td><span style="color:${p.color}; font-weight:bold;">${p.tipoFiltro}</span></td><td>${p.DISTRITO || '—'}</td><td>${p.USUARIO || '—'}</td></tr>`;
+                
+                if (p.FECHA_PROCESADA) {
+                    const date = new Date(p.FECHA_PROCESADA);
+                    if (!isNaN(date.getTime())) {
+                        // Semana
+                        const weekStr = `${date.getFullYear()}-W${Math.ceil((date.getDate() + date.getDay()) / 7)}`;
+                        timeStats[weekStr] = (timeStats[weekStr] || 0) + 1;
+                        // Mes
+                        const monthStr = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2,'0')}`;
+                        monthStats[monthStr] = (monthStats[monthStr] || 0) + 1;
+                    }
+                }
             });
             
-            document.getElementById('stats-container').innerHTML = Object.keys(stats).map(k => `<div class="stat-card"><label style="font-size:13px; font-weight:700; color:#94a3b8;">${k}</label><span style="display:block; font-size:24px; font-weight:800;">${stats[k]}</span></div>`).join('');
+            const colorMap = { A1:'#d32f2f', A2:'#facc15', A3:'#22c55e', NEGATIVA:'#f43f5e', IMPOSIBILIDAD:'#1e293b', "NO ASIGNADO":'#64748b', VERENCAMPO:'#f97316', REUBICACION:'#8b5cf6' };
+
+            // Mostrar todas las categorías
+            const categories = ['A1', 'A2', 'A3', 'NEGATIVA', 'IMPOSIBILIDAD', 'VERENCAMPO', 'REUBICACION', 'NO ASIGNADO'];
+            document.getElementById('stats-container').innerHTML = categories.map(k => `
+                <div class="stat-card" style="border-top-color: ${colorMap[k]}">
+                    <label>${k === 'VERENCAMPO' ? 'VER CAMPO' : k}</label>
+                    <span>${stats[k] || 0}</span>
+                </div>
+            `).join('');
+
+            // ... (rest of logic for table preview)
+            let markersToShow = [];
+            if (visibleMarkers.length <= 11) {
+                markersToShow = visibleMarkers;
+            } else {
+                markersToShow = visibleMarkers.slice(0, 10);
+                markersToShow.push({ isSeparator: true });
+                markersToShow.push(visibleMarkers[visibleMarkers.length - 1]);
+            }
+
+            let tableHtml = "";
+            markersToShow.forEach(m => {
+                if (m.isSeparator) {
+                    tableHtml += `<tr><td colspan="4" style="text-align:center; background:#f8fafc; color:#94a3b8; font-size:10px; letter-spacing:2px; padding:2px;">• • •</td></tr>`;
+                    return;
+                }
+                const p = m.properties;
+                tableHtml += `<tr>
+                    <td style="font-weight:700; color:#3b82f6;">${p.SUMINISTRO}</td>
+                    <td><span style="display:inline-block; padding:2px 6px; border-radius:4px; background:${colorMap[p.tipoFiltro]}22; color:${colorMap[p.tipoFiltro]}; font-weight:700; font-size:10px;">${p.tipoFiltro}</span></td>
+                    <td>${p.DISTRITO || '—'}</td>
+                    <td>${p.FECHA_PROCESADA || '—'}</td>
+                    <td>${p.USUARIO || '—'}</td>
+                </tr>`;
+            });
+            
+            document.getElementById('report-total-count').innerText = `TOTAL: ${visibleMarkers.length} SUMINISTROS`;
             document.getElementById('report-table-body').innerHTML = tableHtml;
             document.getElementById('report-modal').style.display = 'flex';
 
-            updateCharts(stats, distStats);
+            updateDashboardCharts(stats, distStats, timeStats, monthStats, colorMap);
         }
 
-        function updateCharts(stats, distStats) {
+        var chartAct, chartDist, chartTime, chartMonth;
+        function updateDashboardCharts(stats, distStats, timeStats, monthStats, colorMap) {
             if (chartAct) chartAct.destroy();
             if (chartDist) chartDist.destroy();
+            if (chartTime) chartTime.destroy();
+            if (chartMonth) chartMonth.destroy();
 
-            const colors = { A1:'#d32f2f', A2:'#ffeb3b', A3:'#4caf50', IMPOSIBILIDAD:'#212121', "NO ASIGNADO":'#4682b4', VERENCAMPO:'#ff9800', REUBICACION:'#9c27b0' };
+            const activeStats = Object.fromEntries(Object.entries(stats).filter(([k, v]) => v > 0));
 
             chartAct = new Chart(document.getElementById('chartActividades'), {
                 type: 'doughnut',
                 data: {
-                    labels: Object.keys(stats),
+                    labels: Object.keys(activeStats),
                     datasets: [{
-                        data: Object.values(stats),
-                        backgroundColor: Object.keys(stats).map(k => colors[k]),
-                        borderWidth: 0
+                        data: Object.values(activeStats),
+                        backgroundColor: Object.keys(activeStats).map(k => colorMap[k]),
+                        borderWidth: 1,
+                        borderColor: '#ffffff'
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { 
+                            display: true, 
+                            position: 'right', 
+                            labels: { boxWidth: 10, font: { size: 9 }, padding: 8 } 
+                        }
+                    }
+                }
+            });
+
+            // Gráfico Mensual
+            const sortedMonths = Object.keys(monthStats).sort();
+            chartMonth = new Chart(document.getElementById('chartMensual'), {
+                type: 'bar',
+                data: {
+                    labels: sortedMonths,
+                    datasets: [{
+                        label: 'Suministros',
+                        data: sortedMonths.map(m => monthStats[m]),
+                        backgroundColor: '#10b981',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 8 } } },
+                        x: { grid: { display: false }, ticks: { font: { size: 8 } } }
+                    }
+                }
+            });
+
+            // Gráfico Temporal (Tendencia Semanal)
+            const sortedWeeks = Object.keys(timeStats).sort();
+            chartTime = new Chart(document.getElementById('chartTemporal'), {
+                type: 'line',
+                data: {
+                    labels: sortedWeeks,
+                    datasets: [{
+                        label: 'Avance',
+                        data: sortedWeeks.map(w => timeStats[w]),
+                        borderColor: '#1d4ed8',
+                        backgroundColor: 'rgba(29, 78, 216, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 8 } } },
+                        x: { grid: { display: false }, ticks: { font: { size: 8 } } }
+                    }
+                }
             });
 
             const topDistritos = Object.entries(distStats).sort((a,b) => b[1] - a[1]).slice(0, 5);
             chartDist = new Chart(document.getElementById('chartDistritos'), {
                 type: 'bar',
                 data: {
-                    labels: topDistritos.map(d => d[0]),
+                    labels: topDistritos.map(d => d[0].substring(0, 8)),
                     datasets: [{
-                        label: 'Suministros',
                         data: topDistritos.map(d => d[1]),
                         backgroundColor: '#3b82f6',
-                        borderRadius: 5
+                        borderRadius: 4,
+                        barThickness: 15
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false, beginAtZero: true },
+                        x: { grid: { display: false }, ticks: { font: { size: 8 } } }
+                    }
+                }
             });
         }
+
         function cerrarReporte() { document.getElementById('report-modal').style.display = 'none'; }
         function abrirInstrucciones() { document.getElementById('instrucciones-modal').style.display = 'flex'; }
         function cerrarInstrucciones() { document.getElementById('instrucciones-modal').style.display = 'none'; }
@@ -1873,24 +2099,259 @@
             XLSX.writeFile(wb, "Modelo_Carga_Completo.xlsx");
         }
 
-        function exportarExcel() {
-            const data = allMarkers.filter(m => clusterGroup.hasLayer(m)).map(m => {
-                const p = { ...m.properties };
-                ["LATITUD", "LONGITUD", "LAT", "LNG", "color", "tipoFiltro"].forEach(key => delete p[key]);
-                return p;
+        function obtenerDataReporte() {
+            return allMarkers.filter(m => clusterGroup.hasLayer(m)).map(m => {
+                const p = m.properties;
+                return {
+                    "SUMINISTRO": p.SUMINISTRO,
+                    "ACTIVIDAD": p.tipoFiltro,
+                    "DISTRITO": p.DISTRITO || '—',
+                    "USUARIO": p.USUARIO || '—',
+                    "LATITUD": p.LATITUD || '',
+                    "LONGITUD": p.LONGITUD || '',
+                    "VER EN CAMPO": p.isVerCampo ? "SI" : "NO",
+                    "REUBICACION": p.isReubicacion ? "SI" : "NO"
+                };
             });
+        }
+
+        function obtenerResumenStats() {
+            const visibleMarkers = allMarkers.filter(m => clusterGroup.hasLayer(m));
+            const stats = { A1:0, A2:0, A3:0, NEGATIVA:0, IMPOSIBILIDAD:0, "NO ASIGNADO":0, VERENCAMPO:0, REUBICACION:0 };
+            const distStats = {};
+            const monthStats = {};
+
+            visibleMarkers.forEach(m => {
+                const p = m.properties;
+                stats[p.tipoFiltro]++;
+                if (p.DISTRITO) distStats[p.DISTRITO] = (distStats[p.DISTRITO] || 0) + 1;
+                if (p.FECHA_PROCESADA) {
+                    const date = new Date(p.FECHA_PROCESADA);
+                    if (!isNaN(date.getTime())) {
+                        const monthStr = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2,'0')}`;
+                        monthStats[monthStr] = (monthStats[monthStr] || 0) + 1;
+                    }
+                }
+            });
+            return { stats, distStats, monthStats, total: visibleMarkers.length };
+        }
+
+        function exportarExcel() {
+            const data = obtenerDataReporte();
+            const { stats, monthStats } = obtenerResumenStats();
+            
+            const wb = XLSX.utils.book_new();
+            
+            // Hoja 1: Resumen de Conteo
+            const resumenData = Object.entries(stats).map(([act, count]) => ({ "ACTIVIDAD": act, "CONTEO": count }));
+            resumenData.push({ "ACTIVIDAD": "TOTAL GENERAL", "CONTEO": data.length });
+            const wsResumen = XLSX.utils.json_to_sheet(resumenData);
+            XLSX.utils.book_append_sheet(wb, wsResumen, "Resumen de Conteo");
+
+            // Hoja 2: Análisis Mensual
+            const mensualData = Object.entries(monthStats).sort().map(([m, count]) => ({ "MES": m, "EJECUTADOS": count }));
+            const wsMensual = XLSX.utils.json_to_sheet(mensualData);
+            XLSX.utils.book_append_sheet(wb, wsMensual, "Análisis Mensual");
+
+            // Hoja 3: Detalle Completo
+            const detalleData = allMarkers.filter(m => clusterGroup.hasLayer(m)).map(m => {
+                const p = m.properties;
+                return {
+                    "SUMINISTRO": p.SUMINISTRO,
+                    "ACTIVIDAD": p.tipoFiltro,
+                    "FECHA": p.FECHA_PROCESADA || '—',
+                    "DISTRITO": p.DISTRITO || '—',
+                    "USUARIO": p.USUARIO || '—',
+                    "LATITUD": p.LATITUD || '',
+                    "LONGITUD": p.LONGITUD || '',
+                    "VER EN CAMPO": p.isVerCampo ? "SI" : "NO",
+                    "REUBICACION": p.isReubicacion ? "SI" : "NO"
+                };
+            });
+            const wsDetalle = XLSX.utils.json_to_sheet(detalleData);
+            XLSX.utils.book_append_sheet(wb, wsDetalle, "Detalle de Suministros");
+
+            XLSX.writeFile(wb, `Reporte_Consolidado_${new Date().toLocaleDateString().replace(/\//g,'-')}.xlsx`);
+        }
+
+        async function sincronizarDrive(isAuto = false) {
+            const apiKey = document.getElementById('drive-api-key').value.trim();
+            const folderId = document.getElementById('drive-folder-id').value.trim();
+
+            if (!apiKey || !folderId) {
+                if (!isAuto) {
+                    Swal.fire({
+                        title: 'Configuración Requerida',
+                        text: 'Debe ingresar el API Key/Token y el ID de Carpeta en el Explorador de Drive.',
+                        icon: 'warning'
+                    });
+                }
+                return;
+            }
+
+            const data = obtenerDataReporte();
+            if (data.length === 0) return;
+
+            let fileName = `BackUp_Gestion_${new Date().toLocaleDateString().replace(/\//g,'-')}_${new Date().getHours()}-${new Date().getMinutes()}.xlsx`;
+            
+            if (!isAuto) {
+                const { value: customName } = await Swal.fire({
+                    title: 'Sincronizar con Drive',
+                    input: 'text',
+                    inputLabel: 'Nombre del archivo',
+                    inputValue: fileName,
+                    showCancelButton: true,
+                    inputValidator: (value) => { if (!value) return '¡El nombre es requerido!' }
+                });
+                if (!customName) return;
+                fileName = customName.endsWith('.xlsx') ? customName : customName + '.xlsx';
+            }
+
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Reporte");
-            XLSX.writeFile(wb, "Reporte_Visible.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "Reporte_Sync");
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            
+            if (!isAuto) {
+                Swal.fire({
+                    title: 'Sincronizando...',
+                    didOpen: () => { Swal.showLoading(); }
+                });
+            }
+
+            try {
+                const metadata = { name: fileName, parents: [folderId] };
+                const formData = new FormData();
+                formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                formData.append('file', blob);
+
+                const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${apiKey}` },
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error("Fallo en la subida");
+
+                if (!isAuto) {
+                    Swal.fire('¡Éxito!', `Guardado como ${fileName}`, 'success');
+                } else {
+                    const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+                    Toast.fire({ icon: 'success', title: 'Sincronización automática realizada' });
+                }
+            } catch (err) {
+                if (!isAuto) Swal.fire('Error', 'No se pudo sincronizar. Verifique el Token.', 'error');
+            }
         }
+
+        // Auto-sync cada 10 minutos
+        setInterval(() => {
+            console.log("Iniciando auto-sync...");
+            sincronizarDrive(true);
+        }, 10 * 60 * 1000);
 
         function exportarPDF() {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4');
-            const data = allMarkers.filter(m => clusterGroup.hasLayer(m)).map(m => [m.properties.SUMINISTRO, m.properties.tipoFiltro, m.properties.DISTRITO || '', m.properties.USUARIO || '']);
-            doc.autoTable({ head: [['Suministro', 'Actividad', 'Distrito', 'Usuario']], body: data });
-            doc.save("Reporte_Visible.pdf");
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const { stats, total, monthStats } = obtenerResumenStats();
+            const pageWidth = doc.internal.pageSize.getWidth();
+            
+            // Título Principal
+            doc.setFontSize(16);
+            doc.setTextColor(29, 78, 216);
+            doc.text("INFORME INTEGRAL DE GESTIÓN Y ACTIVIDADES", pageWidth / 2, 12, { align: 'center' });
+            
+            // Tablas de Resumen Superior
+            doc.setFontSize(9);
+            const resumenRows = Object.entries(stats).map(([k, v]) => [k, v]);
+            doc.autoTable({
+                startY: 18,
+                head: [['ACTIVIDAD', 'TOTAL']],
+                body: resumenRows,
+                theme: 'striped',
+                styles: { fontSize: 7, cellPadding: 1 },
+                headStyles: { fillColor: [29, 78, 216] },
+                margin: { left: 15, right: pageWidth / 2 + 5 }
+            });
+
+            const mensualRows = Object.entries(monthStats).sort().map(([k, v]) => [k, v]);
+            doc.autoTable({
+                startY: 18,
+                head: [['ANÁLISIS MENSUAL', 'CANT.']],
+                body: mensualRows,
+                theme: 'striped',
+                styles: { fontSize: 7, cellPadding: 1 },
+                headStyles: { fillColor: [51, 65, 85] },
+                margin: { left: pageWidth / 2 + 5, right: 15 }
+            });
+
+            let finalY = doc.lastAutoTable.finalY + 10;
+
+            // Gráficas - Captura de los 4 componentes del Dashboard
+            if (chartAct && chartDist && chartTime && chartMonth) {
+                try {
+                    const imgAct = chartAct.toBase64Image();
+                    const imgMonth = chartMonth.toBase64Image();
+                    const imgTime = chartTime.toBase64Image();
+                    const imgDist = chartDist.toBase64Image();
+                    
+                    doc.setFontSize(8);
+                    doc.setTextColor(100);
+                    
+                    // Fila 1: Actividades y Mensual
+                    doc.text("Composición por Actividad", 15, finalY);
+                    doc.text("Producción Mensual", pageWidth/2 + 5, finalY);
+                    doc.addImage(imgAct, 'PNG', 15, finalY + 2, 85, 45);
+                    doc.addImage(imgMonth, 'PNG', pageWidth/2 + 5, finalY + 2, 85, 45);
+                    
+                    finalY += 55;
+                    
+                    // Fila 2: Tendencia Semanal
+                    doc.text("Tendencia de Avance Semanal", 15, finalY);
+                    doc.addImage(imgTime, 'PNG', 15, finalY + 2, 180, 45);
+                    
+                    finalY += 55;
+                    
+                    // Fila 3: Top Distritos
+                    doc.text("Distribución por Distrito (Top)", 15, finalY);
+                    doc.addImage(imgDist, 'PNG', 15, finalY + 2, 180, 45);
+                    
+                    finalY += 55;
+                } catch (e) { 
+                    console.error("Error capturando gráficas", e); 
+                    finalY += 10;
+                }
+            }
+
+            // Pie de página en la primera hoja si hay espacio o nueva página
+            if (finalY > 260) { doc.addPage(); finalY = 15; }
+
+            // Tabla Detalle de Suministros
+            doc.setFontSize(10);
+            doc.setTextColor(0);
+            doc.text("DETALLE TÉCNICO DE SUMINISTROS (PRIMEROS 500 REGISTROS)", 15, finalY);
+            
+            const tableData = allMarkers.filter(m => clusterGroup.hasLayer(m))
+                .slice(0, 500)
+                .map(m => [
+                    m.properties.SUMINISTRO, 
+                    m.properties.tipoFiltro, 
+                    m.properties.DISTRITO || '', 
+                    m.properties.FECHA_PROCESADA || '', 
+                    m.properties.USUARIO || ''
+                ]);
+
+            doc.autoTable({
+                startY: finalY + 5,
+                head: [['ID Suministro', 'Actividad', 'Distrito', 'Fecha', 'Usuario']],
+                body: tableData,
+                styles: { fontSize: 7, cellPadding: 1 },
+                headStyles: { fillColor: [51, 65, 85] },
+                margin: { bottom: 15 }
+            });
+
+            doc.save(`Reporte_Integral_${new Date().toLocaleDateString().replace(/\//g,'-')}.pdf`);
         }
 
         function actualizarDistritos() {
@@ -1906,45 +2367,58 @@
             const bar = document.getElementById('search-bar-floating');
             const trigger = document.getElementById('search-trigger-btn');
             const input = document.getElementById('search-box-floating');
+            const tabBtn = document.getElementById('tab-btn-search');
             
             if (bar.style.display === 'block') {
                 bar.style.display = 'none';
-                trigger.style.display = 'flex';
+                if (trigger) trigger.style.display = 'flex';
+                if (tabBtn) tabBtn.classList.remove('active');
                 document.getElementById('search-results-floating').style.display = 'none';
             } else {
                 bar.style.display = 'block';
-                trigger.style.display = 'none';
+                if (trigger) trigger.style.display = 'none';
+                if (tabBtn) tabBtn.classList.add('active');
                 input.focus();
             }
         }
 
         function buscarSuministro(val, isPc = false) {
-            const query = val.toUpperCase().trim();
+            const query = (val || "").toString().toUpperCase().trim();
             const resultsDivId = isPc ? 'search-results-pc' : 'search-results-floating';
             const resultsDiv = document.getElementById(resultsDivId);
             
+            if (!resultsDiv) return;
+
             if(!query || query.length < 2) {
                 resultsDiv.style.display = 'none';
                 return;
             }
 
-            const matches = [...allMarkers, ...matrixMarkers].filter(m => 
-                m.properties.SUMINISTRO.includes(query) || 
-                (m.properties.USUARIO && m.properties.USUARIO.toUpperCase().includes(query)) ||
-                (m.properties.NOMBRE && m.properties.NOMBRE.toUpperCase().includes(query)) ||
-                (m.properties.MEDIDOR && m.properties.MEDIDOR.toString().includes(query))
-            ).slice(0, 10);
+            const matches = [...allMarkers, ...matrixMarkers].filter(m => {
+                if (!m.properties) return false;
+                const suministro = (m.properties.SUMINISTRO || "").toString().toUpperCase();
+                const usuario = (m.properties.USUARIO || "").toString().toUpperCase();
+                const nombre = (m.properties.NOMBRE || "").toString().toUpperCase();
+                const medidor = (m.properties.MEDIDOR || "").toString().toUpperCase();
+                
+                return suministro.includes(query) || 
+                       usuario.includes(query) || 
+                       nombre.includes(query) || 
+                       medidor.includes(query);
+            }).slice(0, 15);
 
             if(matches.length > 0) {
                 resultsDiv.innerHTML = matches.map(m => `
                     <div class="search-result-item" onclick="seleccionarResultado('${m.properties.SUMINISTRO}', ${isPc})">
-                        <span class="suministro">${m.properties.SUMINISTRO}</span>
-                        <span class="usuario">${m.properties.USUARIO || m.properties.NOMBRE || 'Sin nombre'}</span>
+                        <div class="suministro">${m.properties.SUMINISTRO}</div>
+                        <div class="usuario">${m.properties.USUARIO || m.properties.NOMBRE || 'Sin nombre'}</div>
                     </div>
                 `).join('');
                 resultsDiv.style.display = 'block';
+                resultsDiv.style.zIndex = "10000"; // Asegurar visibilidad total
             } else {
-                resultsDiv.style.display = 'none';
+                resultsDiv.innerHTML = '<div style="padding:10px; font-size:11px; color:#94a3b8; text-align:center;">No se encontraron resultados</div>';
+                resultsDiv.style.display = 'block';
             }
         }
 
@@ -1959,7 +2433,7 @@
             if (!isPc && window.innerWidth < 768) toggleFloatingSearch();
 
             if (highlightCircle) map.removeLayer(highlightCircle);
-            const found = [...allMarkers, ...matrixMarkers].find(m => m.properties.SUMINISTRO === suministroId);
+            const found = [...allMarkers, ...matrixMarkers].find(m => (m.properties.SUMINISTRO || "").toString() === suministroId.toString());
             
             if(found) { 
                 const latlng = found.getLatLng();
@@ -1970,7 +2444,6 @@
                     matrixClusterGroup.zoomToShowLayer(found);
                 } else map.setView(latlng, 19);
                 highlightCircle = L.circleMarker(latlng, { radius: 20, color: '#facc15', weight: 4, fillOpacity: 0.3, className: 'pulse-highlight' }).addTo(map);
-                setTimeout(() => { if (highlightCircle) map.removeLayer(highlightCircle); }, 4000);
             }
         }
 
