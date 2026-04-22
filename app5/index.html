@@ -157,16 +157,16 @@
 
         /* Panel de Detalles (Smaller) */
         #info-panel {
-            position: fixed; top: 20px; right: 20px; width: 280px; background: white;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); z-index: 2000; border-radius: 20px; 
+            position: fixed; top: 20px; right: 20px; width: 240px; background: white;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); z-index: 2000; border-radius: 12px; 
             display: none; flex-direction: column; border: 1px solid #e2e8f0; overflow: hidden;
             transition: all 0.3s ease;
         }
         body.pc-mode #info-panel { zoom: 0.8; }
-        body.mobile-mode #info-panel { zoom: 1.0; width: 90%; right: 5%; left: 5%; top: 10%; }
+        body.mobile-mode #info-panel { zoom: 1.0; width: 85%; right: 7.5%; left: 7.5%; top: 15%; }
 
-        #info-header { padding: 10px 15px; background: #f8fafc; cursor: default; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
-        #info-content { padding: 15px; max-height: 450px; overflow-y: auto; }
+        #info-header { padding: 8px 12px; background: #f8fafc; cursor: default; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
+        #info-content { padding: 12px; max-height: 400px; overflow-y: auto; }
 
         /* Modal de Reporte */
         #report-modal {
@@ -212,19 +212,26 @@
             bottom: auto;
         }
         .floating-btn {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             background: white;
-            border-radius: 4px;
+            border-radius: 50%; /* Circular */
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             color: var(--primary);
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .floating-btn i {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
         }
         .floating-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
         .floating-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
@@ -320,15 +327,18 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 65px;
+            height: auto;
+            min-height: 60px;
             background: white;
             z-index: 4001;
             display: none; /* Oculto por defecto */
-            justify-content: space-around;
+            flex-wrap: wrap;
+            justify-content: center;
             align-items: center;
             border-top: 1px solid #e2e8f0;
             box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
             padding-bottom: env(safe-area-inset-bottom);
+            padding-top: 5px;
         }
         body.mobile-mode #mobile-nav { display: flex; }
         .mobile-nav-item {
@@ -339,8 +349,8 @@
             color: #94a3b8;
             cursor: pointer;
             transition: all 0.3s ease;
-            flex: 1;
-            padding: 8px 0;
+            width: 20%; /* 5 items per row */
+            padding: 6px 0;
         }
         .mobile-nav-item i { font-size: 20px; }
         .mobile-nav-item span { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
@@ -469,16 +479,16 @@
     </div>
 
     <div class="floating-controls-right">
-        <div id="search-trigger-btn" class="floating-btn mobile-only" onclick="toggleFloatingSearch()" title="Buscar Suministro" style="background: #3b82f6; color: white;">
+        <div id="search-trigger-btn" class="floating-btn" onclick="toggleFloatingSearch()" title="Buscar Suministro" style="background: #3b82f6; color: white;">
             <i class="fa fa-search"></i>
         </div>
-        <div id="btn-print-map" class="floating-btn" onclick="window.print()" title="Imprimir Mapa" style="background: #10b981; color: white;">
+        <div id="btn-print-map" class="floating-btn pc-only" onclick="window.print()" title="Imprimir Mapa" style="background: #10b981; color: white;">
             <i class="fa fa-print"></i>
         </div>
-        <div id="btn-device-toggle" class="floating-btn" onclick="toggleDeviceModeManual()" title="Cambiar Modo de Dispositivo">
+        <div id="btn-device-toggle" class="floating-btn pc-only" onclick="toggleDeviceModeManual()" title="Cambiar Modo de Dispositivo">
             <i id="device-icon" class="fa fa-mobile-alt"></i>
         </div>
-        <div id="btn-location-toggle" class="floating-btn" onclick="toggleLocation()" title="Mi Ubicación">
+        <div id="btn-location-toggle" class="floating-btn pc-only" onclick="toggleLocation()" title="Mi Ubicación">
             <i class="fa fa-location-arrow"></i>
         </div>
     </div>
@@ -496,12 +506,8 @@
         <div id="mobile-sheet-content"></div>
     </div>
 
-    <!-- Mobile Navigation Bar (v4.3) -->
+    <!-- Mobile Navigation Bar (v4.4) -->
     <div id="mobile-nav" class="mobile-only">
-        <div class="mobile-nav-item" id="nav-search" onclick="toggleFloatingSearch()">
-            <i class="fa fa-search"></i>
-            <span>Buscar</span>
-        </div>
         <div class="mobile-nav-item" id="nav-home" onclick="openMobileTab('home')">
             <i class="fa fa-file-import"></i>
             <span>Cargar</span>
@@ -520,7 +526,7 @@
         </div>
         <div class="mobile-nav-item" id="nav-archivos" onclick="openMobileTab('archivos')">
             <i class="fa fa-file-excel"></i>
-            <span>Excel</span>
+            <span>Archivos</span>
         </div>
         <div class="mobile-nav-item" id="nav-drive" onclick="openMobileTab('drive')">
             <i class="fab fa-google-drive"></i>
@@ -529,6 +535,18 @@
         <div class="mobile-nav-item" id="nav-menu" onclick="openMobileTab('menu')">
             <i class="fa fa-chart-pie"></i>
             <span>Reportes</span>
+        </div>
+        <div class="mobile-nav-item" id="nav-loc" onclick="toggleLocation()">
+            <i class="fa fa-location-arrow"></i>
+            <span>Ubicación</span>
+        </div>
+        <div class="mobile-nav-item" id="nav-print" onclick="window.print()">
+            <i class="fa fa-print"></i>
+            <span>Imprimir</span>
+        </div>
+        <div class="mobile-nav-item" id="nav-pc" onclick="toggleDeviceModeManual()">
+            <i class="fa fa-desktop"></i>
+            <span>Modo PC</span>
         </div>
     </div>
 
@@ -1831,11 +1849,19 @@
             XLSX.writeFile(wb, "Suministros_Seleccionados.xlsx");
         }
 
+        function irAPunto(lat, lng) {
+            map.setView([lat, lng], 19);
+        }
+
         function mostrarInfo(p) {
             const lat = p.LATITUD || p.lat, lng = p.LONGITUD || p.lng;
             let h = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom: 2px solid #f1f5f9; padding-bottom: 6px;">
                     <h2 style="margin:0; color:#1d4ed8; font-size: 16px; font-weight: 800;">Suministro: ${p.SUMINISTRO}</h2>
-                    ${(lat && lng) ? `<a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="background:#ea4335; color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none; font-size: 14px;"><i class="fa fa-map-marker-alt"></i></a>` : ''}
+                    <div style="display:flex; gap:6px;">
+                        ${(lat && lng) ? `
+                            <div onclick="irAPunto(${lat}, ${lng})" title="Centrar en Mapa" style="background:#3b82f6; color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size: 14px;"><i class="fa fa-crosshairs"></i></div>
+                            <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="background:#ea4335; color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none; font-size: 14px;"><i class="fa fa-map-marker-alt"></i></a>` : ''}
+                    </div>
                 </div>`;
             
             // Lógica de Actividad Combinada
