@@ -12,13 +12,16 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-sidebar-v2@3.2.3/css/leaflet-sidebar.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/jspdf-autotable@3.5.23/dist/jspdf.plugin.autotable.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 
     <style>
         :root {
@@ -50,7 +53,7 @@
         
         .leaflet-sidebar-content { display: none !important; } /* We will use floating windows */
 
-        #leyenda, #leyenda-frente, #leyenda-archivos, #leyenda-gestion, #leyenda-seleccion, #leyenda-analisis, #leyenda-errores, #drive-window {
+        #leyenda, #leyenda-frente, #leyenda-archivos, #leyenda-gestion, #leyenda-seleccion, #leyenda-analisis, #leyenda-errores, #drive-window, #leyenda-trabajo {
             position: absolute; left: 65px; background: white; padding: 0; border-radius: 12px;
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-size: 14px; z-index: 1000;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -66,11 +69,11 @@
         
         body.pc-mode #leyenda, body.pc-mode #leyenda-frente, body.pc-mode #leyenda-archivos,
         body.pc-mode #leyenda-gestion, body.pc-mode #leyenda-seleccion, body.pc-mode #leyenda-analisis,
-        body.pc-mode #leyenda-errores, body.pc-mode #drive-window { zoom: 0.8; }
+        body.pc-mode #leyenda-errores, body.pc-mode #drive-window, body.pc-mode #leyenda-trabajo { zoom: 0.8; }
         
         body.mobile-mode #leyenda, body.mobile-mode #leyenda-frente, body.mobile-mode #leyenda-archivos,
         body.mobile-mode #leyenda-gestion, body.mobile-mode #leyenda-seleccion, body.mobile-mode #leyenda-analisis,
-        body.mobile-mode #leyenda-errores, body.mobile-mode #drive-window { 
+        body.mobile-mode #leyenda-errores, body.mobile-mode #drive-window, body.mobile-mode #leyenda-trabajo { 
             display: none !important;
         }
 
@@ -82,6 +85,7 @@
         #leyenda-analisis { top: 60px; }
         #leyenda-errores { top: 60px; max-height: 400px; overflow-y: auto; }
         #drive-window { top: 60px; }
+        #leyenda-trabajo { top: 60px; }
         
         .hidden-legend {
             transform: translateX(calc(-100% - 100px)) !important;
@@ -118,7 +122,7 @@
         }
 
         .leaflet-sidebar { width: 40px !important; }
-        #leyenda, #leyenda-frente, #leyenda-archivos, #leyenda-gestion, #leyenda-seleccion, #leyenda-analisis {
+        #leyenda, #leyenda-frente, #leyenda-archivos, #leyenda-gestion, #leyenda-seleccion, #leyenda-analisis, #leyenda-trabajo {
             left: 50px; 
         }
 
@@ -183,11 +187,19 @@
         .report-table th { background: #f8fafc; padding: 6px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
         .report-table td { padding: 5px 8px; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
 
-        .stats-grid { display: flex; gap: 5px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; }
-        .stat-card { min-width: 89px; flex: 1; padding: 7px 3px; border-radius: 11px; border: 1px solid #f1f5f9; text-align: center; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-top: 3px solid var(--primary); transition: transform 0.2s; }
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 8px; 
+            margin-bottom: 14px; 
+        }
+        @media (max-width: 640px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .stat-card { min-width: 80px; flex: 1; padding: 1px 2px; border-radius: 10px; border: 1px solid #f1f5f9; text-align: center; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.08); border-top: 3px solid var(--primary); transition: transform 0.2s; height: auto; display: flex; flex-direction: column; justify-content: center; }
         .stat-card:hover { transform: translateY(-2px); }
-        .stat-card label { font-size: 9px !important; color: #64748b !important; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 1px; white-space: nowrap; }
-        .stat-card span { font-size: 16px !important; color: #0f172a !important; font-weight: 800; }
+        .stat-card label { font-size: 11px !important; color: #475569 !important; letter-spacing: 0.2px; text-transform: uppercase; font-weight: 800; display: block; margin-bottom: -2px; white-space: nowrap; line-height: 1.1; }
+        .stat-card span { font-size: 24px !important; color: #0f172a !important; font-weight: 900; line-height: 1; display: block; }
 
         .dashboard-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 11px; margin-bottom: 14px; }
         .dashboard-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 11px; padding: 11px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); min-width: 0; }
@@ -350,7 +362,7 @@
             color: #94a3b8;
             cursor: pointer;
             transition: all 0.3s ease;
-            width: 20%; /* 5 items per row */
+            width: 16.66%; /* 6 items per row */
             padding: 6px 0;
         }
         .mobile-nav-item i { font-size: 20px; }
@@ -589,6 +601,10 @@
 
     <!-- Mobile Navigation Bar (v4.4) -->
     <div id="mobile-nav" class="mobile-only">
+        <div class="mobile-nav-item" id="nav-trabajo" onclick="openMobileTab('trabajo')">
+            <i class="fa fa-briefcase"></i>
+            <span>Trabajo</span>
+        </div>
         <div class="mobile-nav-item" id="nav-home" onclick="openMobileTab('home')">
             <i class="fa fa-file-import"></i>
             <span>Cargar</span>
@@ -616,6 +632,10 @@
         <div class="mobile-nav-item" id="nav-menu" onclick="openMobileTab('menu')">
             <i class="fa fa-chart-pie"></i>
             <span>Reportes</span>
+        </div>
+        <div class="mobile-nav-item" id="nav-manual" onclick="abrirManualApp()">
+            <i class="fa fa-question-circle"></i>
+            <span>Manual</span>
         </div>
         <div class="mobile-nav-item" id="nav-loc" onclick="toggleLocation()">
             <i class="fa fa-location-arrow"></i>
@@ -648,6 +668,8 @@
                     </a>
                 </li>
                 <li id="tab-btn-drive"><a href="javascript:void(0)" onclick="abrirModalDrive()" title="Cargar desde Drive"><i class="fab fa-google-drive"></i></a></li>
+                <li id="tab-btn-trabajo"><a href="javascript:void(0)" onclick="toggleLeyendaTrabajo()" title="Gestión de Trabajo en Campo"><i class="fa fa-briefcase"></i></a></li>
+                <li id="tab-btn-manual"><a href="javascript:void(0)" onclick="abrirManualApp()" title="Manual de Usuario"><i class="fa fa-question-circle" style="color:#3b82f6;"></i></a></li>
             </ul>
             <div style="position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 10px; font-weight: bold; color: #94a3b8;">v4.2</div>
         </div>
@@ -769,7 +791,48 @@
         <div id="info-content"></div>
     </div>
 
-    <!-- Window Google Drive Explorer (v4.1) -->
+    <!-- Window: Gestión de Trabajo (v5.0) -->
+    <div id="leyenda-trabajo" class="hidden-legend">
+        <div class="leyenda-header">
+            <span>Gestión de Trabajo</span>
+            <i class="fa fa-times" onclick="toggleLeyendaTrabajo()" style="cursor: pointer; opacity: 0.8;"></i>
+        </div>
+        <div class="leyenda-body">
+            <div id="status-trabajo" style="padding: 10px; border-radius: 8px; background: #f1f5f9; margin-bottom: 10px; border-left: 4px solid #94a3b8;">
+                <div style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">Estado del Modo Trabajo</div>
+                <div id="trabajo-estado-text" style="font-size: 14px; font-weight: 800; color: #1e293b;">INACTIVO</div>
+            </div>
+            
+            <div id="config-trabajo" style="display: flex; flex-direction: column; gap: 8px;">
+                <button id="btnIniciarTrabajo" onclick="iniciarModoTrabajo()" style="background:#10b981; height: 32px;">
+                    <i class="fa fa-play"></i> INICIAR MODO TRABAJO
+                </button>
+                <button onclick="recuperarTrabajoExcel()" style="background:#6366f1; height: 32px;">
+                    <i class="fa fa-upload"></i> RECUPERAR DATOS (XLSX)
+                </button>
+            </div>
+            
+            <div id="acciones-trabajo" style="display: none; flex-direction: column; gap: 8px;">
+                <div style="font-size: 11px; color: #64748b; margin: 4px 0;">Archivo: <b id="trabajo-filename-display" style="color: #1d4ed8;">-</b></div>
+                <div style="font-size: 11px; color: #64748b; margin-bottom: 8px;">Puntos declarados: <b id="count-trabajo" style="color: #10b981;">0</b></div>
+                
+                <button onclick="descargarTrabajoExcel()" class="warning">
+                    <i class="fa fa-download"></i> DESCARGAR EXCEL
+                </button>
+                <button onclick="syncTrabajoDrive()" style="background:#3b82f6;">
+                    <i class="fa fa-cloud-upload-alt"></i> SINCRONIZAR DRIVE (AHORA)
+                </button>
+                <button onclick="detenerModoTrabajo()" class="danger">
+                    <i class="fa fa-stop"></i> FINALIZAR Y CERRAR
+                </button>
+                <div id="sync-timer-msg" style="font-size: 10px; color: #94a3b8; text-align: center; margin-top: 4px;">Póxima sincronización en: <span id="timer-sync-count">5:00</span></div>
+            </div>
+            
+            <p style="font-size: 10px; color: #64748b; margin-top: 10px; line-height: 1.3; font-style: italic;">
+                * En este modo, al hacer clic en un punto podrá asignarle una actividad y se guardará automáticamente.
+            </p>
+        </div>
+    </div>
     <div id="drive-window" class="hidden-legend">
         <div class="leyenda-header">
             <span>Explorador de Drive</span>
@@ -777,15 +840,30 @@
         </div>
         <div class="leyenda-body">
             <p style="font-size:11px; color:#64748b; margin-bottom:10px; line-height: 1.3;">
-                Ingrese su Google API Key para listar los archivos de la carpeta configurada.
+                Inicie sesión con su cuenta de Google para acceder directamente a sus archivos de Drive.
             </p>
-            <div style="margin-bottom:8px;">
-                <label style="display:block; font-size:10px; font-weight:bold; color:#94a3b8; margin-bottom:2px; text-transform: uppercase;">GOOGLE API KEY / TOKEN</label>
-                <input type="password" id="drive-api-key" placeholder="API Key para leer o Token para guardar..." style="height: 24px;">
+            <div id="google-auth-container" style="margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;">
+                <button id="btn-google-login" onclick="iniciarAuthGoogle()" style="background:#4285f4; height: 36px; border-radius: 8px; font-weight: 800;">
+                    <i class="fab fa-google"></i> INICIAR SESIÓN CON GOOGLE
+                </button>
+                <div id="google-user-info" style="display:none; align-items:center; gap:10px; background:#f0f7ff; padding:8px; border-radius:10px; border:1px solid #dbeafe;">
+                    <img id="google-user-photo" src="" style="width:32px; height:32px; border-radius:50%;">
+                    <div style="flex:1; overflow:hidden;">
+                        <div id="google-user-name" style="font-size:11px; font-weight:bold; color:#1e40af; white-space:nowrap; text-overflow:ellipsis;">Usuario</div>
+                        <div style="font-size:9px; color:#60a5fa;">Conectado</div>
+                    </div>
+                    <i class="fa fa-sign-out-alt" onclick="logoutGoogle()" style="color:#94a3b8; cursor:pointer;" title="Cerrar Sesión"></i>
+                </div>
             </div>
-            <div style="margin-bottom:8px;">
-                <label style="display:block; font-size:10px; font-weight:bold; color:#94a3b8; margin-bottom:2px; text-transform: uppercase;">ID DE CARPETA</label>
-                <input type="text" id="drive-folder-id" value="145Y2R9oxYM8ZTqKJwHBk1V2Y-bW7SeD5" style="height: 24px; background:#f8fafc;" readonly>
+            <div id="manual-auth-section" style="border-top: 1px dashed #e2e8f0; padding-top: 10px;">
+                <div style="margin-bottom:8px;">
+                    <label style="display:block; font-size:10px; font-weight:bold; color:#94a3b8; margin-bottom:2px; text-transform: uppercase;">O usar Token Manual</label>
+                    <input type="password" id="drive-api-key" placeholder="Pegar Access Token..." style="height: 24px;">
+                </div>
+                <div style="margin-bottom:8px;">
+                    <label style="display:block; font-size:10px; font-weight:bold; color:#94a3b8; margin-bottom:2px; text-transform: uppercase;">ID DE CARPETA</label>
+                    <input type="text" id="drive-folder-id" value="145Y2R9oxYM8ZTqKJwHBk1V2Y-bW7SeD5" style="height: 24px; background:#f8fafc;" readonly>
+                </div>
             </div>
             <button onclick="listarArchivosDrive()">
                 <i class="fa fa-search"></i> BUSCAR ARCHIVOS
@@ -902,13 +980,13 @@
                         </div>
                     </div>
                     <div class="dashboard-card">
-                        <h3>Análisis Mensual</h3>
+                        <h3 id="title-mensual">Análisis Mensual</h3>
                         <div class="chart-wrapper">
                             <canvas id="chartMensual"></canvas>
                         </div>
                     </div>
                     <div class="dashboard-card">
-                        <h3>Avance Semanal</h3>
+                        <h3 id="title-temporal">Avance Semanal</h3>
                         <div class="chart-wrapper">
                             <canvas id="chartTemporal"></canvas>
                         </div>
@@ -971,8 +1049,11 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <button onclick="descargarManualPDF()" style="width: auto; padding: 0 20px; background: #dc2626 !important;">
+                    <i class="fa fa-file-pdf"></i> DESCARGAR MANUAL PDF
+                </button>
                 <button onclick="descargarModelo()" style="width: auto; padding: 0 20px; background: #1d4ed8 !important;">
-                    <i class="fa fa-download"></i> DESCARGAR MODELO EXCEL
+                    <i class="fa fa-download"></i> MODELO EXCEL
                 </button>
                 <button onclick="cerrarInstrucciones()" style="width: auto; padding: 0 20px; background: #94a3b8;">Cerrar</button>
             </div>
@@ -1017,6 +1098,70 @@
         var userLocationMarker = null;
         var userLocationCircle = null;
         var watchId = null;
+        var routingControl = null;
+        
+        // Google Auth Variables
+        const GOOGLE_CLIENT_ID = "534089784835-dsnkbgsmaakvfvr7irn0cts2fsrjsdjj.apps.googleusercontent.com";
+        let googleTokenClient = null;
+        let accessToken = null;
+
+        function initGoogleAuth() {
+            if (typeof google === "undefined") {
+                console.error("Google library not loaded");
+                return;
+            }
+            googleTokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: GOOGLE_CLIENT_ID,
+                scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile',
+                callback: (tokenResponse) => {
+                    if (tokenResponse && tokenResponse.access_token) {
+                        accessToken = tokenResponse.access_token;
+                        document.getElementById('drive-api-key').value = accessToken;
+                        obtenerInfoUsuarioGoogle(accessToken);
+                        
+                        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+                        Toast.fire({ icon: 'success', title: 'Sesión iniciada correctamente' });
+                    }
+                },
+            });
+        }
+
+        async function obtenerInfoUsuarioGoogle(token) {
+            try {
+                const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (res.ok) {
+                    const user = await res.json();
+                    document.getElementById('btn-google-login').style.display = 'none';
+                    document.getElementById('google-user-info').style.display = 'flex';
+                    document.getElementById('google-user-name').innerText = user.name;
+                    document.getElementById('google-user-photo').src = user.picture;
+                }
+            } catch (e) {
+                console.error("Error al obtener info de usuario", e);
+            }
+        }
+
+        function iniciarAuthGoogle() {
+            if (!googleTokenClient) initGoogleAuth();
+            googleTokenClient.requestAccessToken();
+        }
+
+        function logoutGoogle() {
+            accessToken = null;
+            document.getElementById('drive-api-key').value = "";
+            document.getElementById('btn-google-login').style.display = 'flex';
+            document.getElementById('google-user-info').style.display = 'none';
+            
+            const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+            Toast.fire({ icon: 'info', title: 'Sesión cerrada' });
+        }
+
+        // Cargar librería al inicio
+        window.addEventListener('load', () => {
+            setTimeout(initGoogleAuth, 1000);
+        });
 
         function toggleLocation() {
             const tabBtn = document.getElementById('btn-location-toggle');
@@ -1071,6 +1216,12 @@
         var modoClic = false;
         var modoArea = false;
         var activeMarker = null; // Para resaltar el punto consultado
+        var modoTrabajo = false;
+        var nombreArchivoTrabajo = "Reporte_Campo";
+        var datosTrabajo = [];
+        var timerAutoSync = null;
+        var secondsToSync = 300;
+        var currentDriveFileId = null;
         var chartAct = null;
         var chartDist = null;
         var frentesVisibles = {};
@@ -1407,6 +1558,48 @@
             actualizarEstilosMapa();
         }
 
+        function abrirManualApp() { abrirInstrucciones(); }
+
+        async function descargarManualPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const margin = 20;
+            let currentY = 20;
+
+            doc.setFontSize(22);
+            doc.setTextColor(30, 41, 59);
+            doc.text("MANUAL DE USUARIO: MAPA DE CAMPO", margin, currentY);
+            currentY += 15;
+
+            doc.setFontSize(12);
+            doc.setTextColor(100, 116, 139);
+            doc.text("Versión 4.5 | Guía de Gestión Geográfica", margin, currentY);
+            currentY += 15;
+
+            const sections = [
+                { title: "1. CONEXIÓN CON DRIVE", content: "Los técnicos deben usar el botón INICIAR SESIÓN CON GOOGLE en la sección Drive. Esto permite cargar archivos directamente desde la carpeta compartida en la nube y sincronizar los avances en tiempo real." },
+                { title: "2. MODO TRABAJO", content: "Al activar el MODO TRABAJO, cada clic en un suministro del mapa permite declarar una actividad (A1, A2, A3, etc.). La aplicación recordará las medidas de ancho/largo y guardará las observaciones." },
+                { title: "3. GPS Y RUTAS", content: "Usa el icono del puntero para ver tu posición GPS. Para obtener indicaciones, toca un suministro y pulsa el icono de ruta curva; el mapa trazará una línea guía desde tu ubicación hasta el suministro." },
+                { title: "4. SELECCIÓN MASIVA", content: "La herramienta de SELECCIÓN POR ÁREA permite dibujar polígonos para capturar múltiples suministros a la vez y exportarlos a Excel." },
+                { title: "5. MATRIZ MAESTRA", content: "Asegúrese de cargar la MATRIZ MAESTRA para poder vincular números de suministro con coordinadas geográficas." }
+            ];
+
+            sections.forEach(s => {
+                doc.setFontSize(14);
+                doc.setTextColor(29, 78, 216);
+                doc.text(s.title, margin, currentY);
+                currentY += 7;
+                doc.setFontSize(11);
+                doc.setTextColor(51, 65, 85);
+                const lines = doc.splitTextToSize(s.content, 170);
+                doc.text(lines, margin, currentY);
+                currentY += (lines.length * 6) + 10;
+            });
+
+            doc.save("Manual_Usuario_Mapa_Campo.pdf");
+        }
+
+
         function reorganizarLeyendas() {
             const ids = ['leyenda-gestion', 'leyenda-seleccion', 'leyenda-analisis', 'leyenda', 'leyenda-frente', 'leyenda-archivos', 'leyenda-errores'];
             let currentTop = 10;
@@ -1424,22 +1617,37 @@
         }
 
 
-        function abrirModalDrive() {
-            const modal = document.getElementById('drive-modal');
-            const tabBtn = document.getElementById('tab-btn-drive');
-            if (modal.style.display === 'flex') {
-                modal.style.display = 'none';
-                if (tabBtn) tabBtn.classList.remove('active');
+        function toggleLeyendaTrabajo() {
+            const win = document.getElementById('leyenda-trabajo');
+            const tab = document.getElementById('tab-btn-trabajo');
+            if (win.classList.contains('hidden-legend')) {
+                win.classList.remove('hidden-legend');
+                if (tab) tab.classList.add('active');
             } else {
-                modal.style.display = 'flex';
-                if (tabBtn) tabBtn.classList.add('active');
+                win.classList.add('hidden-legend');
+                if (tab) tab.classList.remove('active');
             }
+            reorganizarLeyendas();
+        }
+
+        function abrirModalDrive() { 
+            const win = document.getElementById('drive-window');
+            const tab = document.getElementById('tab-btn-drive');
+            if (win.classList.contains('hidden-legend')) {
+                win.classList.remove('hidden-legend');
+                if (tab) tab.classList.add('active');
+            } else {
+                win.classList.add('hidden-legend');
+                if (tab) tab.classList.remove('active');
+            }
+            reorganizarLeyendas();
         }
 
         function cerrarModalDrive() {
-            document.getElementById('drive-modal').style.display = 'none';
+            document.getElementById('drive-window').classList.add('hidden-legend');
             const tabBtn = document.getElementById('tab-btn-drive');
             if (tabBtn) tabBtn.classList.remove('active');
+            reorganizarLeyendas();
         }
 
         function actualizarEstilosMapa() {
@@ -1685,6 +1893,7 @@
                 case 'seleccion': title.innerText = 'Herramientas de Selección'; sourceId = 'leyenda-seleccion'; break;
                 case 'leyenda': title.innerText = 'Capas y Actividades'; sourceId = 'leyenda'; break;
                 case 'frentes': title.innerText = 'Frentes de Trabajo'; sourceId = 'leyenda-frente'; break;
+                case 'trabajo': title.innerText = 'Gestión de Trabajo'; sourceId = 'leyenda-trabajo'; break;
                 case 'archivos': title.innerText = 'Archivos Excel'; sourceId = 'leyenda-archivos'; break;
                 case 'menu': title.innerText = 'Análisis y Reportes'; sourceId = 'leyenda-analisis'; break;
                 case 'drive': title.innerText = 'Explorador de Drive'; sourceId = 'drive-window'; break;
@@ -1739,8 +1948,6 @@
             const savedKey = localStorage.getItem('google_drive_api_key');
             if (savedKey) {
                 document.getElementById('drive-api-key').value = savedKey;
-                // Intentar listar archivos automáticamente si hay llave
-                setTimeout(listarArchivosDrive, 1000);
             }
 
             cargarMatriz().then(() => {
@@ -1748,24 +1955,6 @@
             });
             // makeDraggable(document.getElementById("info-panel"), document.getElementById("info-header"));
         };
-
-        function abrirModalDrive() { 
-            const win = document.getElementById('drive-window');
-            if (win.classList.contains('hidden-legend')) {
-                // Cerrar otras ventanas
-                document.querySelectorAll('.hidden-legend').forEach(l => l.classList.add('hidden-legend'));
-                win.classList.remove('hidden-legend');
-                const btn = document.getElementById('btn-toggle-drive');
-                if (btn) btn.classList.add('active');
-            } else {
-                cerrarModalDrive();
-            }
-        }
-        function cerrarModalDrive() { 
-            document.getElementById('drive-window').classList.add('hidden-legend'); 
-            const btn = document.getElementById('btn-toggle-drive');
-            if (btn) btn.classList.remove('active');
-        }
 
         let driveFiles = []; // Almacenar archivos listados para carga masiva
 
@@ -1789,9 +1978,20 @@
 
             try {
                 const query = `'${folderId}' in parents and (mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' or mimeType = 'application/vnd.google-apps.spreadsheet') and trashed = false`;
-                const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&key=${apiKey}&fields=files(id,name,mimeType)`;
                 
-                const res = await fetch(url);
+                // Si la clave empieza con yaia o es muy larga, probablemente es un Token.
+                // Pero lo más seguro es probar con Authorization Header si tenemos accessToken
+                const useToken = accessToken || apiKey.length > 60; 
+                let url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType)`;
+                let headers = {};
+
+                if (useToken) {
+                    headers['Authorization'] = 'Bearer ' + apiKey;
+                } else {
+                    url += `&key=${apiKey}`;
+                }
+                
+                const res = await fetch(url, { headers });
                 const data = await res.json();
 
                 if (data.error) throw new Error(data.error.message);
@@ -1849,16 +2049,24 @@
 
         async function cargarArchivoDrive(fileId, fileName, mimeType, silent = false) {
             const apiKey = document.getElementById('drive-api-key').value.trim();
+            const useToken = accessToken || apiKey.length > 60;
             let downloadUrl = "";
+            let headers = {};
 
             if (mimeType === 'application/vnd.google-apps.spreadsheet') {
-                downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&key=${apiKey}`;
+                downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`;
             } else {
-                downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${apiKey}`;
+                downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
+            }
+
+            if (useToken) {
+                headers['Authorization'] = 'Bearer ' + apiKey;
+            } else {
+                downloadUrl += `&key=${apiKey}`;
             }
 
             try {
-                const res = await fetch(downloadUrl);
+                const res = await fetch(downloadUrl, { headers });
                 if (!res.ok) throw new Error("Error al descargar el archivo.");
                 const buffer = await res.arrayBuffer();
                 // Cargamos oculto por defecto como se solicitó
@@ -1868,6 +2076,25 @@
                 if (!silent) alert("Error al cargar el archivo: " + e.message);
                 throw e;
             }
+        }
+
+        function parseExcelDate(val) {
+            if (!val) return null;
+            if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+            if (typeof val === 'number') {
+                return new Date(Math.round((val - 25569) * 86400 * 1000));
+            }
+            if (typeof val === 'string') {
+                const parts = val.split(/[-\/]/);
+                if (parts.length === 3) {
+                    if (parts[0].length === 4) return new Date(val); 
+                    const d = parseInt(parts[0]), m = parseInt(parts[1]) - 1, y = parseInt(parts[2]);
+                    const res = new Date(y, m, d);
+                    return isNaN(res.getTime()) ? null : res;
+                }
+            }
+            const d = new Date(val);
+            return isNaN(d.getTime()) ? null : d;
         }
 
         async function procesarDatosExcel(arrayBuffer, fileName, startVisible = true, source = 'app') {
@@ -1922,8 +2149,9 @@
                         let fechaVal = "";
                         for (let k in row) {
                             if (k.toUpperCase().trim() === "FECHA") {
-                                if (row[k] instanceof Date) {
-                                    fechaVal = row[k].toISOString().split('T')[0];
+                                const d = parseExcelDate(row[k]);
+                                if (d) {
+                                    fechaVal = d.toISOString().split('T')[0];
                                 } else {
                                     fechaVal = row[k].toString().trim();
                                 }
@@ -2042,8 +2270,487 @@
             });
         };
 
+        function toggleLeyendaTrabajo() {
+            document.getElementById('leyenda-trabajo').classList.toggle('hidden-legend');
+            const tab = document.getElementById('tab-btn-trabajo');
+            if (tab) tab.classList.toggle('active');
+        }
+
+        async function iniciarModoTrabajo() {
+            const { value: filename } = await Swal.fire({
+                title: 'Iniciar Modo Trabajo',
+                input: 'text',
+                inputLabel: 'Nombre del archivo final',
+                inputValue: 'Reporte_Campo_' + new Date().toLocaleDateString().replace(/\//g, '-'),
+                showCancelButton: true,
+                inputValidator: (value) => {
+                    if (!value) return '¡Debe ingresar un nombre para el archivo!';
+                }
+            });
+
+            if (filename) {
+                nombreArchivoTrabajo = filename;
+                modoTrabajo = true;
+                datosTrabajo = [];
+                currentDriveFileId = null; // Reset para nueva sesión
+                
+                document.getElementById('trabajo-filename-display').innerText = filename + ".xlsx";
+                document.getElementById('count-trabajo').innerText = "0";
+                document.getElementById('trabajo-estado-text').innerText = "ACTIVO";
+                document.getElementById('status-trabajo').style.borderLeftColor = "#10b981";
+                document.getElementById('status-trabajo').style.background = "#f0fdf4";
+                
+                document.getElementById('config-trabajo').style.display = "none";
+                document.getElementById('acciones-trabajo').style.display = "flex";
+                
+                // Iniciar timer de 5 min (300 seg)
+                secondsToSync = 300;
+                iniciarTimerSync();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Modo Trabajo Activado',
+                    text: 'Ahora puede hacer clic en los puntos del mapa para declarar actividades. Guardado automático cada 5 minutos activo.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        }
+
+        function iniciarTimerSync() {
+            if (timerAutoSync) clearInterval(timerAutoSync);
+            timerAutoSync = setInterval(() => {
+                secondsToSync--;
+                const mins = Math.floor(secondsToSync / 60);
+                const secs = secondsToSync % 60;
+                document.getElementById('timer-sync-count').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+                
+                if (secondsToSync <= 0) {
+                    syncTrabajoDrive(true);
+                    secondsToSync = 300;
+                }
+            }, 1000);
+        }
+
+        function detenerModoTrabajo() {
+            Swal.fire({
+                title: '¿Finalizar Modo Trabajo?',
+                text: "Se detendrá el registro y el guardado automático.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Sí, finalizar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    modoTrabajo = false;
+                    if (timerAutoSync) clearInterval(timerAutoSync);
+                    currentDriveFileId = null;
+                    
+                    document.getElementById('trabajo-estado-text').innerText = "INACTIVO";
+                    document.getElementById('status-trabajo').style.borderLeftColor = "#94a3b8";
+                    document.getElementById('status-trabajo').style.background = "#f1f5f9";
+                    
+                    document.getElementById('config-trabajo').style.display = "flex";
+                    document.getElementById('acciones-trabajo').style.display = "none";
+                }
+            });
+        }
+
+        async function recuperarTrabajoExcel() {
+            const { value: file } = await Swal.fire({
+                title: 'Recuperar Datos de Sesión',
+                text: 'Seleccione un archivo Excel previamente exportado para continuar trabajando.',
+                input: 'file',
+                inputAttributes: { 'accept': '.xlsx', 'aria-label': 'Suba su archivo Excel' },
+                showCancelButton: true
+            });
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const json = XLSX.utils.sheet_to_json(sheet);
+                        
+                        if (json.length > 0 && json[0].SUMINISTRO) {
+                            datosTrabajo = json.map(item => {
+                                // Reconstruir ACTIVIDAD_DECLARADA si viene en formato separado o directo
+                                let act = item.ACTIVIDAD_DECLARADA || item.ACTIVIDAD || "";
+                                if (item["VER EN CAMPO"] === "SI" && !act.includes("VER EN CAMPO")) act += " / VER EN CAMPO";
+                                if (item.REUBICACION === "SI" && !act.includes("REUBICACION")) act += " / REUBICACION";
+
+                                return {
+                                    SUMINISTRO: item.SUMINISTRO.toString(),
+                                    USUARIO: item.USUARIO || "",
+                                    DISTRITO: item.DISTRITO || "",
+                                    DIRECCION: item.DIRECCION || "",
+                                    ACTIVIDAD_DECLARADA: act,
+                                    ANCHO: item.ANCHO || "",
+                                    LARGO: item.LARGO || "",
+                                    OBSERVACIONES: item.OBSERVACIONES || "",
+                                    HISTORIAL: item.HISTORIAL || "",
+                                    FECHA_REGISTRO: item.FECHA || item.FECHA_REGISTRO || "",
+                                    LATITUD: parseFloat(item.LATITUD),
+                                    LONGITUD: parseFloat(item.LONGITUD)
+                                };
+                            });
+                            
+                            nombreArchivoTrabajo = file.name.replace('.xlsx', '');
+                            modoTrabajo = true;
+                            
+                            document.getElementById('trabajo-filename-display').innerText = file.name;
+                            document.getElementById('count-trabajo').innerText = datosTrabajo.length;
+                            document.getElementById('trabajo-estado-text').innerText = "ACTIVO (RECUPERADO)";
+                            document.getElementById('status-trabajo').style.borderLeftColor = "#10b981";
+                            document.getElementById('status-trabajo').style.background = "#f0fdf4";
+                            document.getElementById('config-trabajo').style.display = "none";
+                            document.getElementById('acciones-trabajo').style.display = "flex";
+                            
+                            iniciarTimerSync();
+                            Swal.fire('Éxito', ` Se han cargado ${datosTrabajo.length} registros.`, 'success');
+                        } else {
+                            throw new Error("Formato no válido");
+                        }
+                    } catch (err) {
+                        Swal.fire('Error', 'El archivo no tiene el formato de reporte esperado.', 'error');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        async function declararPuntoTrabajo(m) {
+            const p = m.properties;
+            
+            // Buscar si ya tiene datos previos para precargar
+            const anterior = datosTrabajo.find(d => d.SUMINISTRO === p.SUMINISTRO);
+            const defaultAncho = anterior ? anterior.ANCHO : "";
+            const defaultLargo = anterior ? anterior.LARGO : "";
+            const defaultActividad = anterior ? anterior.ACTIVIDAD_DECLARADA : ""; // Ej: "A3 / VER EN CAMPO / REUBICACION"
+            const defaultObs = anterior ? anterior.OBSERVACIONES : "";
+            const historialPrevio = anterior ? anterior.HISTORIAL : "";
+
+            // Parsear actividad actual
+            const baseActual = defaultActividad.split(' / ')[0] || "";
+            const isVerCampoActual = defaultActividad.includes('VER EN CAMPO');
+            const isReubicacionActual = defaultActividad.includes('REUBICACION');
+
+            const { value: formValues } = await Swal.fire({
+                title: 'Declarar Suministro: ' + p.SUMINISTRO,
+                width: '450px',
+                html: `
+                    <style>
+                        .swal-select-btn {
+                            transition: all 0.2s;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        }
+                        .swal-select-btn:active {
+                            transform: scale(0.95);
+                        }
+                        .historial-item {
+                            font-size: 9px;
+                            color: #64748b;
+                            background: #f8fafc;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            margin-bottom: 4px;
+                            border-left: 2px solid #cbd5e1;
+                            text-align: left;
+                        }
+                        .swal-modifier-btn {
+                            opacity: 0.5;
+                            pointer-events: none;
+                        }
+                        .swal-modifier-btn.active-modifier {
+                            opacity: 1;
+                            pointer-events: auto;
+                        }
+                        .btn-toggled {
+                            border: 2px solid #1d4ed8 !important;
+                            transform: scale(1.05);
+                            filter: brightness(1.1);
+                        }
+                    </style>
+                    <div style="text-align:left; margin-bottom:15px;">
+                        <label style="font-size:11px; font-weight:bold; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px;">Actividad Base (PICK ONE):</label>
+                        <div id="swal-btn-container" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-top:8px;">
+                            <button type="button" class="swal-select-btn" data-val="A1" style="background:#d32f2f; color:white; border-radius:8px; border:2px solid transparent; height:40px; font-weight:800; cursor:pointer;">A1</button>
+                            <button type="button" class="swal-select-btn" data-val="A2" style="background:#facc15; color:black; border-radius:8px; border:2px solid transparent; height:40px; font-weight:800; cursor:pointer;">A2</button>
+                            <button type="button" class="swal-select-btn" data-val="A3" style="background:#22c55e; color:white; border-radius:8px; border:2px solid transparent; height:40px; font-weight:800; cursor:pointer;">A3</button>
+                            <button type="button" class="swal-select-btn" data-val="IMPOSIBILIDAD" style="background:#1e293b; color:white; border-radius:8px; border:2px solid transparent; height:40px; font-weight:800; cursor:pointer; font-size:10px;">IMPOSIB.</button>
+                            <button type="button" class="swal-select-btn" data-val="NEGATIVA" style="background:#f43f5e; color:white; border-radius:8px; border:2px solid transparent; height:40px; font-weight:800; cursor:pointer; font-size:10px;">NEGATIVA</button>
+                        </div>
+                        <input type="hidden" id="swal-input-base" value="${baseActual}">
+                    </div>
+
+                    <div style="text-align:left; margin-bottom:15px;">
+                        <label style="font-size:11px; font-weight:bold; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px;">Opciones Adicionales:</label>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
+                            <button type="button" id="btn-ver-campo" class="swal-select-btn swal-modifier-btn" data-val="VER EN CAMPO" style="background:#f97316; color:white; border-radius:8px; border:2px solid transparent; height:36px; font-weight:700; cursor:pointer; font-size:11px;">VER EN CAMPO</button>
+                            <button type="button" id="btn-reubicacion" class="swal-select-btn swal-modifier-btn" data-val="REUBICACION" style="background:#8b5cf6; color:white; border-radius:8px; border:2px solid transparent; height:36px; font-weight:700; cursor:pointer; font-size:11px;">REUBICACIÓN</button>
+                        </div>
+                        <input type="hidden" id="swal-input-vercampo" value="${isVerCampoActual ? '1' : ''}">
+                        <input type="hidden" id="swal-input-reubicacion" value="${isReubicacionActual ? '1' : ''}">
+                    </div>
+                    
+                    <div style="display:flex; gap:12px; border-top: 1px solid #f1f5f9; padding-top: 15px; margin-bottom:15px;">
+                        <div style="flex:1;">
+                            <label style="display:block; text-align:left; font-size:11px; font-weight:bold; color:#64748b; text-transform:uppercase;">Ancho (m):</label>
+                            <input id="swal-input-ancho" type="number" step="0.01" inputmode="decimal" placeholder="0.00" style="margin-top:5px; width:100%; height:36px; border-radius:8px; border:1px solid #cbd5e1; padding:0 10px; font-size:16px; font-weight:bold;" value="${defaultAncho}">
+                        </div>
+                        <div style="flex:1;">
+                            <label style="display:block; text-align:left; font-size:11px; font-weight:bold; color:#64748b; text-transform:uppercase;">Largo (m):</label>
+                            <input id="swal-input-largo" type="number" step="0.01" inputmode="decimal" placeholder="0.00" style="margin-top:5px; width:100%; height:36px; border-radius:8px; border:1px solid #cbd5e1; padding:0 10px; font-size:16px; font-weight:bold;" value="${defaultLargo}">
+                        </div>
+                    </div>
+
+                    <div style="text-align:left; margin-bottom:15px;">
+                        <label style="font-size:11px; font-weight:bold; color:#94a3b8; text-transform:uppercase;">Observaciones:</label>
+                        <textarea id="swal-input-obs" style="margin-top:5px; width:100%; height:60px; border-radius:8px; border:1px solid #cbd5e1; padding:8px; font-size:12px; resize:none;" placeholder="Escriba aquí sus anotaciones...">${defaultObs}</textarea>
+                    </div>
+
+                    ${historialPrevio ? `
+                    <div style="text-align:left; max-height: 100px; overflow-y: auto; border-top: 1px solid #f1f5f9; padding-top: 10px;">
+                        <label style="font-size:10px; font-weight:bold; color:#cbd5e1; text-transform:uppercase;">Historial de Modificaciones:</label>
+                        <div style="margin-top:5px;">
+                            ${historialPrevio.split('|').map(h => `<div class="historial-item">${h.trim()}</div>`).reverse().join('')}
+                        </div>
+                    </div>` : ''}
+                `,
+                didOpen: () => {
+                    const baseBtns = Swal.getHtmlContainer().querySelectorAll('#swal-btn-container .swal-select-btn');
+                    const btnVerCampo = document.getElementById('btn-ver-campo');
+                    const btnReubicacion = document.getElementById('btn-reubicacion');
+                    
+                    const inputBase = document.getElementById('swal-input-base');
+                    const inputVerCampo = document.getElementById('swal-input-vercampo');
+                    const inputReubicacion = document.getElementById('swal-input-reubicacion');
+                    
+                    const updateUI = () => {
+                        const base = inputBase.value;
+                        
+                        // Reset base buttons
+                        baseBtns.forEach(b => b.classList.remove('btn-toggled'));
+                        const currentBaseBtn = Array.from(baseBtns).find(b => b.getAttribute('data-val') === base);
+                        if (currentBaseBtn) currentBaseBtn.classList.add('btn-toggled');
+                        
+                        // Check dependencies
+                        const canVerCampo = ['A1', 'A2', 'A3'].includes(base);
+                        const canReubicacion = ['A3'].includes(base);
+                        
+                        btnVerCampo.classList.toggle('active-modifier', canVerCampo);
+                        btnReubicacion.classList.toggle('active-modifier', canReubicacion);
+                        
+                        if (!canVerCampo) inputVerCampo.value = '';
+                        if (!canReubicacion) inputReubicacion.value = '';
+                        
+                        btnVerCampo.classList.toggle('btn-toggled', !!inputVerCampo.value);
+                        btnReubicacion.classList.toggle('btn-toggled', !!inputReubicacion.value);
+                    };
+
+                    baseBtns.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            inputBase.value = btn.getAttribute('data-val');
+                            updateUI();
+                        });
+                    });
+
+                    btnVerCampo.addEventListener('click', () => {
+                        inputVerCampo.value = inputVerCampo.value ? '' : '1';
+                        updateUI();
+                    });
+
+                    btnReubicacion.addEventListener('click', () => {
+                        inputReubicacion.value = inputReubicacion.value ? '' : '1';
+                        updateUI();
+                    });
+
+                    updateUI();
+                },
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa fa-save"></i> GUARDAR',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#1d4ed8',
+                preConfirm: () => {
+                    const base = document.getElementById('swal-input-base').value;
+                    const verCampo = document.getElementById('swal-input-vercampo').value;
+                    const reub = document.getElementById('swal-input-reubicacion').value;
+                    const ancho = document.getElementById('swal-input-ancho').value;
+                    const largo = document.getElementById('swal-input-largo').value;
+                    const obs = document.getElementById('swal-input-obs').value;
+                    
+                    if (!base) {
+                        Swal.showValidationMessage('Debe seleccionar una actividad base');
+                        return false;
+                    }
+
+                    let actividadFinal = base;
+                    if (verCampo) actividadFinal += " / VER EN CAMPO";
+                    if (reub) actividadFinal += " / REUBICACION";
+
+                    return { actividad: actividadFinal, ancho, largo, obs };
+                }
+            });
+
+            if (formValues) {
+                const now = new Date().toLocaleString();
+                let nuevoHistorial = historialPrevio;
+
+                // Detectar cambios para el historial
+                if (anterior) {
+                    let cambios = [];
+                    if (anterior.ACTIVIDAD_DECLARADA !== formValues.actividad) cambios.push(`Act: ${anterior.ACTIVIDAD_DECLARADA}->${formValues.actividad}`);
+                    if (anterior.ANCHO != formValues.ancho) cambios.push(`Ancho: ${anterior.ANCHO}->${formValues.ancho}`);
+                    if (anterior.LARGO != formValues.largo) cambios.push(`Largo: ${anterior.LARGO}->${formValues.largo}`);
+                    if (anterior.OBSERVACIONES !== formValues.obs) cambios.push(`Obs: Cambiado`);
+
+                    if (cambios.length > 0) {
+                        const nuevaEntrada = `[${now}] ${cambios.join(', ')}`;
+                        nuevoHistorial = historialPrevio ? (historialPrevio + " | " + nuevaEntrada) : nuevaEntrada;
+                    }
+                }
+
+                const registro = {
+                    SUMINISTRO: p.SUMINISTRO,
+                    USUARIO: p.USUARIO,
+                    DISTRITO: p.DISTRITO,
+                    DIRECCION: p.DIRECCION,
+                    ACTIVIDAD_DECLARADA: formValues.actividad,
+                    ANCHO: formValues.ancho,
+                    LARGO: formValues.largo,
+                    OBSERVACIONES: formValues.obs,
+                    HISTORIAL: nuevoHistorial,
+                    FECHA_REGISTRO: now,
+                    LATITUD: m.getLatLng().lat,
+                    LONGITUD: m.getLatLng().lng
+                };
+                
+                // Evitar duplicados (actualizar si ya existe)
+                const idx = datosTrabajo.findIndex(d => d.SUMINISTRO === p.SUMINISTRO);
+                if (idx !== -1) {
+                    datosTrabajo[idx] = registro;
+                } else {
+                    datosTrabajo.push(registro);
+                }
+                
+                document.getElementById('count-trabajo').innerText = datosTrabajo.length;
+                
+                // Efecto visual en el mapa
+                m.bindTooltip(`<b>${formValues.actividad} REGISTRADO</b>`, { permanent: false, direction: 'top' }).openTooltip();
+                setTimeout(() => m.unbindTooltip(), 2000);
+            }
+        }
+
+        function descargarTrabajoExcel() {
+            if (datosTrabajo.length === 0) {
+                Swal.fire('Sin datos', 'No hay puntos declarados para exportar.', 'info');
+                return;
+            }
+
+            // Mapear datos al formato esperado por el cargador (procesarDatosExcel)
+            const datosExport = datosTrabajo.map(d => {
+                const base = d.ACTIVIDAD_DECLARADA.split(' / ')[0] || "";
+                const verCampo = d.ACTIVIDAD_DECLARADA.includes('VER EN CAMPO') ? 'SI' : '';
+                const reub = d.ACTIVIDAD_DECLARADA.includes('REUBICACION') ? 'SI' : '';
+                
+                return {
+                    SUMINISTRO: d.SUMINISTRO,
+                    ACTIVIDAD: base,
+                    "VER EN CAMPO": verCampo,
+                    REUBICACION: reub,
+                    FECHA: d.FECHA_REGISTRO,
+                    USUARIO: d.USUARIO,
+                    DISTRITO: d.DISTRITO,
+                    DIRECCION: d.DIRECCION,
+                    ANCHO: d.ANCHO,
+                    LARGO: d.LARGO,
+                    OBSERVACIONES: d.OBSERVACIONES,
+                    HISTORIAL: d.HISTORIAL,
+                    LATITUD: d.LATITUD,
+                    LONGITUD: d.LONGITUD
+                };
+            });
+
+            const ws = XLSX.utils.json_to_sheet(datosExport);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Reporte Campo");
+            XLSX.writeFile(wb, `${nombreArchivoTrabajo}.xlsx`);
+        }
+
+        async function syncTrabajoDrive(isAuto = false) {
+            if (datosTrabajo.length === 0) {
+                if (!isAuto) Swal.fire('Sin datos', 'No hay información para sincronizar.', 'info');
+                return;
+            }
+
+            const apiKey = document.getElementById('drive-api-key').value;
+            const folderId = document.getElementById('drive-folder-id').value;
+
+            if (!apiKey) {
+                if (!isAuto) {
+                    Swal.fire('Falta Token', 'Debe ingresar un OAuth Token en la pestaña Drive para guardar archivos.', 'warning')
+                        .then(() => abrirModalDrive());
+                }
+                return;
+            }
+
+            try {
+                // Convertir a base64 (XLSX)
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(datosTrabajo);
+                XLSX.utils.book_append_sheet(wb, ws, "Data");
+                const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+                const blobContent = new Blob([Uint8Array.from(atob(wbout), c => c.charCodeAt(0))], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+                let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+                let method = 'POST';
+                
+                const metadata = {
+                    name: `${nombreArchivoTrabajo}_Sync.xlsx`,
+                    mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                };
+
+                if (currentDriveFileId) {
+                    url = `https://www.googleapis.com/upload/drive/v3/files/${currentDriveFileId}?uploadType=multipart`;
+                    method = 'PATCH';
+                } else {
+                    metadata.parents = [folderId];
+                }
+
+                const formData = new FormData();
+                formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                formData.append('file', blobContent);
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Authorization': 'Bearer ' + apiKey },
+                    body: formData
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (!currentDriveFileId) currentDriveFileId = data.id;
+                    
+                    if (!isAuto) Swal.fire('Sincronizado', 'Se ha guardado/actualizado la copia en Google Drive.', 'success');
+                    else console.log("Auto-sync completado exitosamente (FileID: " + currentDriveFileId + ")");
+                } else {
+                    const errTxt = await res.text();
+                    throw new Error("HTTP " + res.status + ": " + errTxt);
+                }
+            } catch (e) {
+                console.error("Error en Sync Drive:", e);
+                if (!isAuto) Swal.fire('Error', 'No se pudo sincronizar con Drive. Verifique su Token.', 'error');
+            }
+        }
+
         function handleMarkerClick(m) {
-            if (modoClic) {
+            if (modoTrabajo) {
+                declararPuntoTrabajo(m);
+            } else if (modoClic) {
                 toggleSeleccion(m);
             } else {
                 // Quitar resaltado anterior
@@ -2189,12 +2896,75 @@
             map.setView([lat, lng], 19);
         }
 
+        function trazarRuta(lat, lng) {
+            if (!userLocationMarker) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'GPS Requerido',
+                    text: 'Debe activar su ubicación en tiempo real primero para trazar una ruta.',
+                    confirmButtonText: 'Activar GPS',
+                    showCancelButton: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        toggleLocation();
+                    }
+                });
+                return;
+            }
+
+            const currentPos = userLocationMarker.getLatLng();
+            
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
+
+            routingControl = L.Routing.control({
+                waypoints: [
+                    L.latLng(currentPos.lat, currentPos.lng),
+                    L.latLng(lat, lng)
+                ],
+                routeWhileDragging: true,
+                language: 'es',
+                createMarker: function() { return null; }, // No queremos marcadores extras de la ruta
+                lineOptions: {
+                    styles: [{ color: '#3b82f6', opacity: 0.8, weight: 6 }]
+                },
+                show: false, // No mostrar el panel de instrucciones por defecto para que no estorbe
+                addWaypoints: false
+            }).addTo(map);
+
+            // Ajustar vista para ver toda la ruta
+            routingControl.on('routesfound', function(e) {
+                const routes = e.routes;
+                const bounds = L.latLngBounds(routes[0].coordinates);
+                map.fitBounds(bounds, { padding: [50, 50] });
+            });
+
+            // Opción para limpiar la ruta
+            const btnLimpiar = document.createElement('div');
+            btnLimpiar.id = 'btn-limpiar-ruta';
+            btnLimpiar.innerHTML = '<i class="fa fa-times"></i> LIMPIAR RUTA';
+            btnLimpiar.style = `
+                position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+                background: #ef4444; color: white; padding: 10px 20px; border-radius: 30px;
+                font-weight: 800; cursor: pointer; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                border: 2px solid white; font-size: 12px;
+            `;
+            btnLimpiar.onclick = function() {
+                if (routingControl) map.removeControl(routingControl);
+                routingControl = null;
+                this.remove();
+            };
+            document.body.appendChild(btnLimpiar);
+        }
+
         function mostrarInfo(p) {
             const lat = p.LATITUD || p.lat, lng = p.LONGITUD || p.lng;
             let h = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom: 2px solid #f1f5f9; padding-bottom: 6px;">
                     <h2 style="margin:0; color:#1d4ed8; font-size: 16px; font-weight: 800;">Suministro: ${p.SUMINISTRO}</h2>
                     <div style="display:flex; gap:6px;">
                         ${(lat && lng) ? `
+                            <div onclick="trazarRuta(${lat}, ${lng})" title="Trazar Ruta" style="background:#10b981; color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size: 14px;"><i class="fa fa-directions"></i></div>
                             <div onclick="irAPunto(${lat}, ${lng})" title="Centrar en Mapa" style="background:#3b82f6; color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size: 14px;"><i class="fa fa-crosshairs"></i></div>
                             <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="background:#ea4335; color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none; font-size: 14px;"><i class="fa fa-map-marker-alt"></i></a>` : ''}
                     </div>
@@ -2258,6 +3028,7 @@
         }
 
         var miniMapInstance = null;
+        var miniMapPointsLayer = null;
         var savedReportView = null;
 
         function abrirReporte() {
@@ -2268,6 +3039,24 @@
             const distStats = {};
             const timeStats = {};
             const monthStats = {};
+
+            // CÁLCULO INTERNO: Determinar picos históricos globales de toda la data cargada
+            const globalDaily = {};
+            const globalMonthly = {};
+            allMarkers.forEach(m => {
+                const p = m.properties;
+                if (p.FECHA_PROCESADA) {
+                    const d = new Date(p.FECHA_PROCESADA);
+                    if (!isNaN(d.getTime())) {
+                        const day = d.toISOString().split('T')[0];
+                        globalDaily[day] = (globalDaily[day] || 0) + 1;
+                        const month = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}`;
+                        globalMonthly[month] = (globalMonthly[month] || 0) + 1;
+                    }
+                }
+            });
+            const peakDaily = Math.max(...Object.values(globalDaily), 0);
+            const peakMonthly = Math.max(...Object.values(globalMonthly), 0);
             
             visibleMarkers.forEach(m => {
                 const p = m.properties;
@@ -2277,13 +3066,9 @@
                 if (p.FECHA_PROCESADA) {
                     const date = new Date(p.FECHA_PROCESADA);
                     if (!isNaN(date.getTime())) {
-                        // Agrupar por Lunes de la semana para tendencia semanal
-                        const d = new Date(date);
-                        const day = d.getDay();
-                        const diff = d.getDate() - day + (day == 0 ? -6:1);
-                        const monday = new Date(d.setDate(diff)).toISOString().split('T')[0];
-                        
-                        timeStats[monday] = (timeStats[monday] || 0) + 1;
+                        // Agrupar por día para tendencia semanal por día
+                        const dayStr = date.toISOString().split('T')[0];
+                        timeStats[dayStr] = (timeStats[dayStr] || 0) + 1;
                         
                         // Mes
                         const monthStr = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2,'0')}`;
@@ -2341,12 +3126,58 @@
                         tap: false
                     });
                     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(miniMapInstance);
+                    miniMapPointsLayer = L.layerGroup().addTo(miniMapInstance);
                 }
-                miniMapInstance.setView(map.getCenter(), Math.max(0, map.getZoom() - 2));
+                
+                // Limpiar puntos anteriores del mini-mapa
+                miniMapPointsLayer.clearLayers();
+                
+                // Agrupar por distrito para mostrar una sola ubicación por cada uno
+                const distritosGeo = {};
+                visibleMarkers.forEach(m => {
+                    const distName = (m.properties.DISTRITO || 'SIN DISTRITO').trim().toUpperCase();
+                    if (!distritosGeo[distName]) distritosGeo[distName] = [];
+                    distritosGeo[distName].push(m.getLatLng());
+                });
+
+                const representativePoints = [];
+                Object.keys(distritosGeo).forEach(name => {
+                    const points = distritosGeo[name].filter(ll => ll.lat && ll.lng);
+                    if (points.length > 0) {
+                        const dBounds = L.latLngBounds(points);
+                        const dCenter = dBounds.getCenter();
+                        representativePoints.push(dCenter);
+                        
+                        // Marcador por distrito con etiqueta de nombre
+                        L.marker(dCenter, {
+                            icon: L.divIcon({
+                                className: 'custom-dist-icon',
+                                html: `
+                                    <div style="display:flex; flex-direction:column; align-items:center;">
+                                        <div style="background-color:#ef4444; width:10px; height:10px; border-radius:50%; border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>
+                                        <div style="background:white; padding:1px 4px; border-radius:4px; font-size:8px; font-weight:800; color:#1e293b; border:1px solid #cbd5e1; margin-top:2px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.1);">${name}</div>
+                                    </div>
+                                `,
+                                iconSize: [50, 30],
+                                iconAnchor: [25, 5]
+                            })
+                        }).addTo(miniMapPointsLayer);
+                    }
+                });
+
+                if (representativePoints.length > 0) {
+                    miniMapInstance.fitBounds(L.latLngBounds(representativePoints), { padding: [25, 25], maxZoom: 14 });
+                } else {
+                    miniMapInstance.setView(map.getCenter(), Math.max(0, map.getZoom() - 2));
+                }
                 miniMapInstance.invalidateSize();
             }, 300);
 
-            updateDashboardCharts(stats, distStats, timeStats, monthStats, colorMap);
+            // Actualizar títulos con el cálculo interno de picos
+            document.getElementById('title-mensual').innerText = `Análisis Mensual (Pico: ${peakMonthly})`;
+            document.getElementById('title-temporal').innerText = `Avance Semanal (Pico Diario: ${peakDaily})`;
+
+            updateDashboardCharts(stats, distStats, timeStats, monthStats, colorMap, peakMonthly, peakDaily);
         }
 
         function centrarEnMiniatura() {
@@ -2357,13 +3188,18 @@
         }
 
         var chartAct, chartDist, chartTime, chartMonth;
-        function updateDashboardCharts(stats, distStats, timeStats, monthStats, colorMap) {
+        function updateDashboardCharts(stats, distStats, timeStats, monthStats, colorMap, peakMonthly, peakDaily) {
             if (chartAct) chartAct.destroy();
             if (chartDist) chartDist.destroy();
             if (chartTime) chartTime.destroy();
             if (chartMonth) chartMonth.destroy();
 
             const activeStats = Object.fromEntries(Object.entries(stats).filter(([k, v]) => v > 0));
+            
+            // Automatización de rangos máximos basada estrictamente en el pico histórico detectado
+            // Ejemplo: si el pico es 31, el máximo sugerido será 40 (incremento ~25% redondeado a decena)
+            const autoMonthMax = peakMonthly > 0 ? Math.ceil(peakMonthly * 1.25 / 10) * 10 : 40;
+            const autoDailyMax = peakDaily > 0 ? Math.ceil(peakDaily * 1.4) : 10;
 
             chartAct = new Chart(document.getElementById('chartActividades'), {
                 type: 'doughnut',
@@ -2408,21 +3244,29 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 8 } } },
+                        y: { 
+                            beginAtZero: true, 
+                            suggestedMax: autoMonthMax,
+                            grid: { color: '#f1f5f9' }, 
+                            ticks: { font: { size: 8 } } 
+                        },
                         x: { grid: { display: false }, ticks: { font: { size: 8 } } }
                     }
                 }
             });
 
-            // Gráfico Temporal (Tendencia Semanal)
-            const sortedWeeks = Object.keys(timeStats).sort();
+            // Gráfico Temporal (Tendencia Diaria)
+            const sortedDays = Object.keys(timeStats).sort();
+            // Mostrar últimos 10 días o todos si hay pocos
+            const daysToShow = sortedDays.slice(-10); 
+            
             chartTime = new Chart(document.getElementById('chartTemporal'), {
                 type: 'line',
                 data: {
-                    labels: sortedWeeks,
+                    labels: daysToShow,
                     datasets: [{
-                        label: 'Producción',
-                        data: sortedWeeks.map(w => timeStats[w]),
+                        label: 'Producción Diaria',
+                        data: daysToShow.map(d => timeStats[d]),
                         borderColor: '#1d4ed8',
                         backgroundColor: 'rgba(29, 78, 216, 0.1)',
                         fill: true,
@@ -2436,7 +3280,12 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 8 } } },
+                        y: { 
+                            beginAtZero: true, 
+                            suggestedMax: autoDailyMax,
+                            grid: { color: '#f1f5f9' }, 
+                            ticks: { font: { size: 8 } } 
+                        },
                         x: { grid: { display: false }, ticks: { font: { size: 8 } } }
                     }
                 }
